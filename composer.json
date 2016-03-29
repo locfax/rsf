@@ -1,12 +1,32 @@
 {
-  "name": "locphp/rsf-cli",
-  "description": "framework for swoole",
-  "keywords": ["rsf","swoole"],
+  "name": "locphp/rsf",
+  "description": "RESTFul Web Framework",
+  "keywords": ["framework","swoole", "restful", "rsf"],
+  "homepage": "https://github.com/locphp/rsf",
   "license": "MIT",
-  "type": "project",
+  "authors": [
+    {
+      "name": "ktang",
+      "email": "hellophp@qq.com",
+      "homepage": "https://github.com/locphp"
+    }
+  ],
   "require": {
-    "locphp/rsf": "*",
-    "monolog/monolog": "^1.17",
-    "predis/predis": "^1.0"
+    "php": ">=5.5.0",
+    "psr/http-message": "^1.0",
+    "psr/log": "^1.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^5.1.0"
+  },
+  "suggest": {
+    "monolog/monolog": "Allows more advanced logging of the application flow"
+  },
+  "archive": {
+    //"exclude": ["/examples", "/tests"]
+  },
+  "autoload": {
+    "psr-4": {"Rsf\\": "src"},
+    "files": ["src/constant.php", "src/function.php"]
   }
 }
