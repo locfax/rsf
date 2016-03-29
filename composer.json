@@ -1,11 +1,12 @@
 {
-    "name": "locphp/rsf-cli",
-    "description": "framework for swoole",
-    "keywords": ["rsf", "swoole"],
-    "license": "MIT",
-    "require": {
-        "locphp/rsf": "*",
-        "monolog/monolog": "^1.17",
-        "predis/predis": "^1.0"
-    }
+  "name": "locphp/rsf-cli",
+  "description": "framework for swoole",
+  "keywords": ["rsf","swoole"],
+  "license": "MIT",
+  "type": "project",
+  "require": {
+    "locphp/rsf": "*",
+    "monolog/monolog": "^1.17",
+    "predis/predis": "^1.0"
+  }
 }
