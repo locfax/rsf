@@ -22,9 +22,6 @@
   "suggest": {
     "monolog/monolog": "Allows more advanced logging of the application flow"
   },
-  "archive": {
-    //"exclude": ["/examples", "/tests"]
-  },
   "autoload": {
     "psr-4": {"Rsf\\": "src"},
     "files": ["src/constant.php", "src/function.php"]
