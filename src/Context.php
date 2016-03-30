@@ -9,6 +9,14 @@ class Context {
 
     private static $sess_isset = 0;
 
+    /**
+     * @param $name 区分大小写
+     * @return bool|mixed
+     */
+    public static function config($name) {
+        return Hook::loadFile('config/' . $name . '.inc', false, PSROOT);
+    }
+
     public static function setUser($userData, $rolesData = null, $left = 0) {
         if (!is_null($rolesData)) {
             $userData[self::_ROLEKEY] = $rolesData;

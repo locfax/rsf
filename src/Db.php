@@ -26,7 +26,7 @@ class Db {
         if (!isset(self::$dsn[$dsnid])) {
             self::$dsn[$dsnid] = self::dsn($dsnid);
             if (!isset(self::$dsn[$dsnid]['driver'])) {
-                throw new \Rsf\Exception\Exception('无配置文件!' . $dsnid, 0);
+                throw new Exception\Exception('无配置文件!' . $dsnid, 0);
             }
         }
         $_dsn = self::$dsn[$dsnid];
@@ -455,7 +455,7 @@ class Db {
      */
     public static function M($table) {
         $db = self::Using(self::$using_dbo_id);
-        $orm = \Rsf\Db\Model::getInstance();
+        $orm = Db\Model::getInstance();
         $orm->init($db);
         return $orm->table($table);
     }

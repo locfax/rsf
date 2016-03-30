@@ -105,7 +105,7 @@ function gpc_val($val, $runfunc, $emptyrun) {
 
 //keypath  path1/path2/path3
 function getini($key) {
-    $_CFG = App::mergeVars('cfg');
+    $_CFG = Rsf\App::mergeVars('cfg');
     $k = explode('/', $key);
     switch (count($k)) {
         case 1:
@@ -184,7 +184,7 @@ function datacache($cachekey, $reset = false) {
     if (!$reset) {
         $data = cache('get', $cachekey);
         if (is_null($data)) {
-            $dataclass = '\\model\\data\\' . $cachekey;
+            $dataclass = '\\Model\\Data\\' . ucfirst($cachekey);
             $data = $dataclass::getInstance()->getdata();
             cache('set', $cachekey, output_json($data));
         } else {
@@ -192,7 +192,7 @@ function datacache($cachekey, $reset = false) {
         }
         return $data;
     } else {//重置缓存
-        $dataclass = '\\model\\data\\' . $cachekey;
+        $dataclass = '\\Model\\Data\\' . ucfirst($cachekey);
         $data = $dataclass::getInstance()->getdata();
         cache('set', $cachekey, output_json($data));
     }
@@ -231,7 +231,7 @@ function loadcache($cachenames, $return = false, $reset = false) {
         $cachedata = sysdata($lostcache, $reset);
         foreach ($cachedata as $cname => $json) {
             if ('settings' == $cname) {
-                App::mergeVars('cfg', array('settings' => json_decode($json, true)));
+                \Rsf\App::mergeVars('cfg', array('settings' => json_decode($json, true)));
             } else {
                 setcache($cname, json_decode($json, true));
             }
@@ -266,7 +266,7 @@ function sysdata($cachenames, $reset = false) {
     if (empty($lostcaches)) {
         return $data; //取到全部数据 则返回
     }
-    $data = \Rsf\Cache\sysdata::lost($data, $lostcaches, $reset);
+    $data = \Model\Base\SysData::lost($data, $lostcaches, $reset);
     return $data;
 }
 

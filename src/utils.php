@@ -218,7 +218,7 @@ function durlencode($value) {
  * json encode
  */
 function output_json($arr) {
-    if (PHPVER >= 5.4) {
+    if (floatvaldec(PHP_VERSION) >= 5.4) {
         return json_encode($arr, JSON_UNESCAPED_UNICODE);
     }
     $json = json_encode(durlencode($arr));

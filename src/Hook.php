@@ -11,7 +11,7 @@ class Hook {
      * @return bool|string
      */
     private static function _filePath($fileName, $absPath = BASE, $ext = 'php') {
-        return $absPath . $fileName . '.' . $ext;
+        return $absPath .'/'. $fileName . '.' . $ext;
     }
 
     /**
@@ -19,7 +19,8 @@ class Hook {
      * @return mixed
      */
     private static function _className($classPath) {
-        return str_replace('/', "\\", $classPath);
+        $cn = str_replace('/', "\\", $classPath);
+        return ucfirst($cn);
     }
 
     /**
@@ -94,14 +95,6 @@ class Hook {
     }
 
     /**
-     * @param $name 区分大小写
-     * @return bool|mixed
-     */
-    public static function config($name) {
-        return self::loadFile('config/' . $name . '.inc', false, LIBS);
-    }
-
-    /**
      * 加载助手
      * @param $name 区分大小写
      * @param bool $isClass
@@ -109,9 +102,9 @@ class Hook {
      */
     public static function helper($name, $isClass = false) {
         if ($isClass) {
-            return self::loadClass('helper/' . $name, "helper\\{$name}");
+            return self::loadClass('Helper/' . $name, "\\Rsf\Helper\\{$name}");
         }
-        return self::loadFile('helper/' . $name);
+        return self::loadFile('Helper/' . $name);
     }
 
     /**
@@ -122,9 +115,9 @@ class Hook {
      */
     public static function model($classPath, $isClass = true) {
         if ($isClass) {
-            return self::loadClass('model/' . $classPath . '.class', 'model\\' . self::_className($classPath), LIBS);
+            return self::loadClass('Model/' . $classPath, '\\Model\\' . self::_className($classPath), PSROOT);
         }
-        return self::loadFile('model/' . $classPath, true, LIBS);
+        return self::loadFile('Model/' . $classPath, true, PSROOT);
     }
 
     /**
@@ -134,10 +127,11 @@ class Hook {
      * @return bool|mixed|null
      */
     public static function plugin($classPath, $isClass = false) {
+
         if ($isClass) {
-            return self::loadClass('plugin/' . $classPath . '.class', "plugin\\" . self::_className($classPath), LIBS);
+            return self::loadClass('Plugin/' . $classPath , "\\Plugin\\" . self::_className($classPath), PSROOT);
         }
-        return self::loadFile('plugin/' . $classPath, true, LIBS);
+        return self::loadFile('Plugin/' . $classPath, true, PSROOT);
     }
 
     /**
@@ -150,7 +144,7 @@ class Hook {
     public static function getVendor($classPath, $className = null, $classParam = null, $ext = 'php') {
         if (is_null($className)) {
             //无指定类名 使用标准类名
-            $className = 'vendor\\' . self::_className($classPath);
+            $className = '\\vendor\\' . self::_className($classPath);
         }
         return self::getClass('vendor/' . $classPath, $className, $classParam, BASE, $ext);
     }

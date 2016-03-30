@@ -2,7 +2,7 @@
 
 namespace Rsf;
 
-class controller {
+class Controller {
 
     //用户信息
     protected $login_user = null;
@@ -30,7 +30,7 @@ class controller {
 
     public function __call($name, $arguments) {
         //动作不存在
-        if (\App::isAjax(true)) {
+        if (App::isAjax(true)) {
             $retarr = array(
                 'errcode' => 1,
                 'errmsg' => '你的运气真好! Action ' . $name . '不存在!',
@@ -75,12 +75,12 @@ class controller {
         if ($this->login_user) {
             return $this->login_user;
         }
-        $this->login_user = \Context::getUser();
+        $this->login_user = Context::getUser();
         return $this->login_user;
     }
 
     final function checkacl($controllerName, $actionName, $auth = AUTH) {
-        return \Rbac::check($controllerName, $actionName, $auth);
+        return Rbac::check($controllerName, $actionName, $auth);
     }
 
 }

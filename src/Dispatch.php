@@ -6,7 +6,7 @@ class Dispatch {
 
     const _dCTL = 'ctl';
     const _dACT = 'act';
-    const _controllerPrefix = 'app\\ctl\\';
+    const _controllerPrefix = '\\Apps\\';
     const _actionPrefix = 'act_';
 
     /**
@@ -21,7 +21,7 @@ class Dispatch {
             if (strpos($uri, 'index.php') >= 0) {
                 $uri = substr($uri, strpos($uri, 'index.php') + 10);
             }
-            \Rsf\Base\Route::parse_routes($uri);
+            Route::parse_routes($uri);
         }
         //execute method
         $_controllerName = getgpc('g.' . self::_dCTL, getini('site/defaultController'), 'strtolower');
@@ -29,7 +29,7 @@ class Dispatch {
         $controllerName = preg_replace('/[^a-z0-9_]+/i', '', $_controllerName);
         $actionName = preg_replace('/[^a-z0-9_]+/i', '', $_actionName);
         if (defined('AUTH') && AUTH) {
-            $ret = \Rbac::check($controllerName, $actionName, AUTH);
+            $ret = Rbac::check($controllerName, $actionName, AUTH);
             if (!$ret) {
                 $args = ' : ' . $controllerName . ' - ' . $actionName;
                 return self::errACT($args);
@@ -38,23 +38,20 @@ class Dispatch {
         return self::executeAction($controllerName, $actionName);
     }
 
+
     /**
      * @param $controllerName
      * @param $actionName
      * @return bool
-     * @throws Exception
+     * @throws Exception\Exception
      */
     public static function executeAction($controllerName, $actionName) {
+        $controllerName = ucfirst($controllerName);
         $actionMethod = self::_actionPrefix . $actionName;
         do {
-            $controllerClass = self::_controllerPrefix . $controllerName;
-            //主动载入controller
-            if (!self::_loadController($controllerName, $controllerClass)) {
-                break;
-            }
+            $controllerClass = self::_controllerPrefix . APPKEY . '\\' . $controllerName;
             $controller = new $controllerClass($controllerName, $actionMethod);
             $controller->{$actionMethod}();
-            $controller = null;
             return true;
         } while (false);
         //控制器加载失败
@@ -66,7 +63,7 @@ class Dispatch {
             );
             return rep_send($retarr, 'json');
         }
-        throw new \Rsf\Exception\Exception("The controller '" . $controllerName . '\' is not exists!');
+        throw new Exception\Exception("The controller '" . $controllerName . '\' is not exists!', 0);
     }
 
     /**
@@ -84,19 +81,6 @@ class Dispatch {
         }
         $args = '你没有权限访问该页面!' . $args;
         include template('403', 'default');
-    }
-
-    /**
-     * @param $controllerName
-     * @param $controllerClass
-     * @return bool
-     */
-    private static function _loadController($controllerName, $controllerClass) {
-        if (class_exists($controllerClass, false) || interface_exists($controllerClass, false)) {
-            return true;
-        };
-        $controllerFilename = APP . $controllerName . '.php';
-        return is_file($controllerFilename) && require $controllerFilename;
     }
 
 }

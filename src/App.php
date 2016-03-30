@@ -5,67 +5,40 @@ namespace Rsf;
 class App {
 
 
-    /**
-     * @param array $preload
-     * @param bool $refresh
-     */
-    public static function run($preload, $refresh = false) {
-        if (!defined('APPKEY')) {
-            exit('APPKEY not defined!');
+    public static function rootNamespace($namespace, $path, $classname = null) {
+        $namespace = trim($namespace, '\\');
+        $path = rtrim($path, '/\\');
+        $loader = function ($classname, $return_filename = false) use ($namespace, $path) {
+            if (class_exists($classname, false) || interface_exists($classname, false)) {
+                return true;
+            }
+            $classname = trim($classname, '\\');
+            if ($namespace && stripos($classname, $namespace) !== 0) {
+                return false;
+            } else {
+                $filename = trim(substr($classname, strlen($namespace)), '\\');
+            }
+            $filename = $path . DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $filename) . '.php';
+            if ($return_filename) {
+                return $filename;
+            } else {
+                if (!file_exists($filename)) {
+                    return false;
+                }
+                require $filename;
+                return class_exists($classname, false) || interface_exists($classname, false);
+            }
+        };
+        if ($classname === null) {
+            spl_autoload_register($loader);
+        } else {
+            return $loader($classname, true);
         }
-        $dfiles = array(
-            BASE . 'dispatch.php', //解析器
-            BASE . 'controller.php', //控制器
-        );
-        $preload = array_merge($dfiles, $preload);
-        self::runFile($preload, $refresh);
+    }
+
+    public static function run($root) {
+        \Rsf\APP::rootNamespace('\\', $root);
         Dispatch::dispatching();
-    }
-
-    /**
-     * @param $preload
-     * @param bool $refresh
-     */
-    public static function runFile($preload, $refresh = false) {
-        $preloadfile = GDATA . 'preload/runtime_' . APPKEY . '_files.php';
-        if (!is_file($preloadfile) || $refresh) {
-            $dfiles = array(
-                LIBS . 'config/base.inc.php', //全局配置
-                LIBS . 'config/' . APPKEY . '.dsn.php', //数据库配置
-                LIBS . 'config/' . APPKEY . '.inc.php', //应用配置
-                BASE . 'common.php', //通用函数
-                BASE . 'utils.php', //功能函数
-                BASE . 'dblink.php', //DB
-            );
-            $files = array_merge($dfiles, $preload);
-            $preloadfile = self::makeRunFile($files, $preloadfile);
-        }
-        $preloadfile && require $preloadfile;
-    }
-
-    /**
-     * @param $runtimefiles
-     * @param $runfile
-     * @return bool
-     */
-    public static function makeRunFile($runtimefiles, $runfile) {
-        $content = '';
-        foreach ($runtimefiles as $filename) {
-            $data = php_strip_whitespace($filename);
-            $content .= str_replace(array('<?php', '?>', '<php_', '_php>'), array('', '', '<?php', '?>'), $data);
-        }
-        if (!is_file($runfile)) {
-            file_exists($runfile) && unlink($runfile); //可能是异常文件 删除
-            touch($runfile) && chmod($runfile, 0777); //生成全读写空文件
-        } elseif (!is_writable($runfile)) {
-            chmod($runfile, 0777); //全读写
-        }
-        $ret = file_put_contents($runfile, '<?php ' . $content, LOCK_EX);
-        if ($ret) {
-            //chmod($runfile, 0644); //全只读
-            return $runfile;
-        }
-        return false;
     }
 
     /**
