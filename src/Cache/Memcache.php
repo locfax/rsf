@@ -11,7 +11,7 @@ class Memcache {
 
     public function init($config) {
         if (!extension_loaded('memcache')) {
-            throw new \Rsf\Exception\Exception('memcache 扩展没安装?');
+            throw new \Rsf\Exception\Exception('memcache 扩展没安装?', 0);
         }
         try {
             $this->_link = new \Memcache();

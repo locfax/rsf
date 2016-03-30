@@ -25,7 +25,7 @@ class Imagegd {
             return false;
         }
         $handle = call_user_func($ext2functions[$fileext], $filename);
-        return \Rsf\Helper\HandleGd::getInstance()->init($handle);
+        return new HandleGd($handle);
     }
 
     public static function hex2rgb($color, $default = 'ffffff') {

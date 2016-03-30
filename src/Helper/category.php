@@ -5,7 +5,7 @@ namespace Rsf\Helper;
 class Category {
 
 //管理DIV列表分类
-    function div_class($data, $level = 0, $controller = 'class', $extra = '', $idname = 'catid', $pidname = 'upid', $name = 'name', $fchildrens = 'children') {
+    function div_list($data, $level = 0, $controller = 'class', $extra = '', $idname = 'catid', $pidname = 'upid', $name = 'name', $fchildrens = 'children') {
         if (!is_array($data)) {
             return '';
         }
@@ -34,7 +34,7 @@ class Category {
 
 
 //SELECT下选分类 channel不可选
-    function select_class($data, $idarr, $level = 0, $idname = 'catid', $pidname = 'upid', $name = 'name', $fchildrens = 'children') {
+    function select_list($data, $idarr, $level = 0, $idname = 'catid', $pidname = 'upid', $name = 'name', $fchildrens = 'children') {
         if (!is_array($data)) {
             return '';
         }
@@ -57,14 +57,14 @@ class Category {
                 $string .= '<option value="' . $row[$idname] . '" ' . $selected . '>' . str_repeat('&nbsp;&nbsp;', $level) . $row[$name] . '</option>' . "\n";
             }
             if (isset($row[$fchildrens])) {
-                $string .= select_class($row[$fchildrens], $idarr, $level + 1, $idname, $pidname, $name, $fchildrens);
+                $string .= $this->select_list($row[$fchildrens], $idarr, $level + 1, $idname, $pidname, $name, $fchildrens);
             }
         }
         return $string;
     }
 
 //SELECT下选分类2 全部可选
-    function select_class_one($data, $idarr, $level = 0, $idname = 'catid', $pidname = 'upid', $name = 'name', $fchildrens = 'children') {
+    function select_list_one($data, $idarr, $level = 0, $idname = 'catid', $pidname = 'upid', $name = 'name', $fchildrens = 'children') {
         if (!is_array($data)) {
             return '';
         }
@@ -83,14 +83,14 @@ class Category {
             }
             $string .= '<option value="' . $row[$idname] . '" ' . $selected . '>' . str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', $level) . $row[$name] . '</option>' . "\n";
             if (isset($row[$fchildrens])) {
-                $string .= select_class_one($row[$fchildrens], $idarr, $level + 1, $idname, $pidname, $name, $fchildrens);
+                $string .= $this->select_list_one($row[$fchildrens], $idarr, $level + 1, $idname, $pidname, $name, $fchildrens);
             }
         }
         return $string;
     }
 
 //CHECKBOX扩展分类 多选
-    function select_class_muti($data, $extrafid = '', $level = 0, $idname = 'catid', $name = 'name', $fchildrens = 'childrens') {
+    function select_list_muti($data, $extrafid = '', $level = 0, $idname = 'catid', $name = 'name', $fchildrens = 'childrens') {
         if (!is_array($data)) {
             return '';
         }
@@ -113,7 +113,7 @@ class Category {
             $string .= '<div style="height:30px;"><input name="extrafid[]" type="checkbox" value="' . $row[$idname] . '" ' . $checkstr . '/> ' . str_repeat('&nbsp;&nbsp;&nbsp;', $level) . $row[$name] . '</div>' . "\n";
 
             if (isset($row[$fchildrens])) {
-                $string .= select_class_muti($row[$fchildrens], $extrafid, $level + 1, $idname, $name, $fchildrens);
+                $string .= $this->select_list_muti($row[$fchildrens], $extrafid, $level + 1, $idname, $name, $fchildrens);
             }
         }
         return $string;

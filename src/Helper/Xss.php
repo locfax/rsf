@@ -139,27 +139,20 @@ class Xss {
 
     protected function _remove_evil_attributes($str, $is_image) {
         $evil_attributes = array('on\w*', 'style', 'xmlns', 'formaction', 'form', 'xlink:href');
-
         if (true == $is_image) {
             unset($evil_attributes[array_search('xmlns', $evil_attributes)]);
         }
-
         do {
             $count = 0;
             $attribs = array();
-
             preg_match_all('/(?<!\w)(' . implode('|', $evil_attributes) . ')\s*=\s*(\042|\047)([^\\2]*?)(\\2)/is', $str, $matches, PREG_SET_ORDER);
-
             foreach ($matches as $attr) {
                 $attribs[] = preg_quote($attr[0], '/');
             }
-
             preg_match_all('/(?<!\w)(' . implode('|', $evil_attributes) . ')\s*=\s*([^\s>]*)/is', $str, $matches, PREG_SET_ORDER);
-
             foreach ($matches as $attr) {
                 $attribs[] = preg_quote($attr[0], '/');
             }
-
             if (count($attribs) > 0) {
                 $str = preg_replace('/(<?)(\/?[^><]+?)([^A-Za-z<>\-])(.*?)(' . implode('|', $attribs) . ')(.*?)([\s><]?)([><]*)/i', '$1$2 $4$6$7$8', $str, -1, $count);
             }

@@ -4,7 +4,7 @@ namespace Rsf\Base;
 
 class Template {
 
-    use \Rsf\Base\Singleton;
+    use Singleton;
 
     private $subtemplates = array();
     private $replacecode = array('search' => array(), 'replace' => array());
@@ -37,8 +37,6 @@ class Template {
         $template = preg_replace("/([\n\r]+)\t+/s", "\\1", $template);
         $template = preg_replace("/\<\!\-\-\{(.+?)\}\-\-\>/s", "{\\1}", $template);
         $template = preg_replace_callback("/\{lang\s+(.+?)\}/", array($this, 'language_tags'), $template);
-        $template = preg_replace_callback("/[\n\r\t]*\{block\s+(\d+?)\}[\n\r\t]*/", array($this, 'block_tags'), $template);
-        $template = preg_replace_callback("/[\n\r\t]*\{blockdata\s+(\d+?)\}[\n\r\t]*/", array($this, 'blockdata_tags'), $template);
 
         $template = preg_replace_callback("/[\n\r\t]*\{url\s+(.+?)\}[\n\r\t]*/", array($this, 'url_tags'), $template);
         $template = preg_replace_callback("/[\n\r\t]*\{surl\s+(.+?)\}[\n\r\t]*/", array($this, 'surl_tags'), $template);
@@ -155,24 +153,6 @@ class Template {
         }
     }
 
-    private function block_tags($parameter) {
-        $bid = intval(trim($parameter[1]));
-        $this->blocks[] = $bid;
-        $i = count($this->replacecode['search']);
-        $this->replacecode['search'][$i] = $search = "<!--BLOCK_TAG_$i-->";
-        $this->replacecode['replace'][$i] = "<?php echo block_display($bid); ?>";
-        return $search;
-    }
-
-    private function blockdata_tags($parameter) {
-        $bid = intval(trim($parameter[1]));
-        $this->blocks[] = $bid;
-        $i = count($this->replacecode['search']);
-        $this->replacecode['search'][$i] = $search = "<!--BLOCKDATA_TAG_$i-->";
-        $this->replacecode['replace'][$i] = block_display($bid);
-        return $search;
-    }
-
     private function url_tags($parameter) {
         $i = count($this->replacecode['search']);
         $this->replacecode['search'][$i] = $search = "<!--URL_TAG_$i-->";
@@ -226,13 +206,6 @@ class Template {
             $this->replacecode['search'][$i] = $search = "<!--FUNCTION_TAG2_$i-->";
             $this->replacecode['replace'][$i] = "<?php echo $parameter[1]($parameter[2]); ?>";
         }
-        return $search;
-    }
-
-    private function avatar_tags($parameter) {
-        $i = count($this->replacecode['search']);
-        $this->replacecode['search'][$i] = $search = "<!--AVATAR_TAG_$i-->";
-        $this->replacecode['replace'][$i] = "<?php echo avatar(\"$parameter[1]\"); ?>";
         return $search;
     }
 

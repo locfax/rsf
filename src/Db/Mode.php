@@ -12,6 +12,7 @@ class Model {
 
     public function init($db) {
         $this->db = $db;
+        return $this;
     }
 
     public function table($table) {
@@ -35,7 +36,7 @@ class Model {
             }
             return $this; //返回对象，连贯查询
         } else {
-            throw new \Rsf\Exception\Exception($_method . '方法没有定义');
+            throw new \Rsf\Exception\Exception($_method . '方法没有定义', 0);
         }
     }
 

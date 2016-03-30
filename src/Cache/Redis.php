@@ -11,7 +11,7 @@ class Redis {
 
     public function init($config) {
         if (!class_exists('\Redis', false)) {
-            throw new \Rsf\Exception\Exception('Redis 扩展没安装?');
+            throw new \Rsf\Exception\Exception('Redis 扩展没安装?', 0);
         }
         try {
             $this->_link = new \Redis();

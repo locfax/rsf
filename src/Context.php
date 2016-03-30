@@ -8,14 +8,21 @@ class Context {
     const _ROLEKEY = 'roles';
 
     private static $sess_isset = 0;
+    private static $dsn = array();
 
     /**
-     * @param $key
-     * @return null
+     * @param $dsnid
+     * @return mixed
+     * @throws Exception\Exception
      */
-    public static function dsn($key) {
-        $_dsn = App::mergeVars('dsn');
-        return isset($_dsn[$key]) ? $_dsn[$key] : null;
+    public static function dsn($dsnid) {
+        if (!isset(self::$dsn[APPKEY])) {
+            self::$dsn[APPKEY] = Hook::loadFile('config/' . strtolower(APPKEY) . '.dsn', true, PSROOT);
+            if (!isset(self::$dsn[APPKEY][$dsnid])) {
+                throw new Exception\Exception('无配置文件!' . $dsnid, 0);
+            }
+        }
+        return self::$dsn[APPKEY][$dsnid];
     }
 
     /**

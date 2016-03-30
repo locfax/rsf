@@ -24,6 +24,8 @@ class App {
     }
 
     public static function run($root) {
+        require $root . '/config/base.inc.php';
+        require $root . '/config/'.APPKEY.'.inc.php';
         \Rsf\APP::rootNamespace('\\', $root);
         Dispatch::dispatching();
     }

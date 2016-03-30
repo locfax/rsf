@@ -267,7 +267,7 @@ class Mongo {
             } else {
                 //内镶文档查询
                 if (!$query['field']) {
-                    throw new \event\exception('fields is empty');
+                    throw new \Rsf\Exception\Exception('fields is empty', 0);
                 }
                 $cursor = $collection->findOne($query['query'], array($query['field'] => array('$slice' => array($offset, $length))));
                 return $cursor[$query['field']];

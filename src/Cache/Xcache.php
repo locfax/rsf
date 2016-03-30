@@ -10,7 +10,7 @@ class Xcache {
 
     public function init() {
         if (!function_exists('xcache_get')) {
-            throw new \Rsf\Exception\Exception('xcache 扩展没安装?');
+            throw new \Rsf\Exception\Exception('xcache 扩展没安装?', 0);
         }
         $this->enable = true;
         return $this;

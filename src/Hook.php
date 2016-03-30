@@ -155,7 +155,7 @@ class Hook {
      * @param string $ext
      * @return bool|mixed|null
      */
-    public static function loadVendor($classPath, $className = null, $ext = 'php') {
+    public static function vendor($classPath, $className = null, $ext = 'php') {
         if (!is_null($className)) {
             //指定了类名 使用类名加载
             return self::loadClass('vendor/' . $classPath, $className, BASE, $ext);

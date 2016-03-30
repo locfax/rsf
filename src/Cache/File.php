@@ -12,7 +12,7 @@ class File {
         if (is_dir(getini('data/_cache'))) {
             $this->enable = true;
         } else {
-            throw new \Rsf\Exception\Exception('路径:' . getini('data/_cache') . ' 不可写');
+            throw new \Rsf\Exception\Exception('路径:' . getini('data/_cache') . ' 不可写', 0);
         }
         return $this;
     }
@@ -53,7 +53,7 @@ class File {
 
     public function clear() {
         $cachedir = getini('data/_cache');
-        $files = \helper\file::getInstance()->list_files($cachedir);
+        $files = \Rsf\Helper\File::getInstance()->list_files($cachedir);
         foreach ($files as $file) {
             unlink($cachedir . $file);
         }

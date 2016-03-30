@@ -6,7 +6,6 @@ class Db {
 
     private static $default_dbo_id = APPDSN;
     private static $using_dbo_id = null;
-    private static $dsn = array();
 
     /**
      * @param string $dsnid
@@ -14,13 +13,7 @@ class Db {
      * @throws Exception
      */
     public static function dbo($dsnid = 'portal') {
-        if (!isset(self::$dsn[$dsnid])) {
-            self::$dsn[$dsnid] = Context::dsn($dsnid);
-            if (!isset(self::$dsn[$dsnid]['driver'])) {
-                throw new Exception\Exception('无配置文件!' . $dsnid, 0);
-            }
-        }
-        $_dsn = self::$dsn[$dsnid];
+        $_dsn = Context::dsn($dsnid);
         //连接池key
         // mysqli  驱动使用host+login作为key注册dbo对象
         //mongo pdo postgre redis使用host+login+dbname
@@ -30,8 +23,8 @@ class Db {
         } else {
             $dsnkey = $driver . '_' . $_dsn['host'] . '_' . $_dsn['login'] . '_' . $_dsn['port'] . '_' . $_dsn['database'];
         }
-        $db_class = 'db\\' . $driver;
-        $dbo = $db_class::getInstance();
+        $classname = '\\Rsf\\Db\\' . ucfirst($driver);
+        $dbo = $classname::getInstance();
         $dbo->connect($_dsn, $dsnkey);
         return $dbo;
     }
@@ -339,7 +332,7 @@ class Db {
                 self::$using_dbo_id = $id;
             }
         }
-        return self::get(self::$using_dbo_id);
+        return self::dbo(self::$using_dbo_id);
     }
 
     /**
@@ -446,8 +439,7 @@ class Db {
      */
     public static function M($table) {
         $db = self::Using(self::$using_dbo_id);
-        $orm = Db\Model::getInstance();
-        $orm->init($db);
+        $orm = Db\Model::getInstance()->init($db);
         return $orm->table($table);
     }
 

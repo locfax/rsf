@@ -20,7 +20,6 @@ class Pager {
         $showkbd = isset($pageinfo['showkbd']) ? $pageinfo['showkbd'] : false;
         $simple = isset($pageinfo['simple']) ? $pageinfo['simple'] : false;
         $autogoto = true;
-
         $ajaxtarget = getgpc('g.ajaxtarget') ? " ajaxtarget=\"" . getgpc('g.ajaxtarget', '', 'input_char') . "\" " : '';
         $aname = '';
         if (strexists($mpurl, '#')) {
@@ -28,12 +27,9 @@ class Pager {
             $mpurl = $astrs[0];
             $aname = '#' . $astrs[1];
         }
-
         $lang['prev'] = '上一页';
         $lang['next'] = '下一页';
-
         $mpurl .= strexists($mpurl, '?') ? '&' : '?';
-
         $offset = floor($page * 0.5);
         $realpages = ceil($totals / $perpage);
         $pages = $maxpages && $maxpages < $realpages ? $maxpages : $realpages;
@@ -63,9 +59,7 @@ class Pager {
         $multipage .= ($to < $pages ? '<a href="' . $mpurl . 'page=' . $pages . $aname . '" class="last"' . $ajaxtarget . '>... ' . $realpages . '</a>' : '') .
                 ($curpage < $pages && !$simple ? '<a href="' . $mpurl . 'page=' . ($curpage + 1) . $aname . '" class="nxt"' . $ajaxtarget . '>' . $lang['next'] . '</a>' : '') .
                 ($showkbd && !$simple && $pages > $page && !$ajaxtarget ? '<kbd><input type="text" name="custompage" size="3" onkeydown="if(event.keyCode==13) {window.location=\'' . $mpurl . 'page=\'+this.value; doane(event);}" /></kbd>' : '');
-
         $multipage = '<div class="pg">' . ($shownum && !$simple ? '<em>&nbsp;' . $totals . '&nbsp;</em>' : '') . $multipage . '</div>';
-
         //$maxpage = $realpages;
         return $multipage;
     }

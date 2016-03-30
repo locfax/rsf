@@ -5,13 +5,10 @@ namespace Rsf\Helper;
 
 class HandleGd {
 
-    use \Rsf\Base\Singleton;
-
     protected $_handle = null;
 
-    public function init($handle) {
+    public function __construct($handle) {
         $this->_handle = $handle;
-        return $this;
     }
 
     public function __destruct() {

@@ -11,7 +11,7 @@ class Imagickd {
         } catch (\ImagickException $ex) {
             return false;
         }
-        return \Rsf\Helper\HandleImagek::getInstance()->init($handle);
+        return new HandleImagek($handle);
     }
 
     public static function hex2rgb($color, $default = 'ffffff') {

@@ -1,6 +1,6 @@
 <?php
 
-define('BASE', __DIR__);
+define('BASE', __DIR__); //框架的位置
 define('GDATA', PSROOT . '/gdata/'); //全局数据路径
 
 //通用配置文件
