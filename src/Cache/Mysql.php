@@ -10,7 +10,7 @@ class Mysql {
     private $_link = null;
 
     public function init() {
-        $this->_link = \Rsf\DB::get('general');
+        $this->_link = \Rsf\Db::dbo('general');
         $this->enable = true;
         return $this;
     }

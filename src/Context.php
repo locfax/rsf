@@ -10,6 +10,15 @@ class Context {
     private static $sess_isset = 0;
 
     /**
+     * @param $key
+     * @return null
+     */
+    public static function dsn($key) {
+        $_dsn = App::mergeVars('dsn');
+        return isset($_dsn[$key]) ? $_dsn[$key] : null;
+    }
+
+    /**
      * @param $name 区分大小写
      * @return bool|mixed
      */

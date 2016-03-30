@@ -9,22 +9,13 @@ class Db {
     private static $dsn = array();
 
     /**
-     * @param $key
-     * @return null
-     */
-    public static function dsn($key) {
-        $_dsn = App::mergeVars('dsn');
-        return isset($_dsn[$key]) ? $_dsn[$key] : null;
-    }
-
-    /**
      * @param string $dsnid
      * @return null
      * @throws Exception
      */
-    public static function get($dsnid = 'portal') {
+    public static function dbo($dsnid = 'portal') {
         if (!isset(self::$dsn[$dsnid])) {
-            self::$dsn[$dsnid] = self::dsn($dsnid);
+            self::$dsn[$dsnid] = Context::dsn($dsnid);
             if (!isset(self::$dsn[$dsnid]['driver'])) {
                 throw new Exception\Exception('无配置文件!' . $dsnid, 0);
             }

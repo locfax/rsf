@@ -19,11 +19,11 @@ class Cacher {
             $this->enable = $this->cacher->enable;
             $this->type = 'file';
         } elseif ('memcache' == $this->config['cacher'] && $this->config['memcache']['ready']) {
-            $this->cacher = \Rsf\Cache\Memcache::getInstance()->init(\DB::dsn('memcache'));
+            $this->cacher = \Rsf\Cache\Memcache::getInstance()->init(\Rsf\Context::dsn('memcache'));
             $this->enable = $this->cacher->enable;
             $this->type = 'memcache';
         } elseif ('redis' == $this->config['cacher'] && $this->config['redis']['ready']) {
-            $this->cacher = \Rsf\Cache\Redis::getInstance()->init(\DB::dsn('redis'));
+            $this->cacher = \Rsf\Cache\Redis::getInstance()->init(\Rsf\Context::dsn('redis'));
             $this->enable = $this->cacher->enable;
             $this->type = 'redis';
         } elseif ('xcache' == $this->config['cacher'] && $this->config['xcache']['ready']) {
