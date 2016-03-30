@@ -14,6 +14,7 @@ class File {
         } else {
             throw new \Rsf\Exception\Exception('路径:' . getini('data/_cache') . ' 不可写');
         }
+        return $this;
     }
 
     public function get($key) {

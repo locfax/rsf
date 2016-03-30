@@ -87,7 +87,7 @@ function gpc_val($val, $runfunc, $emptyrun) {
         array_push($funcs, 'daddslashes');
         foreach ($funcs as $run) {
             if ('xss' == $run) {
-                $val = \helper\xss::getInstance()->clean($val);
+                $val = \Rsf\Helper\Xss::getInstance()->clean($val);
             } else {
                 $val = $run($val);
             }
@@ -95,7 +95,7 @@ function gpc_val($val, $runfunc, $emptyrun) {
         return $val;
     }
     if ('xss' == $runfunc) {
-        return \helper\xss::getInstance()->clean($val);
+        return \Rsf\Helper\Xss::getInstance()->clean($val);
     }
     if ($runfunc) {
         return $runfunc($val);
@@ -200,7 +200,7 @@ function datacache($cachekey, $reset = false) {
 
 //普通级别缓存
 function cache($cmd, $key = '', $val = '', $ttl = 0) {
-    $cacher = \cacher\cacher::getInstance();
+    $cacher = \Rsf\Cache\Cacher::getInstance();
     if (in_array($cmd, array('set', 'get', 'rm', 'clear'))) {
         switch ($cmd) {
             case 'get':
@@ -266,7 +266,7 @@ function sysdata($cachenames, $reset = false) {
     if (empty($lostcaches)) {
         return $data; //取到全部数据 则返回
     }
-    $data = \cacher\sysdata::lost($data, $lostcaches, $reset);
+    $data = \Rsf\Cache\sysdata::lost($data, $lostcaches, $reset);
     return $data;
 }
 
@@ -288,7 +288,7 @@ function checktplrefresh($maintpl, $subtpl, $cachetime, $cachefile, $file) {
         if ($tpltime < intval($cachetime)) {
             return;
         }
-        \base\template::getInstance()->parse(getini('data/_view'), $tpldir, $maintpl, $cachefile, $file);
+        \Rsf\Base\Template::getInstance()->parse(getini('data/_view'), $tpldir, $maintpl, $cachefile, $file);
     }
 }
 

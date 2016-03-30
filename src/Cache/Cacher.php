@@ -15,32 +15,27 @@ class Cacher {
     public function __construct() {
         $this->config = getini('cache');
         if ('file' == $this->config['cacher']) {
-            $this->cacher = \Rsf\Cache\File::getInstance();
-            $this->cacher->init();
+            $this->cacher = \Rsf\Cache\File::getInstance()->init();
             $this->enable = $this->cacher->enable;
             $this->type = 'file';
         } elseif ('memcache' == $this->config['cacher'] && $this->config['memcache']['ready']) {
-            $this->cacher = \Rsf\Cache\Memcache::getInstance();
-            $this->cacher->init(\DB::dsn('memcache'));
+            $this->cacher = \Rsf\Cache\Memcache::getInstance()->init(\DB::dsn('memcache'));
             $this->enable = $this->cacher->enable;
             $this->type = 'memcache';
         } elseif ('redis' == $this->config['cacher'] && $this->config['redis']['ready']) {
-            $this->cacher = \Rsf\Cache\Redis::getInstance();
-            $this->cacher->init(\DB::dsn('redis'));
+            $this->cacher = \Rsf\Cache\Redis::getInstance()->init(\DB::dsn('redis'));
             $this->enable = $this->cacher->enable;
             $this->type = 'redis';
         } elseif ('xcache' == $this->config['cacher'] && $this->config['xcache']['ready']) {
-            $this->cacher = \Rsf\Cache\Xcache::getInstance();
-            $this->cacher->init();
+            $this->cacher = \Rsf\Cache\Xcache::getInstance()->init();
             $this->enable = $this->cacher->enable;
             $this->type = 'xcache';
         } elseif ('mysql' == $this->config['cacher'] && $this->config['mysql']['ready']) {
-            $this->cacher = \Rsf\Cache\Mysql::getInstance();
-            $this->cacher->init();
+            $this->cacher = \Rsf\Cache\Mysql::getInstance()->init();
             $this->enable = $this->cacher->enable;
             $this->type = 'mysql';
         } else {
-            throw new \Rsf\Exception\Exception('不存在的缓存器');
+            throw new \Rsf\Exception\Exception('不存在的缓存器', 0);
         }
         $this->prefix = $this->config['prefix'];
         if (!$this->cacher->enable && 'file' != $this->config['cacher']) {
@@ -49,8 +44,7 @@ class Cacher {
     }
 
     private function defcacher() {
-        $this->cacher = \Rsf\Cache\File::getInstance();
-        $this->cacher->init();
+        $this->cacher = \Rsf\Cache\File::getInstance()->init();
         $this->enable = $this->cacher->enable;
         $this->type = 'file';
     }

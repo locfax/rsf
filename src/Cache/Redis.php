@@ -30,6 +30,7 @@ class Redis {
         } catch (\RedisException $e) {
 
         }
+        return $this;
     }
 
     public function get($key) {

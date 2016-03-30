@@ -26,6 +26,7 @@ class Memcache {
         } catch (\MemcachedException $e) {
 
         }
+        return $this;
     }
 
     public function get($key) {

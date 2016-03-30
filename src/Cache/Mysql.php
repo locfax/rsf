@@ -12,6 +12,7 @@ class Mysql {
     public function init() {
         $this->_link = \Rsf\DB::get('general');
         $this->enable = true;
+        return $this;
     }
 
     public function get($key) {

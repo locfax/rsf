@@ -455,7 +455,8 @@ class Db {
      */
     public static function M($table) {
         $db = self::Using(self::$using_dbo_id);
-        $orm = db\model::getInstance()->init($db);
+        $orm = \Rsf\Db\Model::getInstance();
+        $orm->init($db);
         return $orm->table($table);
     }
 

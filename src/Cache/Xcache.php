@@ -13,6 +13,7 @@ class Xcache {
             throw new \Rsf\Exception\Exception('xcache 扩展没安装?');
         }
         $this->enable = true;
+        return $this;
     }
 
     public function get($key) {
