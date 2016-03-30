@@ -7,7 +7,7 @@ namespace Rsf\Helper;
  * $image = imagegd::createFromFile($_FILES['postfile']['tmp_name'], $ext);
  */
 
-class Imagegd {
+class ImageGd {
 
     public static function createFromFile($filename, $ext = '') {
         if (!$ext) {

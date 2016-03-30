@@ -52,6 +52,7 @@ class Dispatch {
             $controllerClass = self::_controllerPrefix . APPKEY . '\\' . $controllerName;
             $controller = new $controllerClass($controllerName, $actionMethod);
             $controller->{$actionMethod}();
+            $controller = null;
             return true;
         } while (false);
         //控制器加载失败

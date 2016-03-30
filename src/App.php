@@ -25,7 +25,7 @@ class App {
 
     public static function run($root) {
         require $root . '/config/base.inc.php';
-        require $root . '/config/'.APPKEY.'.inc.php';
+        require $root . '/config/' . APPKEY . '.inc.php';
         \Rsf\APP::rootNamespace('\\', $root);
         Dispatch::dispatching();
     }
@@ -58,7 +58,7 @@ class App {
             'logcode' => $code,
             'logmsg' => var_export($data, true)
         );
-        DB::get('general')->create('weixin_log', $post);
+        Db::dbo('general')->create('weixin_log', $post);
     }
 
     /**

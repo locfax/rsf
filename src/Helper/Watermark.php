@@ -2,7 +2,7 @@
 
 namespace Rsf\Helper;
 
-class Watermark {
+class WaterMark {
 
     use \Rsf\Base\Singleton;
 

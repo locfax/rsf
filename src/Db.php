@@ -140,7 +140,7 @@ class Db {
                 );
                 $pageparm = array_merge($defpageparm, $pageparm);
                 $pageparm['length'] = $length;
-                $pagebar = helper\pager::getInstance()->pagebar($pageparm);
+                $pagebar = Helper\Pager::getInstance()->pagebar($pageparm);
             } elseif ('simplepage' == $pageparm['type']) {
                 $defpageparm = array(
                     'curpage' => 1,
@@ -148,7 +148,7 @@ class Db {
                 );
                 $pageparm = array_merge($defpageparm, $pageparm);
                 $pageparm['length'] = $length;
-                $pagebar = helper\pager::getInstance()->simplepage($pageparm);
+                $pagebar = Helper\Pager::getInstance()->simplepage($pageparm);
             } else {
                 $pagebar = array(
                     'totals' => $pageparm['totals'],
@@ -169,7 +169,7 @@ class Db {
 
     /**
      * 查找一条数据
-     * 如果要链表 使用 DB::one
+     * 如果要链表 使用 Db::one
      *
      * @param string $table
      * @param mixed $field
@@ -272,7 +272,7 @@ class Db {
      * 单表符合条件的数量
      * - mysql:
      * $field count($field)
-     * 如果要连表等 就用 DB::one来实现
+     * 如果要连表等 就用 Db::one来实现
      * - mongo:
      * $field 无意义
      *

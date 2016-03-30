@@ -2,7 +2,7 @@
 
 namespace Rsf\Helper;
 
-class Parsedown {
+class ParseDown {
 
     use \Rsf\Base\Singleton;
 

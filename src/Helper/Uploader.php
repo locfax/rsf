@@ -2,7 +2,7 @@
 
 namespace Rsf\Helper;
 
-class uploader {
+class Uploader {
 
     use \Rsf\Base\Singleton;
 
