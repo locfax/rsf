@@ -5,35 +5,22 @@ namespace Rsf;
 class App {
 
 
-    public static function rootNamespace($namespace, $path, $classname = null) {
+    public static function rootNamespace($namespace, $path) {
         $namespace = trim($namespace, '\\');
-        $path = rtrim($path, '/\\');
-        $loader = function ($classname, $return_filename = false) use ($namespace, $path) {
-            if (class_exists($classname, false) || interface_exists($classname, false)) {
-                return true;
-            }
-            $classname = trim($classname, '\\');
+        $path = rtrim($path, '/');
+        $loader = function ($classname) use ($namespace, $path) {
             if ($namespace && stripos($classname, $namespace) !== 0) {
                 return false;
-            } else {
-                $filename = trim(substr($classname, strlen($namespace)), '\\');
             }
-            $filename = $path . DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $filename) . '.php';
-            if ($return_filename) {
-                return $filename;
-            } else {
-                if (!file_exists($filename)) {
-                    return false;
-                }
-                require $filename;
-                return class_exists($classname, false) || interface_exists($classname, false);
+            $filename = trim(substr($classname, strlen($namespace)), '\\');
+            $filename = $path . '/' . str_replace('\\', '/', $filename) . '.php';
+            if (!file_exists($filename)) {
+                return false;
             }
+            require $filename;
+            return class_exists($classname, false) || interface_exists($classname, false);
         };
-        if ($classname === null) {
-            spl_autoload_register($loader);
-        } else {
-            return $loader($classname, true);
-        }
+        spl_autoload_register($loader);
     }
 
     public static function run($root) {
