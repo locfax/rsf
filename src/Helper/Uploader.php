@@ -6,14 +6,16 @@ class Uploader {
 
     use \Rsf\Base\Singleton;
 
-    public $_files = array();
-    public $_count = 0;
+    private $_files = array();
+    private $_count = 0;
 
-    public function init($cascade = false) {
-        if (!is_array($_FILES)) {
+    public function init($tempfiles, $cascade = false) {
+        $this->reset();
+
+        if (!is_array($tempfiles)) {
             return;
         }
-        foreach ($_FILES as $field => $struct) {
+        foreach ($tempfiles as $field => $struct) {
             if (!isset($struct['error'])) {
                 continue;
             }
@@ -38,6 +40,11 @@ class Uploader {
         }
         $this->_count = count($this->_files);
         return $this;
+    }
+
+    public function reset(){
+        $this->_files = [];
+        $this->_count = 0;
     }
 
     /**

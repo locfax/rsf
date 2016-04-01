@@ -7,19 +7,19 @@ class Controller {
     //用户信息
     protected $login_user = null;
     //当前控制器
-    protected $_ctl;
+    protected $request;
     //当前动作
-    protected $_act;
+    protected $response;
     //时间戳
     protected $timestamp;
 
     /*
      * 初始执行
      */
-    public function __construct($controllerName, $actionName) {
-        $this->_ctl = $controllerName;
-        $this->_act = $actionName;
-        $this->init_var();
+    public function __construct(Swoole\Request $request, Swoole\Response $response) {
+        $this->request = $request;
+        $this->response = $response;
+        //$this->init_var();
         $this->init_cache();
         //$this->init_timezone();
     }
@@ -30,16 +30,20 @@ class Controller {
 
     public function __call($name, $arguments) {
         //动作不存在
-        if (App::isAjax(true)) {
-            $retarr = array(
-                'errcode' => 1,
-                'errmsg' => '你的运气真好! Action ' . $name . '不存在!',
-                'data' => ''
-            );
-            return rep_send($retarr, 'json');
+        $retarr = array(
+            'errcode' => 1,
+            'errmsg' => 'Action ' . $name . '不存在!',
+            'data' => ''
+        );
+        $this->response($retarr, 404);
+    }
+
+    protected function response($data, $code = 200) {
+        if ($code !== 200) {
+            $this->response->withStatus($code, Http\Http::getStatus($code));
         }
-        $args = '你的运气真好!Action:' . $name . "不存在";
-        include template('404', 'default');
+        $this->response->withHeader('Content-Type', 'text/html; charset=' . getini('site/charset'));
+        $this->response->withBody(new Http\StringStream($data));
     }
 
     /*

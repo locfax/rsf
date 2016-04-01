@@ -19,8 +19,7 @@ class Hook {
      * @return mixed
      */
     private static function _className($classPath) {
-        $cn = str_replace('/', "\\", $classPath);
-        return ucfirst($cn);
+        return str_replace('/', "\\", $classPath);
     }
 
     /**
@@ -30,12 +29,15 @@ class Hook {
      * @param string $ext
      * @return bool|mixed
      */
-    public static function loadFile($filename, $loadOnce = true, $abspath = BASE, $ext = 'php') {
+    public static function loadFile($fileName, $loadOnce = true, $absPath = BASE, $ext = 'php') {
         static $is_loaded = array();
-        $file = self::_filePath($filename, $abspath, $ext);
+        $file = self::_filePath($fileName, $absPath, $ext);
         $filemd5 = md5($file);
         if (isset($is_loaded[$filemd5]) && $loadOnce) {
             return true;
+        }
+        if(!is_file($file)){
+            return false;
         }
         $is_loaded[$filemd5] = true;
         return include $file;
@@ -57,7 +59,7 @@ class Hook {
             return true;
         };
         $file = self::_filePath($classPath, $absPath, $ext);
-        if (!include $file) {
+        if (!is_file($file) || !include $file) {
             return false;
         }
         if (class_exists($className, false) || interface_exists($className, false)) {
@@ -87,7 +89,7 @@ class Hook {
             return false;
         }
         $obj = new $className($classParam);
-        if (get_class($obj) === $className) {
+        if ($obj instanceof className) {
             $instances[$className] = $obj;
             return $instances[$className];
         }
@@ -102,7 +104,7 @@ class Hook {
      */
     public static function helper($name, $isClass = false) {
         if ($isClass) {
-            return self::loadClass('Helper/' . $name, "\\Rsf\Helper\\{$name}");
+            return self::loadClass('Helper/' . $name, "\\Rsf\\Helper\\{$name}");
         }
         return self::loadFile('Helper/' . $name);
     }

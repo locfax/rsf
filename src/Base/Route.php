@@ -7,11 +7,14 @@ class Route {
     static $routes = null;
 
     public static function parse_routes($uri) {
-        if (!$uri) {
-            return;
+        if (strpos($uri, 'index.php') !== false) {
+            $uri = substr($uri, strpos($uri, 'index.php') + 10);
         }
-        if(!self::$routes){
-            self::$routes = \Hook::config('route');
+        if (!$uri) {
+            return false;
+        }
+        if (!self::$routes) {
+            self::$routes = \Rsf\Context::config('route');
         }
         foreach (self::$routes as $key => $val) {
             $key = str_replace(array(':any', ':num'), array('[^/]+', '[0-9]+'), $key);
@@ -20,23 +23,9 @@ class Route {
                     $val = preg_replace('#' . $key . '#', $val, $uri);
                 }
                 $req = explode('/', $val);
-                self::set_request($req);
-                return true;
+                return $req;
             }
         }
         return false;
-    }
-
-    private static function set_request($req) {
-        $_GET['ctl'] = array_shift($req);
-        $_GET['act'] = array_shift($req);
-        $parmnum = count($req);
-        if (!$parmnum) {
-            return;
-        }
-        for ($i = 0; $i < $parmnum; $i++) {
-            $_GET[$req[$i]] = $req[$i + 1];
-            $i++;
-        }
     }
 }

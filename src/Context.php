@@ -17,20 +17,26 @@ class Context {
      */
     public static function dsn($dsnid) {
         if (!isset(self::$dsn[APPKEY])) {
-            self::$dsn[APPKEY] = Hook::loadFile('config/' . strtolower(APPKEY) . '.dsn', true, PSROOT);
+            self::$dsn[APPKEY] = self::config(APPKEY, 'dsn');
             if (!isset(self::$dsn[APPKEY][$dsnid])) {
-                throw new Exception\Exception('无配置文件!' . $dsnid, 0);
+                throw new Exception\Exception('无配置!' . APPKEY . $dsnid, 0);
             }
         }
+        //默认都是正确的配置
         return self::$dsn[APPKEY][$dsnid];
     }
 
     /**
-     * @param $name 区分大小写
+     * @param $name
+     * @param $type
      * @return bool|mixed
      */
-    public static function config($name) {
-        return Hook::loadFile('config/' . $name . '.inc', false, PSROOT);
+    public static function config($name, $type = 'inc') {
+        $file = PSROOT . '/config/' . strtolower($name) . '.' . $type . '.php';
+        if (!is_file($file)) {
+            return array();
+        }
+        return include $file;
     }
 
     public static function setUser($userData, $rolesData = null, $left = 0) {
@@ -40,13 +46,13 @@ class Context {
         $data_struct = array(
             self::_USERKEY => $userData
         );
-        $ret = self::_set($data_struct, $left);
+        $ret = self::_setdata($data_struct, $left);
         return $ret;
     }
 
     public static function getUser() {
         $datakey = self::_USERKEY;
-        $ret = self::_get($datakey);
+        $ret = self::_getdata($datakey);
         if (isset($ret[$datakey])) {
             return $ret[$datakey];
         }
@@ -57,7 +63,7 @@ class Context {
         $arr = array(
             self::_USERKEY => ''
         );
-        self::_set($arr, -86400 * 365);
+        self::_setdata($arr, -86400 * 365);
     }
 
     public static function getRoles() {
@@ -79,7 +85,7 @@ class Context {
         //return array_filter($tmp, 'trim');
     }
 
-    public static function get($key, $type = null) {
+    public static function getData($key, $type = null) {
         //data is string
         if (is_array($key)) {
             if (in_array(self::_USERKEY, $key)) {
@@ -92,20 +98,20 @@ class Context {
                 return false;
             }
         }
-        $ret = self::_get($key, $type);
+        $ret = self::_getdata($key, $type);
         return $ret[$key];
     }
 
-    public static function set(array $data, $left = 0, $type = null) {
+    public static function setData(array $data, $left = 0, $type = null) {
         //data is array
         if (isset($data[self::_USERKEY])) {
             //禁止设置用户信息
             return false;
         }
-        return self::_set($data, $left, $type);
+        return self::_setdata($data, $left, $type);
     }
 
-    public static function clear($key, $type = null) {
+    public static function clearData($key, $type = null) {
         //key is mix
         if (is_array($key)) {
             if (in_array(self::_USERKEY, $key)) {
@@ -122,10 +128,10 @@ class Context {
                 $key => ''
             );
         }
-        self::_set($arr, -86400 * 365, $type);
+        self::_setdata($arr, -86400 * 365, $type);
     }
 
-    private static function _get($keys, $type = null) {
+    private static function _getdata($keys, $type = null) {
         $ret = array();
         if (is_null($type)) {
             $type = getini('auth/handle');
@@ -160,7 +166,7 @@ class Context {
      * prefix  int 1
      */
 
-    private static function _set($data, $life = 0, $type = null) {
+    private static function _setdata($data, $life = 0, $type = null) {
         $ret = false;
         if (is_null($type)) {
             $type = getini('auth/handle');
