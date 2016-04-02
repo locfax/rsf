@@ -63,7 +63,7 @@ class Controller {
 
     private function init_cache() {
         $caches = getini('cache/default');
-        $caches && loadcache($caches);
+        loadcache($caches);
     }
 
     /*

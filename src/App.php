@@ -132,7 +132,7 @@ class App {
      * @return mixed
      */
     public static function mergeVars($group, $vars = null) {
-        static $_CDATA = array('dsn' => null, 'cfg' => null, 'data' => array()); //内部变量缓冲
+        static $_CDATA = array('dsn' => null, 'cfg' => null); //内部变量缓冲
         if (is_null($vars)) {
             return $_CDATA[$group];
         } else {

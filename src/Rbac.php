@@ -9,7 +9,6 @@ class Rbac {
     const ACL_NO_ROLE = 'ACL_NO_ROLE';
     const ACL_NULL = 'ACL_NULL';
 
-
     /**
      * @param $controllerName
      * @param null $actionName
@@ -151,36 +150,22 @@ class Rbac {
 
     /**
      * @param $controllerName
-     * @return Array|null
+     * @return null
+     * @throws \Rsf\Exception\Exception
      */
     private static function _getACT($controllerName) {
-        // check controller's ACT whether in the globalACT
-        $ACT = getcache('globalACT_' . APPKEY . '/' . $controllerName);
-        if (is_null($ACT)) {
-            $ACT = self::_getControllerACT($controllerName);
+        static $globalAcl = array();
+        if (empty($globalAcl)) {
+            $jsonacl = include getini('data/_acl') . strtolower(APPKEY) . 'ACT.php';
+            if (!$jsonacl) {
+                throw new \Rsf\Exception\Exception('ACL文件不存在');
+            }
+            $globalAcl = json_decode($jsonacl, true);
         }
-        return $ACT;
-    }
-
-
-    /**
-     * @param $controllerName
-     * @return Array|null
-     */
-    private static function _getControllerACT($controllerName) {
-        $jsonact = include getini('data/_acl') . APPKEY . 'ACT.php';
-        if (!$jsonact) {
-            setcache('globalACT_' . APPKEY . '/' . $controllerName, ''); //防止反复
-            return null;
+        if (isset($globalAcl[$controllerName])) {
+            return $globalAcl[$controllerName];
         }
-        $ACT = json_decode($jsonact, true);
-        setcache('globalACT_' . APPKEY, $ACT); //保存所有ACT
-        if (isset($ACT[$controllerName])) {
-            return $ACT[$controllerName];
-        } else {
-            setcache('globalACT_' . APPKEY . '/' . $controllerName, ''); //防止反复
-            return null;
-        }
+        return null;
     }
 
 }

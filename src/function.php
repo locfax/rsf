@@ -20,54 +20,6 @@ function getini($key) {
     }
 }
 
-//keypath  path1/path2/path3
-function setcache($key, $value) {
-    static $_CACHEDATA = null;
-    if (is_null($_CACHEDATA)) {
-        $_CACHEDATA = \Rsf\App::mergeVars('data');
-    }
-    $k = explode('/', $key);
-    switch (count($k)) {
-        case 1:
-            $_CACHEDATA[$k[0]] = $value;
-            break;
-        case 2:
-            $_CACHEDATA[$k[0]][$k[1]] = $value;
-            break;
-        case 3:
-            $_CACHEDATA[$k[0]][$k[1]][$k[2]] = $value;
-            break;
-        case 4:
-            $_CACHEDATA[$k[0]][$k[1]][$k[2]][$k[3]] = $value;
-            break;
-        case 5:
-            $_CACHEDATA[$k[0]][$k[1]][$k[2]][$k[3]][$k[4]] = $value;
-            break;
-    }
-    \Rsf\App::mergeVars('data', $_CACHEDATA);
-    unset($value);
-}
-
-//keypath  path1/path2/path3
-function getcache($key) {
-    $_CACHEDATA = \Rsf\App::mergeVars('data');
-    $k = explode('/', $key);
-    switch (count($k)) {
-        case 1:
-            return isset($_CACHEDATA[$k[0]]) ? $_CACHEDATA[$k[0]] : null;
-        case 2:
-            return isset($_CACHEDATA[$k[0]][$k[1]]) ? $_CACHEDATA[$k[0]][$k[1]] : null;
-        case 3:
-            return isset($_CACHEDATA[$k[0]][$k[1]][$k[2]]) ? $_CACHEDATA[$k[0]][$k[1]][$k[2]] : null;
-        case 4:
-            return isset($_CACHEDATA[$k[0]][$k[1]][$k[2]][$k[3]]) ? $_CACHEDATA[$k[0]][$k[1]][$k[2]][$k[3]] : null;
-        case 5:
-            return isset($_CACHEDATA[$k[0]][$k[1]][$k[2]][$k[3]][$k[4]]) ? $_CACHEDATA[$k[0]][$k[1]][$k[2]][$k[3]][$k[4]] : null;
-        default:
-            return null;
-    }
-}
-
 /**
  * 有模型的缓存  model/data/*.php
  * @param $cachekey
@@ -76,7 +28,7 @@ function getcache($key) {
  */
 function datacache($cachekey, $reset = false) {
     if (!$cachekey) {
-        return;
+        return false;
     }
     if (!$reset) {
         $data = cache('get', $cachekey);
@@ -91,7 +43,7 @@ function datacache($cachekey, $reset = false) {
     } else {//重置缓存
         $dataclass = '\\Model\\Data\\' . ucfirst($cachekey);
         $data = $dataclass::getInstance()->getdata();
-        cache('set', $cachekey, output_json($data));
+        return cache('set', $cachekey, output_json($data));
     }
 }
 
@@ -110,61 +62,44 @@ function cache($cmd, $key = '', $val = '', $ttl = 0) {
                 return $cacher->clear();
         }
     }
-    $cacher = null;
     return false;
 }
 
 //加载系统级别缓存
-function loadcache($cachenames, $return = false, $reset = false) {
-    static $loadedcache = array(); //防止多次执行 function data()
-    $_cachenames = is_array($cachenames) ? $cachenames : explode(',', $cachenames);
-    $lostcache = array();
-    foreach ($_cachenames as $k) {
-        if (!isset($loadedcache[$k]) || $reset) {
-            $lostcache[] = $k;
-        }
+function loadcache($cachename, $reset = false) {
+    if (!$cachename) {
+        return null;
     }
-    if (!empty($lostcache)) {
-        $cachedata = sysdata($lostcache, $reset);
-        foreach ($cachedata as $cname => $json) {
-            if ('settings' == $cname) {
-                \Rsf\App::mergeVars('cfg', array('settings' => json_decode($json, true)));
-            } else {
-                setcache($cname, json_decode($json, true));
-            }
-            $loadedcache[$cname] = true;
-        }
-        $mcachedata = null;
+    $data = sysdata($cachename, $reset);
+    if ('settings' === $cachename && $data) {
+        \Rsf\App::mergeVars('cfg', array('settings' => json_decode($data, true)));
+        return true;
     }
-    if ($return) {
-        return getcache($_cachenames[0]);
-    }
+    return json_decode($data, true);
 }
 
 /**
  * 系统级别缓存数据
- * @ return $data is array
- * @ $data[name] is json
+ * @param $cachename
+ * @param $reset
+ * @return array
  */
 
-function sysdata($cachenames, $reset = false) {
-    $data = array();
-    $lostcaches = array();
-    foreach ($cachenames as $name) {
-        if ($reset) {
-            $lostcaches[] = $name; //强制设置为没取到
-        } else {
-            $data[$name] = cache('get', $name);
-            if (null == $data[$name]) {
-                $lostcaches[] = $name; //没取到
-            }
+function sysdata($cachename, $reset = false) {
+    $lost = null;
+    if ($reset) {
+        $lost = $cachename; //强制设置为没取到
+        $data = '[]';
+    } else {
+        $data = cache('get', 'sys_' . $cachename);
+        if (!$data) {
+            $lost = $cachename;  //未取到数据
         }
     }
-    if (empty($lostcaches)) {
+    if (is_null($lost)) {
         return $data; //取到全部数据 则返回
     }
-    $data = \Model\Base\SysData::lost($data, $lostcaches, $reset);
-    return $data;
+    return \Model\Base\SysData::lost($lost, $reset);
 }
 
 /**

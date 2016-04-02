@@ -90,7 +90,7 @@ class Mongo {
                 $document['_id'] = new \MongoId();
             }
             $collection = $this->_client->selectCollection($this->qtable($table));
-            $ret = $collection->insert($document, array('safe' => true));
+            $ret = $collection->insert($document, array('w' => 1));
             if ($retid && $ret) {
                 $insert_id = (string)$document['_id'];
                 return $insert_id;
