@@ -379,48 +379,6 @@ class Db {
     }
 
     /**
-     * 整理数据表
-     *
-     * @param string $table
-     * @return mixed
-     */
-    public static function optimize($table) {
-        $db = self::Using(self::$using_dbo_id);
-        return $db->optimize($table);
-    }
-
-    /**
-     * 获取数据库的所有表
-     */
-
-    public static function tables() {
-        $db = self::Using(self::$using_dbo_id);
-        return $db->tables();
-    }
-
-    /**
-     * 获取数据表字段
-     *
-     * @param string $table
-     * @return mixed
-     */
-    public static function fields($table) {
-        $db = self::Using(self::$using_dbo_id);
-        return $db->fields($table);
-    }
-
-    /**
-     * 获取数据库表结构
-     *
-     * @param string $table
-     * @return mixed
-     */
-    public static function columns($table) {
-        $db = self::Using(self::$using_dbo_id);
-        return $db->columns($table);
-    }
-
-    /**
      * @param int $page
      * @param int $ppp
      * @param int $totalnum
@@ -430,17 +388,6 @@ class Db {
         $totalpage = ceil($totalnum / $ppp);
         $_page = max(1, min($totalpage, intval($page)));
         return ($_page - 1) * $ppp;
-    }
-
-    /**
-     * TODO
-     * @param string $table
-     * @return mixed
-     */
-    public static function M($table) {
-        $db = self::Using(self::$using_dbo_id);
-        $orm = Db\Model::getInstance()->init($db);
-        return $orm->table($table);
     }
 
 }

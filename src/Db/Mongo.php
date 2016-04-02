@@ -22,8 +22,7 @@ class Mongo {
 
     public function connect($dsn, $dsnkey, $type = '') {
         static $linkpool = array();
-        if ('' === $type && isset($linkpool[$dsnkey])) {
-            //如果已经尝试连接过
+        if ('' === $type && isset($linkpool[$dsnkey]) && $this->_link) {
             if ($dsn['database'] === $linkpool[$dsnkey]) {
                 return;
             }
@@ -233,9 +232,9 @@ class Mongo {
                 $cursor = $collection->find($query, $fields);
             }
             if ($yield) {
-                return $this->yield_cursors($cursor);
+                return $this->iterator($cursor);
             } else {
-                return $this->cursors($cursor);
+                return $this->getrows($cursor);
             }
         } catch (\MongoException $ex) {
             if ('RETRY' !== $type) {
@@ -260,9 +259,9 @@ class Mongo {
                 }
                 $cursor = $cursor->limit($length)->skip($offset);
                 if ($yield) {
-                    return $this->yield_cursors($cursor);
+                    return $this->iterator($cursor);
                 } else {
-                    return $this->cursors($cursor);
+                    return $this->getrows($cursor);
                 }
             } else {
                 //内镶文档查询
@@ -282,7 +281,7 @@ class Mongo {
         }
     }
 
-    private function yield_cursors($cursor) {
+    private function iterator($cursor) {
         while ($cursor->hasNext()) {
             $row = $cursor->getNext();
             $row['_id'] = $row['_id']->{'$id'};
@@ -290,7 +289,7 @@ class Mongo {
         }
     }
 
-    private function cursors($cursor) {
+    private function getrows($cursor) {
         $rowsets = array();
         while ($cursor->hasNext()) {
             $row = $cursor->getNext();
@@ -349,11 +348,8 @@ class Mongo {
     }
 
     public function version() {
-        if (class_exists("\MongoClient")) {
+        if (class_exists('\\MongoClient')) {
             return \MongoClient::VERSION;
-        }
-        if (class_exists("\Mongo")) {
-            return \Mongo::VERSION;
         }
         return '';
     }

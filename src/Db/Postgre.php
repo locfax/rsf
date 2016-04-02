@@ -24,7 +24,7 @@ class Postgre {
 
     public function connect($dsn, $dsnkey, $type = '') {
         static $linkpool = array();
-        if ('' === $type && isset($linkpool[$dsnkey])) {
+        if ('' === $type && isset($linkpool[$dsnkey]) && $this->_link) {
             //如果已经尝试连接过
             if ($dsn['database'] === $linkpool[$dsnkey]) {
                 return;
@@ -201,7 +201,7 @@ class Postgre {
         if (!$query) {
             return $this->_false_val;
         }
-        $row = pg_fetch_array($query, null, PGSQL_ASSO);
+        $row = pg_fetch_array($query, null, PGSQL_ASSOC);
         pg_free_result($query);
         return $row;
     }
@@ -220,8 +220,12 @@ class Postgre {
         if (!$query) {
             return $this->_false_val;
         }
-        $rowsets = pg_fetch_all($query);
-        pg_free_result($query);
+        if ($yield) {
+            $rowsets = $this->iterator($query);
+        } else {
+            $rowsets = pg_fetch_all($query);
+            pg_free_result($query);
+        }
         return $rowsets;
     }
 
@@ -240,14 +244,20 @@ class Postgre {
         if (!$query) {
             return $this->_false_val;
         }
-        $rowsets = pg_fetch_all($query);
-        /*
-        $rowsets = array();
-        while ($row = pg_fetch_array($query, null, PGSQL_ASSO)) {
-            $rowsets[] = $row;
-        }*/
-        pg_free_result($query);
+        if ($yield) {
+            $rowsets = $this->iterator($query);
+        } else {
+            $rowsets = pg_fetch_all($query);
+            pg_free_result($query);
+        }
         return $rowsets;
+    }
+
+    private function iterator($query) {
+        while ($row = pg_fetch_array($query, null, PGSQL_ASSOC)) {
+            yield $row;
+        }
+        pg_free_result($query);
     }
 
     public function result_first($tableName, $field, $condition) {
@@ -312,159 +322,6 @@ class Postgre {
         } else {
             return false;
         }
-    }
-
-    public function optimize($tableName) {
-        $this->query('OPTIMIZE TABLE ' . $this->qtable($tableName));
-    }
-
-    public function fields($tableName) {
-        $query = $this->query('SHOW FULL FIELDS FROM ' . $this->qtable($tableName));
-        if (!$query) {
-            return $this->_false_val;
-        }
-        $rowsets = array();
-        while ($row = pg_fetch_array($query, null, PGSQL_ASSO)) {
-            $rowsets[] = $row;
-        }
-        pg_free_result($query);
-        return $rowsets;
-    }
-
-    public function columns($tableName) {
-        static $typeMap = array(
-            'bit' => 'int1',
-            'tinyint' => 'int1',
-            'bool' => 'bool',
-            'boolean' => 'bool',
-            'smallint' => 'int2',
-            'mediumint' => 'int3',
-            'int' => 'int4',
-            'integer' => 'int4',
-            'bigint' => 'int8',
-            'float' => 'float',
-            'double' => 'double',
-            'doubleprecision' => 'double',
-            'float unsigned' => 'float',
-            'decimal' => 'dec',
-            'dec' => 'dec',
-            'date' => 'date',
-            'datetime' => 'datetime',
-            'timestamp' => 'timestamp',
-            'time' => 'time',
-            'year' => 'int2',
-            'char' => 'char',
-            'nchar' => 'char',
-            'varchar' => 'varchar',
-            'nvarchar' => 'varchar',
-            'binary' => 'binary',
-            'varbinary' => 'varbinary',
-            'tinyblob' => 'blob',
-            'tinytext' => 'text',
-            'blob' => 'blob',
-            'text' => 'text',
-            'mediumblob' => 'blob',
-            'mediumtext' => 'text',
-            'longblob' => 'blob',
-            'longtext' => 'text',
-            'enum' => 'enum',
-            'set' => 'set'
-        );
-
-        $query = $this->query('SHOW FULL COLUMNS FROM ' . $tableName);
-        if (!$query) {
-            return $this->_false_val;
-        }
-        $retarr = array();
-        while ($rowcur = pg_fetch_array($query, null, PGSQL_ASSO)) {
-            $row = array_change_key_case($rowcur, CASE_LOWER);
-            $field = array();
-            $field['name'] = $row['field'];
-            $type = strtolower($row['type']);
-
-            $field['scale'] = null;
-            $query_arr = false;
-            if (preg_match('/^(.+)\((\d+),(\d+)/', $type, $query_arr)) {
-                $field['type'] = $query_arr[1];
-                $field['length'] = is_numeric($query_arr[2]) ? $query_arr[2] : -1;
-                $field['scale'] = is_numeric($query_arr[3]) ? $query_arr[3] : -1;
-            } elseif (preg_match('/^(.+)\((\d+)/', $type, $query_arr)) {
-                $field['type'] = $query_arr[1];
-                $field['length'] = is_numeric($query_arr[2]) ? $query_arr[2] : -1;
-            } elseif (preg_match('/^(enum)\((.*)\)$/i', $type, $query_arr)) {
-                $field['type'] = $query_arr[1];
-                $arr = explode(",", $query_arr[2]);
-                $field['enums'] = $arr;
-                $zlen = max(array_map("strlen", $arr)) - 2; // PHP >= 4.0.6
-                $field['length'] = ($zlen > 0) ? $zlen : 1;
-            } else {
-                $field['type'] = $type;
-                $field['length'] = -1;
-            }
-
-            $field['ptype'] = $typeMap[strtolower($field['type'])];
-            $field['not_null'] = ('yes' != strtolower($row['null']));
-            $field['pk'] = ('pri' == strtolower($row['key']));
-            $field['auto_incr'] = strexists($row['extra'], 'auto_incr');
-            if ($field['auto_incr']) {
-                $field['ptype'] = 'autoincr';
-            }
-            $field['binary'] = strexists($type, 'blob');
-            $field['unsigned'] = strexists($type, 'unsigned');
-
-            $field['has_default'] = $field['default'] = null;
-            if (!$field['binary']) {
-                $d = $row['default'];
-                if (!is_null($d) && 'null' != strtolower($d)) {
-                    $field['has_default'] = true;
-                    $field['default'] = $d;
-                }
-            }
-
-            if ('tinyint' == $field['type'] && 1 == $field['length']) {
-                $field['ptype'] = 'bool';
-            }
-
-            $field['desc'] = !empty($row['comment']) ? $row['comment'] : '';
-            if (!is_null($field['default'])) {
-                switch ($field['ptype']) {
-                    case 'int1':
-                    case 'int2':
-                    case 'int3':
-                    case 'int4':
-                        $field['default'] = intval($field['default']);
-                        break;
-                    case 'float':
-                    case 'double':
-                    case 'dec':
-                        $field['default'] = doubleval($field['default']);
-                        break;
-                    case 'bool':
-                        $field['default'] = (bool)$field['default'];
-                }
-            }
-
-            $retarr[strtolower($field['name'])] = $field;
-        }
-        pg_free_result($query);
-        return $retarr;
-    }
-
-    public function tables($pattern = null) {
-        $sql = 'SHOW TABLES';
-        if (!empty($this->_schema)) {
-            $sql .= " FROM `{$this->_schema}`";
-        }
-        if (!empty($pattern)) {
-            $sql .= ' LIKE ' . $this->qstr($this->_schema);
-        }
-        $query = $this->query($sql);
-        if (!$query) {
-            return $this->_false_val;
-        }
-        $tables = pg_fetch_all($query);
-        pg_free_result($query);
-        return $tables;
     }
 
 }

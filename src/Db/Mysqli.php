@@ -25,7 +25,7 @@ class Mysqli {
 
     public function connect($dsn, $dsnkey, $type = '') {
         static $linkpool = array();
-        if ('' === $type && isset($linkpool[$dsnkey])) {
+        if ('' === $type && isset($linkpool[$dsnkey]) && $this->_link) {
             //如果已经尝试连接过
             if ($dsn['database'] !== $linkpool[$dsnkey]) {
                 $linkpool[$dsnkey] = $dsn['database'];
@@ -62,11 +62,11 @@ class Mysqli {
     }
 
     public function select_db($dbname) {
-        !$this->_link->select_db($dbname) && $this->_halt($this->error(), $this->errno(), $this->_run_dev);
+        !mysqli_select_db($this->_link, $dbname) && $this->_halt($this->error(), $this->errno(), $this->_run_dev);
     }
 
     public function close() {
-        !$this->_plink && $this->_link && $this->_link->close();
+        !$this->_plink && $this->_link && mysqli_close($this->_link);
         $this->_link = null;
     }
 
@@ -74,11 +74,7 @@ class Mysqli {
         if (is_null($this->_link)) {
             return $this->_false_val;
         }
-        if ('UNBUFFERED' == $type) {
-            $query = mysqli_query($this->_link, $sql, MYSQLI_USE_RESULT);
-        } else {
-            $query = mysqli_query($this->_link, $sql, MYSQLI_STORE_RESULT);
-        }
+        $query = mysqli_query($this->_link, $sql);
         if ($query) {
             return $query;
         }
@@ -237,9 +233,10 @@ class Mysqli {
             return $this->_false_val;
         }
         if ($yield) {
-            $rowsets = $this->yield_cursors($query);
+            $rowsets = $this->iterator($query);
         } else {
-            $rowsets = $this->cursors($query);
+            $rowsets = mysqli_fetch_all($query, MYSQLI_ASSOC);
+            mysqli_free_result($query);
         }
         return $rowsets;
     }
@@ -260,26 +257,19 @@ class Mysqli {
             return $this->_false_val;
         }
         if ($yield) {
-            $rowsets = $this->yield_cursors($query);
+            $rowsets = $this->iterator($query);
         } else {
-            $rowsets = $this->cursors($query);
+            $rowsets = mysqli_fetch_all($query, MYSQLI_ASSOC);
+            mysqli_free_result($query);
         }
         return $rowsets;
     }
 
-    private function yield_cursors($query) {
+    private function iterator($query) {
         while ($row = mysqli_fetch_array($query, MYSQLI_ASSOC)) {
             yield $row;
         }
         mysqli_free_result($query);
-    }
-
-    private function cursors($query) {
-        $rowsets = array();
-        while ($row = mysqli_fetch_array($query, MYSQLI_ASSOC)) {
-            $rowsets[] = $row;
-        }
-        return $rowsets;
     }
 
     public function result_first($tableName, $field, $condition) {
@@ -347,10 +337,6 @@ class Mysqli {
         } else {
             return false;
         }
-    }
-
-    public function optimize($tableName) {
-        $this->query('OPTIMIZE TABLE ' . $this->qtable($tableName));
     }
 
     public function fields($tableName) {
