@@ -19,7 +19,7 @@ class Context {
         if (!isset(self::$dsn[APPKEY])) {
             self::$dsn[APPKEY] = self::config(APPKEY, 'dsn');
             if (!isset(self::$dsn[APPKEY][$dsnid])) {
-                throw new Exception\Exception('无配置!' . APPKEY . $dsnid, 0);
+                throw new Exception\Exception('无配置!' . APPKEY . $dsnid);
             }
         }
         //默认都是正确的配置
@@ -37,6 +37,37 @@ class Context {
             return array();
         }
         return include $file;
+    }
+
+    /**
+     * @param $group
+     * @param null $vars
+     * @return mixed
+     */
+    public static function mergeVars($group, $vars = null) {
+        static $_CDATA = array('cfg' => null);
+        if (is_null($vars)) {
+            return $_CDATA[$group];
+        } else {
+            if (is_null($_CDATA[$group])) {
+                $_CDATA[$group] = $vars;
+            } else {
+                $_CDATA[$group] = array_merge($_CDATA[$group], $vars);
+            }
+        }
+    }
+
+    /**
+     * @param $code
+     * @param $data
+     */
+    public static function log($code, $data) {
+        $post = array(
+            'dateline' => time(),
+            'logcode' => $code,
+            'logmsg' => var_export($data, true)
+        );
+        Db::dbo('general')->create('weixin_log', $post);
     }
 
     public static function setUser($userData, $rolesData = null, $left = 0) {

@@ -6,27 +6,35 @@ class Db {
 
     private static $default_dbo_id = APPDSN;
     private static $using_dbo_id = null;
+    private static $used_dbo = array();
 
     /**
      * @param string $dsnid
      * @return null
      * @throws Exception
      */
-    public static function dbo($dsnid = 'portal') {
+    public static function dbo($dsnid = APPDSN) {
         $_dsn = Context::dsn($dsnid);
-        //连接池key
-        // mysqli  驱动使用host+login作为key注册dbo对象
-        //mongo pdo postgre redis使用host+login+dbname
-        $driver = $_dsn['driver'];
-        if ($driver == 'mysqli') {
-            $dsnkey = $driver . '_' . $_dsn['host'] . '_' . $_dsn['login'] . '_' . $_dsn['port'];
-        } else {
-            $dsnkey = $driver . '_' . $_dsn['host'] . '_' . $_dsn['login'] . '_' . $_dsn['port'] . '_' . $_dsn['database'];
+        $dsnkey = $_dsn['driver'] . '_' . $_dsn['host'] . '_' . $_dsn['login'] . '_' . $_dsn['port'] . '_' . $_dsn['database']; //连接池key
+        if(isset(self::$used_dbo[$dsnkey])){
+            $dbo = self::$used_dbo[$dsnkey];
+            $dbo->connect($_dsn, $dsnkey);
+        }else{
+            $classname = '\\Rsf\\Db\\' . ucfirst($_dsn['driver']);
+            $dbo = new $classname;
+            $dbo->connect($_dsn, $dsnkey);
+            self::$used_dbo[$dsnkey] = $dbo;
         }
-        $classname = '\\Rsf\\Db\\' . ucfirst($driver);
-        $dbo = $classname::getInstance();
-        $dbo->connect($_dsn, $dsnkey);
         return $dbo;
+    }
+
+    public static function close(){
+        $dbos = self::$used_dbo;
+        if(!empty($dbos)){
+            foreach($dbos as $dbo){
+                $dbo->close();
+            }
+        }
     }
 
     /**
@@ -95,7 +103,7 @@ class Db {
         return $db->remove($table, $condition, $muti);
     }
 
-     /**
+    /**
      * 带分页数据的DB::all
      * @param string table
      * @param mixed $query

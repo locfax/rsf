@@ -2,9 +2,9 @@
 
 namespace Rsf\Db;
 
-class Postgre {
+use \Rsf\Exception;
 
-    use \Rsf\Base\Singleton;
+class Postgre {
 
     //dsn information
     private $_dsn = null;
@@ -23,15 +23,6 @@ class Postgre {
     }
 
     public function connect($dsn, $dsnkey, $type = '') {
-        static $linkpool = array();
-        if ('' === $type && isset($linkpool[$dsnkey]) && $this->_link) {
-            //如果已经尝试连接过
-            if ($dsn['database'] === $linkpool[$dsnkey]) {
-                return;
-            }
-        }
-        $linkpool[$dsnkey] = $dsn['database'];
-
         if (is_null($this->_dsn)) {
             $this->_dsn = $dsn;
             $this->_dsnkey = $dsnkey;
@@ -39,18 +30,22 @@ class Postgre {
             $this->_prefix = $dsn['prefix'];
             $this->_run_dev = $dsn['rundev'];
         }
-        $this->_link = pg_connect('host=' . $dsn['host'] . ' port=' . $dsn['port'] . ' user=' . $dsn['login'] . ' password=' . $dsn['password'] . ' dbname=' . $dsn['database']);
-        if (is_resource($this->_link)) {
-            pg_set_client_encoding($this->_link, $dsn['charset']);
-        } else {
+        try {
+            $this->_link = pg_connect('host=' . $dsn['host'] . ' port=' . $dsn['port'] . ' user=' . $dsn['login'] . ' password=' . $dsn['password'] . ' dbname=' . $dsn['database']);
+            is_resource($this->_link) && pg_set_client_encoding($this->_link, $dsn['charset']);
+        } catch (\ErrorException $e) {
             if ('RETRY' != $type) {
-                $this->connect($dsn, $dsnkey, 'RETRY');
-            } else {
-                unset($linkpool[$dsnkey]);
-                $this->_link = null;
-                $this->_halt($this->error(), 'CONNECT ERROR');
+                return $this->reconnect();
             }
+            $this->_link = null;
+            return $this->_halt(pg_last_error());
         }
+        return $this->_true_val;
+    }
+
+    public function reconnect() {
+        $this->close();
+        return $this->connect($this->_dsn, $this->_dsnkey, 'RETRY');
     }
 
     public function close() {
@@ -62,14 +57,15 @@ class Postgre {
         if (is_null($this->_link)) {
             return $this->_false_val;
         }
-        $query = pg_query($this->_link, $sql);
+        try {
+            $query = pg_query($this->_link, $sql);
+        } catch (\ErrorException $e) {
+            $query = null;
+        }
         if ($query) {
             return $query;
         }
-        if ($this->_run_dev) {
-            $this->_halt($this->error(), 'QUERY ERROR');
-        }
-        return $this->_false_val;
+        return $this->_halt($this->error());
     }
 
     public function qstr($value) {
@@ -296,7 +292,7 @@ class Postgre {
 
     public function error() {
         $error = $this->_link ? pg_last_error($this->_link) : pg_last_error();
-        return $error;
+        return date('H:i:s') . $error;
     }
 
     public function errno() {
@@ -315,13 +311,12 @@ class Postgre {
         }
     }
 
-    private function _halt($message = '', $data = '', $halt = 0) {
-        if ($halt) {
+    private function _halt($message = '', $data = '') {
+        if ($this->_run_dev) {
             $this->close();
-            throw new \Rsf\Exception\Exception($message, $data);
-        } else {
-            return false;
+            throw new Exception\DbException($message, $data);
         }
+        return $this->_false_val;
     }
 
 }

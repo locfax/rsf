@@ -2,7 +2,7 @@
 
 //keypath  path1/path2/path3
 function getini($key) {
-    $_CFG = Rsf\App::mergeVars('cfg');
+    $_CFG = Rsf\Context::mergeVars('cfg');
     $k = explode('/', $key);
     switch (count($k)) {
         case 1:
@@ -72,7 +72,7 @@ function loadcache($cachename, $reset = false) {
     }
     $data = sysdata($cachename, $reset);
     if ('settings' === $cachename && $data) {
-        \Rsf\App::mergeVars('cfg', array('settings' => json_decode($data, true)));
+        \Rsf\Context::mergeVars('cfg', array('settings' => json_decode($data, true)));
         return true;
     }
     return json_decode($data, true);

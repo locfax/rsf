@@ -2,9 +2,9 @@
 
 namespace Rsf\Db;
 
-class Mongo {
+use \Rsf\Exception;
 
-    use \Rsf\Base\Singleton;
+class Mongo {
 
     //dsn information
     private $_dsn = null;
@@ -13,6 +13,7 @@ class Mongo {
     private $_client = null;
     private $_prefix = '';
     private $_plink = 0;
+    private $_true_val = 1;
     private $_false_val = 0;
     private $_run_dev = true;
 
@@ -21,14 +22,6 @@ class Mongo {
     }
 
     public function connect($dsn, $dsnkey, $type = '') {
-        static $linkpool = array();
-        if ('' === $type && isset($linkpool[$dsnkey]) && $this->_link) {
-            if ($dsn['database'] === $linkpool[$dsnkey]) {
-                return;
-            }
-        }
-        $linkpool[$dsnkey] = $dsn['database'];
-
         if (is_null($this->_dsn)) {
             $this->_dsn = $dsn;
             $this->_dsnkey = $dsnkey;
@@ -54,23 +47,24 @@ class Mongo {
             $this->_client = $this->_link->selectDB($dsn['database']);
         } catch (\MongoConnectionException $ex) {
             if ('RETRY' != $type) {
-                $this->connect($dsn, $dsnkey, 'RETRY');
-            } else {
-                unset($linkpool[$dsnkey]);
-                $this->_link = $this->_client = null;
-                $this->_run_dev && $this->__halt($ex->getMessage(), $ex->getCode(), $this->_run_dev);
+                return $this->reconnect();
             }
+            $this->_link = null;
+            return $this->_halt($ex->getMessage(), $ex->getCode());
         }
+        return $this->_true_val;
     }
 
     public function close() {
-        !$this->_plink && $this->_link && $this->_link->close();
-        $this->_link = $this->_client = null;
+        if (!$this->_plink) {
+            $this->_link && $this->_link->close();
+            $this->_link = $this->_client = null;
+        }
     }
 
     public function reconnect() {
         $this->close();
-        $this->connect($this->_dsn, $this->_dsnkey, 'RETRY');
+        return $this->connect($this->_dsn, $this->_dsnkey, 'RETRY');
     }
 
     public function qtable($tableName) {
@@ -79,7 +73,7 @@ class Mongo {
 
     public function create($table, $document = array(), $retid = false, $type = '') {
         if (is_null($this->_client)) {
-            return $this->_false_val;
+            return $this->_halt('client is not connected!');
         }
         try {
             if (isset($document['_id'])) {
@@ -101,14 +95,13 @@ class Mongo {
                 $this->reconnect();
                 return $this->create($table, $document, $retid, 'RETRY');
             }
-            $this->_run_dev && $this->__halt($ex->getMessage(), $ex->getCode(), $this->_run_dev);
-            return $this->_false_val;
+            return $this->_halt($ex->getMessage(), $ex->getCode());
         }
     }
 
     public function replace($table, $document = array(), $type = '') {
         if (is_null($this->_client)) {
-            return $this->_false_val;
+            return $this->_halt('client is not connected!');
         }
         try {
             if (isset($document['_id'])) {
@@ -122,14 +115,13 @@ class Mongo {
                 $this->reconnect();
                 return $this->replace($table, $document, 'RETRY');
             }
-            $this->_run_dev && $this->__halt($ex->getMessage(), $ex->getCode(), $this->_run_dev);
-            return $this->_false_val;
+            return $this->_halt($ex->getMessage(), $ex->getCode());
         }
     }
 
     public function update($table, $document = array(), $condition = array(), $options = 'set', $type = '') {
         if (is_null($this->_client)) {
-            return $this->_false_val;
+            return $this->_halt('client is not connected!');
         }
         try {
             if (isset($condition['_id'])) {
@@ -163,14 +155,13 @@ class Mongo {
                 $this->reconnect();
                 return $this->update($table, $document, $condition, $options, 'RETRY');
             }
-            $this->_run_dev && $this->__halt($ex->getMessage(), $ex->getCode(), $this->_run_dev);
-            return $this->_false_val;
+            return $this->_halt($ex->getMessage(), $ex->getCode());
         }
     }
 
     public function remove($table, $condition = array(), $muti = false, $type = '') {
         if (is_null($this->_client)) {
-            return $this->_false_val;
+            return $this->_halt('client is not connected!');
         }
         try {
             if (isset($condition['_id'])) {
@@ -188,14 +179,13 @@ class Mongo {
                 $this->reconnect();
                 return $this->remove($table, $condition, $muti, 'RETRY');
             }
-            $this->_run_dev && $this->__halt($ex->getMessage(), $ex->getCode(), $this->_run_dev);
-            return $this->_false_val;
+            return $this->_halt($ex->getMessage(), $ex->getCode());
         }
     }
 
     public function findOne($table, $fields = array(), $condition = array(), $type = '') {
         if (is_null($this->_client)) {
-            return $this->_false_val;
+            return $this->_halt('client is not connected!');
         }
         try {
             if (isset($condition['_id'])) {
@@ -212,14 +202,13 @@ class Mongo {
                 $this->reconnect();
                 return $this->findOne($table, $fields, $condition, 'RETRY');
             }
-            $this->_run_dev && $this->__halt($ex->getMessage(), $ex->getCode(), $this->_run_dev);
-            return $this->_false_val;
+            return $this->_halt($ex->getMessage(), $ex->getCode());
         }
     }
 
     public function findAll($table, $fields = array(), $query = array(), $yield = false, $type = '') {
         if (is_null($this->_client)) {
-            return $this->_false_val;
+            return $this->_halt('client is not connected!');
         }
         try {
             $collection = $this->_client->selectCollection($this->qtable($table));
@@ -241,14 +230,13 @@ class Mongo {
                 $this->reconnect();
                 return $this->findAll($table, $fields, $query, $yield, 'RETRY');
             }
-            $this->_run_dev && $this->__halt($ex->getMessage(), $ex->getCode(), $this->_run_dev);
-            return $this->_false_val;
+            return $this->_halt($ex->getMessage(), $ex->getCode());
         }
     }
 
     public function page($table, $query = array(), $offset = 0, $length = 18, $yield = false, $type = '') {
         if (!$this->_client) {
-            throw new \MongoConnectionException('no conected!');
+            return $this->_halt('client is not connected!');
         }
         try {
             $collection = $this->_client->selectCollection($this->qtable($table));
@@ -266,7 +254,7 @@ class Mongo {
             } else {
                 //内镶文档查询
                 if (!$query['field']) {
-                    throw new \Rsf\Exception\Exception('fields is empty', 0);
+                    throw new Exception\DbException('fields is empty', 0);
                 }
                 $cursor = $collection->findOne($query['query'], array($query['field'] => array('$slice' => array($offset, $length))));
                 return $cursor[$query['field']];
@@ -276,8 +264,7 @@ class Mongo {
                 $this->reconnect();
                 return $this->page($table, $query, $offset, $length, $yield, 'RETRY');
             }
-            $this->_run_dev && $this->__halt($ex->getMessage(), $ex->getCode(), $this->_run_dev);
-            return $this->_false_val;
+            return $this->_halt($ex->getMessage(), $ex->getCode());
         }
     }
 
@@ -301,7 +288,7 @@ class Mongo {
 
     public function count($table, $condition = array(), $type = '') {
         if (!$this->_client) {
-            throw new \MongoConnectionException('no conected!');
+            return $this->_halt('client is not connected!');
         }
         try {
             $collection = $this->_client->selectCollection($this->qtable($table));
@@ -314,25 +301,23 @@ class Mongo {
                 $this->reconnect();
                 return $this->count($table, $condition, 'RETRY');
             }
-            $this->_run_dev && $this->__halt($ex->getMessage(), $ex->getCode(), $this->_run_dev);
-            return $this->_false_val;
+            return $this->_halt($ex->getMessage(), $ex->getCode());
         }
     }
 
     public function drop($table, $type = '') {
         if (!$this->_client) {
-            throw new \MongoConnectionException('no conected!');
+            return $this->_halt('client is not connected!');
         }
         try {
             $collection = $this->_client->selectCollection($this->qtable($table));
-            $collection->drop();
+            return $collection->drop();
         } catch (\MongoException $ex) {
             if ('RETRY' !== $type) {
                 $this->reconnect();
                 return $this->drop($table, 'RETRY');
             }
-            $this->_run_dev && $this->__halt($ex->getMessage(), $ex->getCode(), $this->_run_dev);
-            return $this->_false_val;
+            return $this->_halt($ex->getMessage(), $ex->getCode());
         }
     }
 
@@ -354,13 +339,12 @@ class Mongo {
         return '';
     }
 
-    private function __halt($message = '', $code = '', $halt = 0) {
-        if ($halt) {
+    private function _halt($message = '', $code = 0) {
+        if ($this->_run_dev) {
             $this->close();
-            throw new \Rsf\Exception\Exception($message, $code);
-        } else {
-            return false;
+            throw new Exception\DbException($message, $code);
         }
+        return $this->_false_val;
     }
 
 }

@@ -2,6 +2,8 @@
 
 namespace Rsf\Cache;
 
+use \Rsf\Exception;
+
 class Xcache {
 
     use \Rsf\Base\Singleton;
@@ -10,7 +12,7 @@ class Xcache {
 
     public function init() {
         if (!function_exists('xcache_get')) {
-            throw new \Rsf\Exception\Exception('xcache 扩展没安装?', 0);
+            throw new Exception\CacheException('xcache 扩展没安装?', 0);
         }
         $this->enable = true;
         return $this;
@@ -32,7 +34,7 @@ class Xcache {
     }
 
     public function clear() {
-        return xcache_clear_cache(1, -1);
+        xcache_clear_cache(1, -1);
     }
 
 }

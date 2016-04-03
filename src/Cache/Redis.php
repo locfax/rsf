@@ -2,6 +2,8 @@
 
 namespace Rsf\Cache;
 
+use \Rsf\Exception;
+
 class Redis {
 
     use \Rsf\Base\Singleton;
@@ -11,12 +13,12 @@ class Redis {
 
     public function init($config) {
         if (!class_exists('\Redis', false)) {
-            throw new \Rsf\Exception\Exception('Redis 扩展没安装?', 0);
+            throw new Exception\CacheException('Redis 扩展没安装?', 0);
         }
         try {
             $this->_link = new \Redis();
             if ($config['pconnect']) {
-                $ret = $this->_link->pconnect($config['host'], $config['port'], $config['timeout'], $config['database']);
+                $ret = $this->_link->pconnect($config['host'], $config['port'], $config['timeout']);
             } else {
                 $ret = $this->_link->connect($config['host'], $config['port'], $config['timeout']);
             }
@@ -28,7 +30,7 @@ class Redis {
                 $this->enable = true;
             }
         } catch (\RedisException $e) {
-
+            throw new Exception\CacheException($e->getMessage(), $e->getCode());
         }
         return $this;
     }

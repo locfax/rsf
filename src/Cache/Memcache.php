@@ -2,6 +2,8 @@
 
 namespace Rsf\Cache;
 
+use \Rsf\Exception;
+
 class Memcache {
 
     use \Rsf\Base\Singleton;
@@ -11,7 +13,7 @@ class Memcache {
 
     public function init($config) {
         if (!extension_loaded('memcache')) {
-            throw new \Rsf\Exception\Exception('memcache 扩展没安装?', 0);
+            throw new Exception\CacheException('memcache 扩展没安装?', 0);
         }
         try {
             $this->_link = new \Memcache();
@@ -24,7 +26,7 @@ class Memcache {
                 $this->enable = true;
             }
         } catch (\MemcachedException $e) {
-
+            throw new Exception\CacheException($e->getMessage(), $e->getCode());
         }
         return $this;
     }

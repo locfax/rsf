@@ -2,9 +2,9 @@
 
 namespace Rsf\Db;
 
-class Mysqli {
+use \Rsf\Exception;
 
-    use \Rsf\Base\Singleton;
+class Mysqli {
 
     //dsn information
     private $_dsn = null;
@@ -24,17 +24,6 @@ class Mysqli {
     }
 
     public function connect($dsn, $dsnkey, $type = '') {
-        static $linkpool = array();
-        if ('' === $type && isset($linkpool[$dsnkey]) && $this->_link) {
-            //如果已经尝试连接过
-            if ($dsn['database'] !== $linkpool[$dsnkey]) {
-                $linkpool[$dsnkey] = $dsn['database'];
-                $this->select_db($dsn['database']);
-            }
-            return;
-        }
-        $linkpool[$dsnkey] = $dsn['database'];
-
         if (is_null($this->_dsn)) {
             $this->_dsn = $dsn;
             $this->_dsnkey = $dsnkey;
@@ -43,48 +32,56 @@ class Mysqli {
             $this->_run_dev = $dsn['rundev'];
             $this->_plink = $dsn['pconnect'];
         }
-        if ($dsn['pconnect']) {
-            $this->_link = mysqli_connect('p:' . $dsn['host'], $dsn['login'], $dsn['password'], $dsn['database'], $dsn['port']);
-        } else {
-            $this->_link = mysqli_connect($dsn['host'], $dsn['login'], $dsn['password'], $dsn['database'], $dsn['port']);
-        }
-        if (!mysqli_connect_error()) {
-            mysqli_set_charset($this->_link, $dsn['charset']);
-        } else {
-            if ('RETRY' != $type) {
-                $this->connect($dsn, $dsnkey, 'RETRY');
+        try {
+            if ($dsn['pconnect']) {
+                $this->_link = mysqli_connect('p:' . $dsn['host'], $dsn['login'], $dsn['password'], $dsn['database'], $dsn['port']);
             } else {
-                unset($linkpool[$dsnkey]);
-                $this->_link = null;
-                $this->_run_dev && $this->_halt($this->error(), $this->errno(), $this->_run_dev);
+                $this->_link = mysqli_connect($dsn['host'], $dsn['login'], $dsn['password'], $dsn['database'], $dsn['port']);
             }
+            !mysqli_connect_error() && mysqli_set_charset($this->_link, $dsn['charset']);
+        } catch (\ErrorException $e) {
+            if ('RETRY' != $type) {
+                return $this->reconnect();
+            }
+            $this->_link = null;
+            return $this->_halt($this->error(), $this->errno());
         }
+        return $this->_true_val;
+    }
+
+    public function reconnect() {
+        $this->close();
+        return $this->connect($this->_dsn, $this->_dsnkey, 'RETRY');
     }
 
     public function select_db($dbname) {
-        !mysqli_select_db($this->_link, $dbname) && $this->_halt($this->error(), $this->errno(), $this->_run_dev);
+        !mysqli_select_db($this->_link, $dbname) && $this->_halt($this->error(), $this->errno());
     }
 
     public function close() {
-        !$this->_plink && $this->_link && mysqli_close($this->_link);
-        $this->_link = null;
+        if (!$this->_plink) {
+            $this->_link && mysqli_close($this->_link);
+            $this->_link = null;
+        }
     }
 
     public function query($sql, $type = '') {
         if (is_null($this->_link)) {
             return $this->_false_val;
         }
-        $query = mysqli_query($this->_link, $sql);
+        try {
+            $query = mysqli_query($this->_link, $sql);
+        } catch (\ErrorException $e) {
+            $query = null;
+        }
         if ($query) {
             return $query;
         }
         if (in_array($this->errno(), array(2006, 2013)) && 'RETRY' != substr($type, 0, 5)) { //2006, 2013 db无应答
-            $this->close();
-            $this->connect($this->_dsn, $this->_dsnkey, 'RETRY');
+            $this->reconnect();
             return $this->query($sql, 'RETRY' . $type);
         }
-        $this->_run_dev && $this->_halt($this->error(), $this->errno(), $this->_run_dev);
-        return $this->_false_val;
+        return $this->_halt($this->error(), $this->errno());
     }
 
     public function qstr($value) {
@@ -308,7 +305,7 @@ class Mysqli {
 
     private function error() {
         $error = $this->_link ? mysqli_error($this->_link) : mysqli_connect_error();
-        return $error;
+        return date('H:i:s').$error;
     }
 
     private function errno() {
@@ -330,13 +327,12 @@ class Mysqli {
         mysqli_autocommit($this->_link, true);
     }
 
-    private function _halt($message = '', $data = '', $halt = 0) {
-        if ($halt) {
+    private function _halt($message = '', $code = 0) {
+        if ($this->_run_dev) {
             $this->close();
-            throw new \Rsf\Exception\Exception($message, $data);
-        } else {
-            return false;
+            throw new Exception\DbException($message, $code);
         }
+        return $this->_false_val;
     }
 
     public function fields($tableName) {
