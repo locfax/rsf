@@ -34,7 +34,7 @@ class Cacher {
             $this->enable = $this->cacher->enable;
             $this->type = 'xcache';
         } else {
-            throw new Exception\Exception('不存在的缓存器', 0);
+            throw new Exception\Exception('不存在的缓存器');
         }
         $this->prefix = $this->config['prefix'];
         if (!$this->cacher->enable && 'file' != $this->config['cacher']) {

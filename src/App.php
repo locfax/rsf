@@ -145,7 +145,7 @@ class App {
             $file = trim(substr($classname, strlen($namespace)), '\\');
             $file = $path . '/' . str_replace('\\', '/', $file) . '.php';
             if (!is_file($file)) {
-                throw new Exception\Exception($file, 0);
+                throw new Exception\Exception($file);
             }
             require $file;
             return true;

@@ -9,7 +9,7 @@ trait Singleton {
     protected static $instances = array();
 
     public function __clone() {
-        throw new Exception\Exception('Cloning ' . __CLASS__ . ' is not allowed', 0);
+        throw new Exception\Exception('Cloning ' . __CLASS__ . ' is not allowed');
     }
 
     public static function getInstance() {

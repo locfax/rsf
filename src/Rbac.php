@@ -2,6 +2,8 @@
 
 namespace Rsf;
 
+use \Rsf\Exception;
+
 class Rbac {
 
     const ACL_EVERYONE = 'ACL_EVERYONE';
@@ -151,14 +153,14 @@ class Rbac {
     /**
      * @param $controllerName
      * @return null
-     * @throws \Rsf\Exception\Exception
+     * @throws Exception\Exception
      */
     private static function _getACT($controllerName) {
         static $globalAcl = array();
         if (empty($globalAcl)) {
             $jsonacl = include getini('data/_acl') . strtolower(APPKEY) . 'ACT.php';
             if (!$jsonacl) {
-                throw new \Rsf\Exception\Exception('ACL文件不存在');
+                throw new Exception\Exception('ACL文件不存在');
             }
             $globalAcl = json_decode($jsonacl, true);
         }
