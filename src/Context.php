@@ -8,7 +8,7 @@ class Context {
     const _ROLEKEY = 'roles';
 
     private static $sess_isset = 0;
-    private static $dsn = array();
+    private static $dsn = [];
 
     /**
      * @param $dsnid
@@ -34,7 +34,7 @@ class Context {
     public static function config($name, $type = 'inc') {
         $file = PSROOT . '/config/' . strtolower($name) . '.' . $type . '.php';
         if (!is_file($file)) {
-            return array();
+            return [];
         }
         return include $file;
     }
@@ -45,7 +45,7 @@ class Context {
      * @return mixed
      */
     public static function mergeVars($group, $vars = null) {
-        static $_CDATA = array('cfg' => null);
+        static $_CDATA = ['cfg' => null];
         if (is_null($vars)) {
             return $_CDATA[$group];
         } else {
@@ -62,11 +62,11 @@ class Context {
      * @param $data
      */
     public static function log($code, $data) {
-        $post = array(
+        $post = [
             'dateline' => time(),
             'logcode' => $code,
             'logmsg' => var_export($data, true)
-        );
+        ];
         Db::dbo('general')->create('weixin_log', $post);
     }
 
@@ -74,9 +74,9 @@ class Context {
         if (!is_null($rolesData)) {
             $userData[self::_ROLEKEY] = $rolesData;
         }
-        $data_struct = array(
+        $data_struct = [
             self::_USERKEY => $userData
-        );
+        ];
         $ret = self::_setdata($data_struct, $left);
         return $ret;
     }
@@ -91,9 +91,9 @@ class Context {
     }
 
     public static function clearUser() {
-        $arr = array(
+        $arr = [
             self::_USERKEY => ''
-        );
+        ];
         self::_setdata($arr, -86400 * 365);
     }
 
@@ -107,7 +107,7 @@ class Context {
     public static function getRolesArray() {
         $roles = self::getRoles();
         if (empty($roles)) {
-            return array();
+            return [];
         }
         if (!is_array($roles)) {
             $roles = explode(',', $roles);
@@ -155,15 +155,15 @@ class Context {
                 //禁止清理用户信息
                 return false;
             }
-            $arr = array(
+            $arr = [
                 $key => ''
-            );
+            ];
         }
         self::_setdata($arr, -86400 * 365, $type);
     }
 
     private static function _getdata($keys, $type = null) {
-        $ret = array();
+        $ret = [];
         if (is_null($type)) {
             $type = getini('auth/handle');
         }
@@ -278,7 +278,7 @@ class Context {
         $result = '';
         $box = range(0, 255);
 
-        $rndkey = array();
+        $rndkey = [];
         for ($i = 0; $i <= 255; $i++) {
             $rndkey[$i] = ord($cryptkey[$i % $key_length]);
         }

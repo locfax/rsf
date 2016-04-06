@@ -30,7 +30,7 @@ class Hook {
      * @return bool|mixed
      */
     public static function loadFile($fileName, $loadOnce = true, $absPath = BASE, $ext = 'php') {
-        static $is_loaded = array();
+        static $is_loaded = [];
         $file = self::_filePath($fileName, $absPath, $ext);
         $filemd5 = md5($file);
         if (isset($is_loaded[$filemd5]) && $loadOnce) {
@@ -78,7 +78,7 @@ class Hook {
      * @throws Exception
      */
     public static function getClass($classPath, $className = null, $classParam = null, $absPath = BASE, $ext = 'php') {
-        static $instances = array();
+        static $instances = [];
         if (is_null($className)) {
             $className = self::_className($classPath);
         }

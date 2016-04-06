@@ -65,7 +65,7 @@ class Cacher {
     public function set($key, $value, $ttl = 0) {
         $ret = false;
         if ($this->enable) {
-            $data = array($value);
+            $data = [$value];
             $ret = $this->cacher->set($this->_key($key), output_json($data), $ttl);
         }
         return $ret;

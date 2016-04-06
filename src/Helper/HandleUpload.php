@@ -4,18 +4,18 @@ namespace Rsf\Helper;
 
 class HandleUpload {
 
-    private $_file = array();
+    private $_file = [];
     private $_name;
 
     public function __construct($struct, $name, $ix = false) {
         if ($ix !== false) {
-            $s = array(
+            $s = [
                 'name' => $struct['name'][$ix],
                 'type' => $struct['type'][$ix],
                 'tmp_name' => $struct['tmp_name'][$ix],
                 'error' => $struct['error'][$ix],
                 'size' => $struct['size'][$ix],
-            );
+            ];
             $this->_file = $s;
         } else {
             $this->_file = $struct;
@@ -146,7 +146,7 @@ class HandleUpload {
             } elseif (strexists($allowExts, '|')) {
                 $exts = explode('|', $allowExts);
             } else {
-                $exts = array($allowExts);
+                $exts = [$allowExts];
             }
 
             $filename = $this->getFilename();

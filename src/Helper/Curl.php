@@ -6,10 +6,10 @@ class Curl {
 
     use \Rsf\Base\Singleton;
 
-    public function send($url, $data = '', $httphead = array(), $gzip = false, $charset = 'UTF-8', $rethead = false, $retsession = false) {
+    public function send($url, $data = '', $httphead = [], $gzip = false, $charset = 'UTF-8', $rethead = false, $retsession = false) {
         $ch = curl_init();
         if (!$ch) {
-            return array('header' => '', 'body' => '', 'http_code' => 0, 'http_info' => '缺少curl模块或未启用');
+            return ['header' => '', 'body' => '', 'http_code' => 0, 'http_info' => '缺少curl模块或未启用'];
         }
         if (false !== stripos($url, "https://")) {
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
@@ -66,7 +66,7 @@ class Curl {
         }
 
         /* 构造头部 */
-        $httpheads = array();
+        $httpheads = [];
         foreach ($httphead as $k => $v) {
             $httpheads[] = $k . ': ' . $v;
         }
@@ -78,7 +78,7 @@ class Curl {
 
         /* 是否有错误 */
         if (0 != curl_errno($ch)) {
-            return array('http_code' => 0, 'http_error' => curl_error($ch));
+            return ['http_code' => 0, 'http_error' => curl_error($ch)];
         }
 
         /* 获取请求返回的http code */
@@ -91,7 +91,7 @@ class Curl {
             $separator = '/\r\n\r\n|\n\n|\r\r/';
             list($_http_header, $http_body) = preg_split($separator, $http_response, 2);
             $http_headers = explode("\n", $_http_header);
-            $http_header = array();
+            $http_header = [];
             foreach ($http_headers as $header) {
                 $spits = explode(':', $header);
                 if (count($spits) > 1) {
@@ -125,7 +125,7 @@ class Curl {
                 $http_body = $this->convert_encode(strtoupper($charset), 'UTF-8', $http_body);
             }
         }
-        return array('header' => $http_header, 'body' => $http_body, 'http_code' => $http_code, 'http_info' => $http_info, 'reqheader' => $httpheads);
+        return ['header' => $http_header, 'body' => $http_body, 'http_code' => $http_code, 'http_info' => $http_info, 'reqheader' => $httpheads];
     }
 
     private function convert_encode($in, $out, $string) { // string change charset return string

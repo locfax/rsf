@@ -156,7 +156,7 @@ class Rbac {
      * @throws Exception\Exception
      */
     private static function _getACT($controllerName) {
-        static $globalAcl = array();
+        static $globalAcl = [];
         if (empty($globalAcl)) {
             $jsonacl = include getini('data/_acl') . strtolower(APPKEY) . 'ACT.php';
             if (!$jsonacl) {

@@ -108,7 +108,7 @@ class Postgre {
         return $ret;
     }
 
-    public function field_value($fields = array(), $glue = ',') {
+    public function field_value($fields = [], $glue = ',') {
         $sql = $comma = '';
         foreach ($fields as $field => $value) {
             $sql .= $comma . $this->qfield($field) . '=' . $this->qstr($value);

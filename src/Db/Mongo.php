@@ -33,13 +33,13 @@ class Mongo {
             if ($dsn['password']) {
                 if ($dsn['pconnect']) {
                     //\MongoClient
-                    $this->_link = new \MongoClient("mongodb://{$dsn['login']}:{$dsn['password']}@{$dsn['host']}:{$dsn['port']}/{$dsn['database']}", array("connect" => false, 'persist' => $dsn['host'] . '_' . $dsn['port']));
+                    $this->_link = new \MongoClient("mongodb://{$dsn['login']}:{$dsn['password']}@{$dsn['host']}:{$dsn['port']}/{$dsn['database']}", ["connect" => false, 'persist' => $dsn['host'] . '_' . $dsn['port']]);
                 } else {
                     $this->_link = new \MongoClient("mongodb://{$dsn['login']}:{$dsn['password']}@{$dsn['host']}:{$dsn['port']}/{$dsn['database']}");
                 }
             } else {
                 if ($dsn['pconnect']) {
-                    $this->_link = new \MongoClient("mongodb://{$dsn['host']}:{$dsn['port']}/{$dsn['database']}", array("connect" => false, 'persist' => $dsn['host'] . '_' . $dsn['port']));
+                    $this->_link = new \MongoClient("mongodb://{$dsn['host']}:{$dsn['port']}/{$dsn['database']}", ["connect" => false, 'persist' => $dsn['host'] . '_' . $dsn['port']]);
                 } else {
                     $this->_link = new \MongoClient("mongodb://{$dsn['host']}:{$dsn['port']}/{$dsn['database']}");
                 }
@@ -71,7 +71,7 @@ class Mongo {
         return $this->_prefix . $tableName;
     }
 
-    public function create($table, $document = array(), $retid = false, $type = '') {
+    public function create($table, $document = [], $retid = false, $type = '') {
         if (is_null($this->_client)) {
             return $this->_halt('client is not connected!');
         }
@@ -84,7 +84,7 @@ class Mongo {
                 $document['_id'] = new \MongoId();
             }
             $collection = $this->_client->selectCollection($this->qtable($table));
-            $ret = $collection->insert($document, array('w' => 1));
+            $ret = $collection->insert($document, ['w' => 1]);
             if ($retid && $ret) {
                 $insert_id = (string)$document['_id'];
                 return $insert_id;
@@ -99,7 +99,7 @@ class Mongo {
         }
     }
 
-    public function replace($table, $document = array(), $type = '') {
+    public function replace($table, $document = [], $type = '') {
         if (is_null($this->_client)) {
             return $this->_halt('client is not connected!');
         }
@@ -119,7 +119,7 @@ class Mongo {
         }
     }
 
-    public function update($table, $document = array(), $condition = array(), $options = 'set', $type = '') {
+    public function update($table, $document = [], $condition = [], $options = 'set', $type = '') {
         if (is_null($this->_client)) {
             return $this->_halt('client is not connected!');
         }
@@ -134,19 +134,19 @@ class Mongo {
             if ('muti' == $options) {
                 $ret = $collection->update($condition, $document);
             } elseif ('set' == $options) { //更新 字段
-                $ret = $collection->update($condition, array('$set' => $document));
+                $ret = $collection->update($condition, ['$set' => $document]);
             } elseif ('inc' == $options) { //递增 字段
-                $ret = $collection->update($condition, array('$inc' => $document));
+                $ret = $collection->update($condition, ['$inc' => $document]);
             } elseif ('unset' == $options) { //删除 字段
-                $ret = $collection->update($condition, array('$unset' => $document));
+                $ret = $collection->update($condition, ['$unset' => $document]);
             } elseif ('push' == $options) { //推入内镶文档
-                $ret = $collection->update($condition, array('$push' => $document));
+                $ret = $collection->update($condition, ['$push' => $document]);
             } elseif ('pop' == $options) { //删除内镶文档最后一个或者第一个
-                $ret = $collection->update($condition, array('$pop' => $document));
+                $ret = $collection->update($condition, ['$pop' => $document]);
             } elseif ('pull' == $options) { //删除内镶文档某个值得项
-                $ret = $collection->update($condition, array('$pull' => $document));
+                $ret = $collection->update($condition, ['$pull' => $document]);
             } elseif ('addToSet' == $options) { //追加到内镶文档
-                $ret = $collection->update($condition, array('$addToSet' => $document));
+                $ret = $collection->update($condition, ['$addToSet' => $document]);
             }
             //$pushAll $pullAll
             return $ret;
@@ -159,7 +159,7 @@ class Mongo {
         }
     }
 
-    public function remove($table, $condition = array(), $muti = false, $type = '') {
+    public function remove($table, $condition = [], $muti = false, $type = '') {
         if (is_null($this->_client)) {
             return $this->_halt('client is not connected!');
         }
@@ -171,7 +171,7 @@ class Mongo {
             if ($muti) {
                 $ret = $collection->remove($condition);
             } else {
-                $ret = $collection->remove($condition, array('justOne' => true));
+                $ret = $collection->remove($condition, ['justOne' => true]);
             }
             return $ret;
         } catch (\MongoException $ex) {
@@ -183,7 +183,7 @@ class Mongo {
         }
     }
 
-    public function findOne($table, $fields = array(), $condition = array(), $type = '') {
+    public function findOne($table, $fields = [], $condition = [], $type = '') {
         if (is_null($this->_client)) {
             return $this->_halt('client is not connected!');
         }
@@ -206,7 +206,7 @@ class Mongo {
         }
     }
 
-    public function findAll($table, $fields = array(), $query = array(), $yield = false, $type = '') {
+    public function findAll($table, $fields = [], $query = [], $yield = false, $type = '') {
         if (is_null($this->_client)) {
             return $this->_halt('client is not connected!');
         }
@@ -234,7 +234,7 @@ class Mongo {
         }
     }
 
-    public function page($table, $query = array(), $offset = 0, $length = 18, $yield = false, $type = '') {
+    public function page($table, $query = [], $offset = 0, $length = 18, $yield = false, $type = '') {
         if (!$this->_client) {
             return $this->_halt('client is not connected!');
         }
@@ -256,7 +256,7 @@ class Mongo {
                 if (!$query['field']) {
                     throw new Exception\DbException('fields is empty', 0);
                 }
-                $cursor = $collection->findOne($query['query'], array($query['field'] => array('$slice' => array($offset, $length))));
+                $cursor = $collection->findOne($query['query'], [$query['field'] => ['$slice' => [$offset, $length]]]);
                 return $cursor[$query['field']];
             }
         } catch (\MongoException $ex) {
@@ -277,7 +277,7 @@ class Mongo {
     }
 
     private function getrows($cursor) {
-        $rowsets = array();
+        $rowsets = [];
         while ($cursor->hasNext()) {
             $row = $cursor->getNext();
             $row['_id'] = $row['_id']->{'$id'};
@@ -286,7 +286,7 @@ class Mongo {
         return $rowsets;
     }
 
-    public function count($table, $condition = array(), $type = '') {
+    public function count($table, $condition = [], $type = '') {
         if (!$this->_client) {
             return $this->_halt('client is not connected!');
         }

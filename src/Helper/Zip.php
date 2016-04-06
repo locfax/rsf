@@ -6,8 +6,8 @@ class Zip {
 
     use \Rsf\Base\Singleton;
 
-    private $datasec = array();
-    private $ctrl_dir = array();
+    private $datasec = [];
+    private $ctrl_dir = [];
     private $eof_ctrl_dir = "\x50\x4b\x05\x06\x00\x00\x00\x00";
     private $old_offset = 0;
 
@@ -48,7 +48,7 @@ class Zip {
     }
 
     private function _GetFileList($dir) {
-        $file = array();
+        $file = [];
         if (is_dir($dir)) {
             $args = func_get_args();
             $pref = $args[0];

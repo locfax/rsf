@@ -25,7 +25,7 @@ class Locker {
 
     //锁状态设置
     public static function status($action, $process) {
-        static $plist = array();
+        static $plist = [];
         switch ($action) {
             case 'set' :
                 $plist[$process] = true;
@@ -64,7 +64,7 @@ class Locker {
         $db = \Rsf\Db::dbo(self::dsn);
         switch ($cmd) {
             case 'set':
-                $ret = $db->replace('common_process', array('processid' => $name, 'expiry' => time() + $ttl));
+                $ret = $db->replace('common_process', ['processid' => $name, 'expiry' => time() + $ttl]);
                 break;
             case 'get':
                 $ret = $db->findOne('common_process', "SELECT * FROM %s WHERE processid='$name'");

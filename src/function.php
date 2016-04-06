@@ -50,7 +50,7 @@ function datacache($cachekey, $reset = false) {
 //普通级别缓存
 function cache($cmd, $key = '', $val = '', $ttl = 0) {
     $cacher = \Rsf\Cache\Cacher::getInstance();
-    if (in_array($cmd, array('set', 'get', 'rm', 'clear'))) {
+    if (in_array($cmd, ['set', 'get', 'rm', 'clear'])) {
         switch ($cmd) {
             case 'get':
                 return $cacher->get($key);
@@ -72,7 +72,7 @@ function loadcache($cachename, $reset = false) {
     }
     $data = sysdata($cachename, $reset);
     if ('settings' === $cachename && $data) {
-        \Rsf\Context::mergeVars('cfg', array('settings' => json_decode($data, true)));
+        \Rsf\Context::mergeVars('cfg', ['settings' => json_decode($data, true)]);
         return true;
     }
     return json_decode($data, true);

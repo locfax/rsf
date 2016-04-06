@@ -6,7 +6,7 @@ use \Rsf\Exception;
 
 trait Singleton {
 
-    protected static $instances = array();
+    protected static $instances = [];
 
     public function __clone() {
         throw new Exception\Exception('Cloning ' . __CLASS__ . ' is not allowed');

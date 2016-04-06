@@ -40,7 +40,7 @@ class File {
         }
 
         $cachefile = getini('data/_cache') . $key . '.php';
-        $cachedata = "return array('data' => '{$val}', 'timeout' => {$timeout});";
+        $cachedata = "return ['data' => '{$val}', 'timeout' => {$timeout}];";
         $content = "<?php \n//CACHE FILE, DO NOT MODIFY ME PLEASE!\n//Identify: " . md5($key . time()) . "\n\n{$cachedata}";
         return $this->save($cachefile, $content, FILE_WRITE_MODE);
     }

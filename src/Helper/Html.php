@@ -38,15 +38,15 @@ class Html {
         return $str;
     }
 
-    public function checkbox_group($name, $arr, $selected = array(), $separator = '', $extra = null) {
+    public function checkbox_group($name, $arr, $selected = [], $separator = '', $extra = null) {
         $ix = 0;
         if (!is_array($selected)) {
-            $selected = array($selected);
+            $selected = [$selected];
         }
         $str = "";
         foreach ($arr as $value => $title) {
-            $value_h = char_h($value);
-            $title = char_t($title);
+            $value_h = output_char($value);
+            $title = output_char($title);
             $str .= "<input name=\"{$name}[]\" type=\"checkbox\" id=\"{$name}_{$ix}\" value=\"{$value_h}\" ";
             if (in_array($value, $selected)) {
                 $str .= "checked=\"checked\"";

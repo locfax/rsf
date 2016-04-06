@@ -11,7 +11,7 @@ class Strs {
      */
     function random($length = 4) {
         $reqid = '';
-        $characters = array("A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "2", "3", "4", "5", "6", "7", "8", "9");
+        $characters = ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "2", "3", "4", "5", "6", "7", "8", "9"];
         shuffle($characters);
         for (; strlen($reqid) < $length;) {
             $reqid .= $characters[rand(0, count($characters) - 1)];
@@ -55,7 +55,7 @@ class Strs {
      * return string
      */
     function cutstr($string, $length, $suffix = true, $charset = "utf-8", $start = 0, $dot = ' ...') {
-        $str = str_replace(array('&amp;', '&quot;', '&lt;', '&gt;'), array('&', '"', '<', '>'), $string);
+        $str = str_replace(['&amp;', '&quot;', '&lt;', '&gt;'], ['&', '"', '<', '>'], $string);
         if (function_exists("mb_substr")) {
             $strcut = mb_substr($str, $start, $length, $charset);
             if (mb_strlen($str, $charset) > $length) {
@@ -63,15 +63,15 @@ class Strs {
             }
             return $strcut;
         }
-        $re = array();
-        $match = array('');
+        $re = [];
+        $match = [''];
         $re['utf-8'] = "/[\x01-\x7f]|[\xc2-\xdf][\x80-\xbf]|[\xe0-\xef][\x80-\xbf]{2}|[\xf0-\xff][\x80-\xbf]{3}/";
         $re['gb2312'] = "/[\x01-\x7f]|[\xb0-\xf7][\xa0-\xfe]/";
         $re['gbk'] = "/[\x01-\x7f]|[\x81-\xfe][\x40-\xfe]/";
         $re['big5'] = "/[\x01-\x7f]|[\x81-\xfe]([\x40-\x7e]|\xa1-\xfe])/";
         preg_match_all($re[$charset], $str, $match);
         $slice = join("", array_slice($match[0], $start, $length));
-        $strcut = str_replace(array('&', '"', '<', '>'), array('&amp;', '&quot;', '&lt;', '&gt;'), $slice);
+        $strcut = str_replace(['&', '"', '<', '>'], ['&amp;', '&quot;', '&lt;', '&gt;'], $slice);
         return $suffix ? $strcut . $dot : $strcut;
     }
 
@@ -105,7 +105,7 @@ class Strs {
     function convert_char($in, $out, $string) {
         // string change charset return mix
         if (is_array($string)) {
-            $ret = array();
+            $ret = [];
             foreach ($string as $str) {
                 $ret[] = $this->convert_char($in, $out, $str);
             }

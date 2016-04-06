@@ -27,22 +27,22 @@ class HandleImagek {
       参数:
      */
 
-    public function crop($width, $height, $options = array()) {
+    public function crop($width, $height, $options = []) {
         if (is_null($this->_handle)) {
             return $this;
         }
-        $default_options = array(
+        $default_options = [
             'bestfit' => true,
             'fill' => false
-        );
+        ];
         $options = array_merge($default_options, $options);
         $this->_handle->thumbnailImage($width, $height, $options['bestfit'], $options['fill']);
     }
 
     public function watermark($waterImage, $pos = 5, $Opacity = 0.2) {
-        $water = new Imagick($waterImage);
+        $water = new \Imagick($waterImage);
         $water->setImageOpacity($Opacity);
-        $dw = new ImagickDraw();
+        $dw = new \ImagickDraw();
         $dw->setGravity($pos);
         $dw->composite($water->getImageCompose(), 0, 0, 50, 0, $water);
         $this->_handle->drawImage($dw);
@@ -102,15 +102,15 @@ class HandleImagek {
 
     public function text($text, $color, $size, $font = 'FetteSteinschrift') {
         $font = BASE . "vendor/captcha/fonts/en/" . $font . ".ttf";
-        $draw = new ImagickDraw();
-        $draw->setGravity(Imagick::GRAVITY_CENTER);
+        $draw = new \ImagickDraw();
+        $draw->setGravity(\Imagick::GRAVITY_CENTER);
         $draw->setFont($font);
         $draw->setFontSize($size);
-        $draw->setFillColor(new ImagickPixel($color));
+        $draw->setFillColor(new \ImagickPixel($color));
 
-        $im = new imagick();
+        $im = new \imagick();
         $properties = $im->queryFontMetrics($draw, $text);
-        $im->newImage(intval($properties['textWidth'] + 5), intval($properties['textHeight'] + 5), new ImagickPixel('transparent'));
+        $im->newImage(intval($properties['textWidth'] + 5), intval($properties['textHeight'] + 5), new \ImagickPixel('transparent'));
         $im->setImageFormat('png');
         $im->annotateImage($draw, 0, 0, 0, $text);
         return $im;
@@ -130,7 +130,7 @@ class HandleImagek {
 
     public function mark($text, $color, $size, $font, $x, $y) {
         $im = $this->text($text, $color, $size, $font);
-        $this->_handle->compositeImage($im, Imagick::COMPOSITE_OVER, $x, $y);
+        $this->_handle->compositeImage($im, \Imagick::COMPOSITE_OVER, $x, $y);
         $im->destroy();
     }
 
@@ -228,7 +228,7 @@ class HandleImagek {
         if ($apply && $x == 0 && $y == 0 && $w == 0 && $h == 0) {
             $apply = false;
         }
-        $framecolor = new ImagickPixel($color);
+        $framecolor = new \ImagickPixel($color);
         if ($apply) {
             $region = $this->_handle->getImageRegion($w, $h, $x, $y);
             $region->frameImage($framecolor, $frame_width, $frame_height, $bevel, $bevel);
@@ -300,9 +300,9 @@ class HandleImagek {
 
     public function polaroidEffect($src, $color, $angle = 0) {
         if (15 != abs($angle)) {
-            $srcs = array($src, $src, $src, $src);
-            $bg = new ImagickDraw();
-            $images = new Imagick($srcs);
+            $srcs = [$src, $src, $src, $src];
+            $bg = new \ImagickDraw();
+            $images = new \Imagick($srcs);
             $format = $images->getImageFormat();
 
             $maxwidth = 0;
@@ -310,7 +310,7 @@ class HandleImagek {
 
             foreach ($images as $key => $im) {
                 $im->setImageFormat("png");
-                $im->setImageBackgroundColor(new ImagickPixel("black"));
+                $im->setImageBackgroundColor(new \ImagickPixel("black"));
 
                 $angle = mt_rand(-20, 20);
                 if ($angle == 0) {
@@ -323,8 +323,8 @@ class HandleImagek {
                 $maxwidth = max($maxwidth, $info["width"]);
                 $maxheight = max($maxheight, $info["height"]);
             }
-            $image = new Imagick();
-            $image->newImage($maxwidth, $maxheight, new ImagickPixel($color));
+            $image = new \Imagick();
+            $image->newImage($maxwidth, $maxheight, new \ImagickPixel($color));
 
             foreach ($images as $key => $im) {
                 $image->compositeImage($im, $im->getImageCompose(), 0, 0);
@@ -333,22 +333,22 @@ class HandleImagek {
             $bg->destroy();
             $images->destroy();
         } else {
-            $image = new Imagick($src);
+            $image = new \Imagick($src);
             $format = $image->getImageFormat();
-            $image->frameImage(new ImagickPixel("white"), 6, 6, 0, 0);
-            $image->frameImage(new ImagickPixel("gray"), 1, 1, 0, 0);
+            $image->frameImage(new \ImagickPixel("white"), 6, 6, 0, 0);
+            $image->frameImage(new \ImagickPixel("gray"), 1, 1, 0, 0);
             $image->setImageFormat("png");
             $shadow = $image->clone();
-            $shadow->setImageBackgroundColor(new ImagickPixel("black"));
+            $shadow->setImageBackgroundColor(new \ImagickPixel("black"));
             $shadow->shadowImage(50, 3, 0, 0);
             $shadow->compositeImage($image, $image->getImageCompose(), 0, 0);
 
-            $shadow->rotateImage(new ImagickPixel($color), $angle);
+            $shadow->rotateImage(new \ImagickPixel($color), $angle);
             $info = $shadow->getImageGeometry();
 
             $image->destroy();
-            $image = new Imagick();
-            $image->newImage($info["width"], $info["height"], new ImagickPixel($color));
+            $image = new \Imagick();
+            $image->newImage($info["width"], $info["height"], new \ImagickPixel($color));
             $image->compositeImage($shadow, $shadow->getImageCompose(), 0, 0);
             $image->setImageFormat($format);
             $shadow->destroy();
@@ -368,18 +368,18 @@ class HandleImagek {
 
     public function brushpng($color, $size, $brushpath) {
         $info = $this->_handle->getImageGeometry();
-        $image = new Imagick();
+        $image = new \Imagick();
         $image->newImage($info["width"], $info["height"], "transparent", "png");
         //$image->setImageFormat("png");
-        $draw = new ImagickDraw();
-        $pixel = new ImagickPixel();
+        $draw = new \ImagickDraw();
+        $pixel = new \ImagickPixel();
         $pixel->setColor("transparent");
         $draw->setFillColor($pixel);
         $pixel->setColor($color);
         $draw->setStrokeColor($pixel);
         $draw->setStrokeWidth($size);
-        $draw->setStrokeLineCap(imagick::LINECAP_ROUND);
-        $draw->setStrokeLineJoin(imagick::LINEJOIN_ROUND);
+        $draw->setStrokeLineCap(\imagick::LINECAP_ROUND);
+        $draw->setStrokeLineJoin(\imagick::LINEJOIN_ROUND);
         $draw->polyline($brushpath);
 
         $image->drawImage($draw);
@@ -398,7 +398,7 @@ class HandleImagek {
 
     public function dobrush($png) {
         if (is_file($png)) {
-            $imagepng = new Imagick($png);
+            $imagepng = new \Imagick($png);
             $imagepng->setImageFormat("png");
             $this->_handle->compositeImage($imagepng, $imagepng->getImageCompose(), 0, 0);
             $imagepng->destroy();
@@ -414,7 +414,7 @@ class HandleImagek {
      */
 
     public function rotate($angle) {
-        $this->_handle->rotateImage(new ImagickPixel(), $angle);
+        $this->_handle->rotateImage(new \ImagickPixel(), $angle);
     }
 
     /*
@@ -438,14 +438,14 @@ class HandleImagek {
             $e_y = $h;
         }
 
-        $image = new Imagick();
+        $image = new \Imagick();
         $image->newImage($w, $h, "transparent");
 
-        $draw = new ImagickDraw();
+        $draw = new \ImagickDraw();
 
         for ($x = 0; $x < $w; $x++) {
             for ($y = 0; $y < $h; $y++) {
-                $p = $im->getImagePixelColor($x, $y);
+                $p = $image->getImagePixelColor($x, $y);
                 $rgb = $p->getColor();
                 if ($x >= $s_x && $x < $e_x && $y >= $s_y && $y < $e_y) {
                     $rgb["r"] = $rgb["r"] + $rgb["r"] * $n;
@@ -486,7 +486,7 @@ class HandleImagek {
             $region = $this->_handle->getImageRegion($w, $h, $x, $y);
             $clone = $region->clone();
             $clone = $region->fximage('p{0,0}');
-            $region->compositeImage($clone, imagick::COMPOSITE_DIFFERENCE, 0, 0);
+            $region->compositeImage($clone, \imagick::COMPOSITE_DIFFERENCE, 0, 0);
             $region->modulateImage(100, 0, 0);
             $this->_handle->compositeImage($region, $region->getImageCompose(), $x, $y);
             $region->destroy();
@@ -494,7 +494,7 @@ class HandleImagek {
             $clone = $this->_handle->clone();
             $clone = $this->_handle->clone();
             $clone = $this->_handle->fximage('p{0,0}');
-            $this->_handle->compositeImage($clone, imagick::COMPOSITE_DIFFERENCE, 0, 0);
+            $this->_handle->compositeImage($clone, \imagick::COMPOSITE_DIFFERENCE, 0, 0);
             $this->_handle->modulateImage(100, 0, 0);
         }
         $clone = null;

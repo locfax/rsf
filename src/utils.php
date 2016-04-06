@@ -84,7 +84,7 @@ function array_index($arr, $col) {
     if (!is_array($arr)) {
         return $arr;
     }
-    $rows = array();
+    $rows = [];
     foreach ($arr as $row) {
         $rows[$row[$col]] = $row;
     }
@@ -121,10 +121,10 @@ function array_remove_value($arr, $delval = '') {
 function loctime($utimeoffset) {
     static $dtformat = null, $timeoffset = 8;
     if (is_null($dtformat)) {
-        $dtformat = array(
+        $dtformat = [
             'd' => getini('settings/dateformat') ?: 'Y-m-d',
             't' => getini('settings/timeformat') ?: 'H:i:s'
-        );
+        ];
         $dtformat['dt'] = $dtformat['d'] . ' ' . $dtformat['t'];
         $timeoffset = getini('settings/timezone') ?: $timeoffset; //defualt is Asia/Shanghai
     }

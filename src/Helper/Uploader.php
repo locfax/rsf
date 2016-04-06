@@ -6,21 +6,21 @@ class Uploader {
 
     use \Rsf\Base\Singleton;
 
-    private $_files = array();
+    private $_files = [];
     private $_count = 0;
 
     public function init($tempfiles, $cascade = false) {
         $this->reset();
 
         if (!is_array($tempfiles)) {
-            return;
+            return null;
         }
         foreach ($tempfiles as $field => $struct) {
             if (!isset($struct['error'])) {
                 continue;
             }
             if (is_array($struct['error'])) {
-                $arr = array();
+                $arr = [];
                 for ($i = 0; $i < count($struct['error']); $i++) {
                     if ($struct['error'][$i] != UPLOAD_ERR_NO_FILE) {
                         $arr[] = new HandleUpload($struct, $field, $i);

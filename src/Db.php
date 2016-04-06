@@ -6,7 +6,7 @@ class Db {
 
     private static $default_dbo_id = APPDSN;
     private static $using_dbo_id = null;
-    private static $used_dbo = array();
+    private static $used_dbo = [];
 
     /**
      * @param string $dsnid
@@ -127,17 +127,17 @@ class Db {
         $db = self::Using(self::$using_dbo_id);
         if (is_array($pageparm)) {
             //固定长度分页模式
-            $ret = array(
-                'rowsets' => array(),
+            $ret = [
+                'rowsets' => [],
                 'pagebar' => ''
-            );
+            ];
             if ($pageparm['totals'] <= 0) {
                 return $ret;
             }
             $offset = self::page_start($pageparm['curpage'], $length, $pageparm['totals']);
             $data = $db->page($table, $query, $offset, $length, $yield);
             if (!isset($pageparm['type']) || 'pagebar' == $pageparm['type']) {
-                $defpageparm = array(
+                $defpageparm = [
                     'curpage' => 1,
                     'maxpages' => 0,
                     'showpage' => 10,
@@ -145,24 +145,24 @@ class Db {
                     'shownum' => false,
                     'showkbd' => false,
                     'simple' => false
-                );
+                ];
                 $pageparm = array_merge($defpageparm, $pageparm);
                 $pageparm['length'] = $length;
                 $pagebar = Helper\Pager::getInstance()->pagebar($pageparm);
             } elseif ('simplepage' == $pageparm['type']) {
-                $defpageparm = array(
+                $defpageparm = [
                     'curpage' => 1,
                     'udi' => ''
-                );
+                ];
                 $pageparm = array_merge($defpageparm, $pageparm);
                 $pageparm['length'] = $length;
                 $pagebar = Helper\Pager::getInstance()->simplepage($pageparm);
             } else {
-                $pagebar = array(
+                $pagebar = [
                     'totals' => $pageparm['totals'],
                     'pages' => ceil($pageparm['totals'] / $length),
                     'curpage' => $pageparm['curpage']
-                );
+                ];
             }
             $ret['rowsets'] = $data;
             $ret['pagebar'] = $pagebar;

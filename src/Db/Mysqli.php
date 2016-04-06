@@ -77,7 +77,7 @@ class Mysqli {
         if ($query) {
             return $query;
         }
-        if (in_array($this->errno(), array(2006, 2013)) && 'RETRY' != substr($type, 0, 5)) { //2006, 2013 db无应答
+        if (in_array($this->errno(), [2006, 2013]) && 'RETRY' != substr($type, 0, 5)) { //2006, 2013 db无应答
             $this->reconnect();
             return $this->query($sql, 'RETRY' . $type);
         }
@@ -123,7 +123,7 @@ class Mysqli {
         return $ret;
     }
 
-    public function field_value($fields = array(), $glue = ',') {
+    public function field_value($fields = [], $glue = ',') {
         $sql = $comma = '';
         foreach ($fields as $field => $value) {
             $sql .= $comma . $this->qfield($field) . '=' . $this->qstr($value);
@@ -340,7 +340,7 @@ class Mysqli {
         if (!$query) {
             return $this->_false_val;
         }
-        $rowsets = array();
+        $rowsets = [];
         while ($row = mysqli_fetch_array($query, MYSQLI_ASSOC)) {
             $rowsets[] = $row;
         }
@@ -349,7 +349,7 @@ class Mysqli {
     }
 
     public function columns($tableName) {
-        static $typeMap = array(
+        static $typeMap = [
             'bit' => 'int1',
             'tinyint' => 'int1',
             'bool' => 'bool',
@@ -386,15 +386,15 @@ class Mysqli {
             'longtext' => 'text',
             'enum' => 'enum',
             'set' => 'set'
-        );
+        ];
         $query = $this->query("SHOW FULL COLUMNS FROM {$tableName}");
         if (!$query) {
             return $this->_false_val;
         }
-        $retarr = array();
+        $retarr = [];
         while ($rowcur = mysqli_fetch_array($query, MYSQLI_ASSOC)) {
             $row = array_change_key_case($rowcur, CASE_LOWER);
-            $field = array();
+            $field = [];
             $field['name'] = $row['field'];
             $type = strtolower($row['type']);
 
@@ -478,7 +478,7 @@ class Mysqli {
         if (!$query) {
             return $this->_false_val;
         }
-        $tables = array();
+        $tables = [];
         while ($row = mysqli_fetch_row($query)) {
             $tables[] = reset($row);
         }

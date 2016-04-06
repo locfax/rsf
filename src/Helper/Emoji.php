@@ -6,7 +6,7 @@ class Emoji {
 
     use \Rsf\Base\Singleton;
 
-    public $emoji_maps = array(
+    public $emoji_maps = [
         "\\xe2\\x98\\x80" => 'BLACK SUN WITH RAYS',
         "\\xe2\\x98\\x81" => 'CLOUD',
         "\\xe2\\x98\\x94" => 'UMBRELLA WITH RAIN DROPS',
@@ -919,7 +919,7 @@ class Emoji {
         "\\xF0\\x9F\\x92\\xAC" => '',
         "\\xF0\\x9F\\x91\\xA3" => '',
         "\\xF0\\x9F\\x92\\xAD" => '',
-    );
+    ];
 
     function emoji_convert($text, $map) {
         return str_replace(array_keys($this->emoji_maps), $this->emoji_maps[$map], $text);
