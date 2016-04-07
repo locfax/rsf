@@ -26,8 +26,8 @@ class Cacher {
             $this->enable = $this->cacher->enable;
             $this->type = 'memcache';
         } elseif ('redis' == $this->config['cacher'] && $this->config['redis']['ready']) {
-            $this->cacher = Redis::getInstance()->init(Context::dsn('redis'));
-            $this->enable = $this->cacher->enable;
+            $this->cacher = \Rsf\Db::dbo('redis.cache');
+            $this->enable = $this->cacher ? true : false;
             $this->type = 'redis';
         } elseif ('xcache' == $this->config['cacher'] && $this->config['xcache']['ready']) {
             $this->cacher = Xcache::getInstance()->init();

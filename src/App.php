@@ -71,43 +71,30 @@ class App {
     /**
      * @param $controllerName
      * @param $actionName
+     * @param Swoole\Request $request
+     * @param Swoole\Response $response
      * @return bool
-     * @throws Exception\Exception
      */
     private function execute($controllerName, $actionName, Swoole\Request $request, Swoole\Response $response) {
         $controllerName = ucfirst($controllerName);
         $actionMethod = self::_actionPrefix . $actionName;
-        do {
-            $controllerClass = self::_controllerPrefix . APPKEY . '\\' . $controllerName;
-            try {
-                $controller = new $controllerClass($request, $response);
-                if (!$controller instanceof $controllerClass) {
-                    break;
-                }
-                $data = $controller->{$actionMethod}();
-                if ($data) { //不一定有返回值
-                    if ($data instanceof \Psr\Http\Message\StreamInterface) {
-                        $response->withBody($data);
-                    } elseif ($data !== null && !($data instanceof Http\Response)) {
-                        $response->write($data);
-                    }
-                }
-            } catch (Exception\Exception $exception) { //普通异常
-                $this->exception($exception, $response);
-            } catch (Exception\DbException $exception) { //db异常
-                $this->exception($exception, $response);
-            } catch (Exception\CacheException $exception) { //cache异常
-                $this->exception($exception, $response);
-            } catch (\Throwable $exception) { //PHP7
-                //$this->exception($exception, $response);
-            } finally {
-                //free singleton and so on...
-                Db::close();
-            }
-            return true;
-        } while (false);
-        $this->exception('控制器 \'' . $controllerName . '\' 不存在!', $response);
-        return false;
+
+        $controllerClass = self::_controllerPrefix . APPKEY . '\\' . $controllerName;
+        try {
+            $controller = new $controllerClass($request, $response);
+            call_user_func([$controller, $actionMethod]);
+        } catch (Exception\Exception $exception) { //普通异常
+            $this->exception($exception, $response);
+        } catch (Exception\DbException $exception) { //db异常
+            $this->exception($exception, $response);
+        } catch (Exception\CacheException $exception) { //cache异常
+            $this->exception($exception, $response);
+        } catch (\Throwable $exception) { //PHP7
+            $this->exception($exception, $response);
+        } finally {
+            Db::close();
+        }
+        return true;
     }
 
     /**
@@ -119,7 +106,7 @@ class App {
         $data = $this->strexception($exception);
         $response->withStatus(500);
         $response->withHeader('Content-type', 'text/html; charset=UTF-8');
-        $response->withBody(new Http\StringStream($data));
+        $response->write($data);
     }
 
     private function strexception($exception) {
@@ -145,7 +132,7 @@ class App {
             $file = trim(substr($classname, strlen($namespace)), '\\');
             $file = $path . '/' . str_replace('\\', '/', $file) . '.php';
             if (!is_file($file)) {
-                throw new Exception\Exception($file);
+                throw new Exception\Exception($file . '不存在');
             }
             require $file;
             return true;

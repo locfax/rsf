@@ -32,25 +32,22 @@ class Postgre {
         }
         try {
             $this->_link = pg_connect('host=' . $dsn['host'] . ' port=' . $dsn['port'] . ' user=' . $dsn['login'] . ' password=' . $dsn['password'] . ' dbname=' . $dsn['database']);
-            is_resource($this->_link) && pg_set_client_encoding($this->_link, $dsn['charset']);
+            $this->_link && pg_set_client_encoding($this->_link, $dsn['charset']);
         } catch (\ErrorException $e) {
             if ('RETRY' != $type) {
                 return $this->reconnect();
             }
-            $this->_link = null;
             return $this->_halt(pg_last_error());
         }
         return $this->_true_val;
     }
 
     public function reconnect() {
-        $this->close();
         return $this->connect($this->_dsn, $this->_dsnkey, 'RETRY');
     }
 
     public function close() {
         $this->_link && pg_close($this->_link);
-        $this->_link = null;
     }
 
     public function query($sql) {

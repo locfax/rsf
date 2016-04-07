@@ -30,26 +30,28 @@ class Mongo {
             $this->_run_dev = $dsn['rundev'];
         }
         try {
-            if ($dsn['password']) {
-                if ($dsn['pconnect']) {
-                    //\MongoClient
-                    $this->_link = new \MongoClient("mongodb://{$dsn['login']}:{$dsn['password']}@{$dsn['host']}:{$dsn['port']}/{$dsn['database']}", ["connect" => false, 'persist' => $dsn['host'] . '_' . $dsn['port']]);
+            if (is_null($this->_link)) {
+                if ($dsn['password']) {
+                    $server = "mongodb://{$dsn['login']}:{$dsn['password']}@{$dsn['host']}:{$dsn['port']}/{$dsn['database']}";
                 } else {
-                    $this->_link = new \MongoClient("mongodb://{$dsn['login']}:{$dsn['password']}@{$dsn['host']}:{$dsn['port']}/{$dsn['database']}");
+                    $server = "mongodb://{$dsn['host']}:{$dsn['port']}/{$dsn['database']}";
                 }
-            } else {
                 if ($dsn['pconnect']) {
-                    $this->_link = new \MongoClient("mongodb://{$dsn['host']}:{$dsn['port']}/{$dsn['database']}", ["connect" => false, 'persist' => $dsn['host'] . '_' . $dsn['port']]);
+                    $this->_link = new \MongoClient($server, ["connect" => false], ['persist' => $dsn['host'] . '_' . $dsn['port'] . '_' . $dsn['database']]);
                 } else {
-                    $this->_link = new \MongoClient("mongodb://{$dsn['host']}:{$dsn['port']}/{$dsn['database']}");
+                    $this->_link = new \MongoClient($server, ["connect" => false]);
                 }
             }
-            $this->_client = $this->_link->selectDB($dsn['database']);
+            $ret = $this->_link->connect();
+            if($ret) {
+                $this->_client = $this->_link->selectDB($dsn['database']);
+            }else{
+                $this->_client = null;
+            }
         } catch (\MongoConnectionException $ex) {
             if ('RETRY' != $type) {
                 return $this->reconnect();
             }
-            $this->_link = null;
             return $this->_halt($ex->getMessage(), $ex->getCode());
         }
         return $this->_true_val;
@@ -58,12 +60,10 @@ class Mongo {
     public function close() {
         if (!$this->_plink) {
             $this->_link && $this->_link->close();
-            $this->_link = $this->_client = null;
         }
     }
 
     public function reconnect() {
-        $this->close();
         return $this->connect($this->_dsn, $this->_dsnkey, 'RETRY');
     }
 
@@ -333,7 +333,7 @@ class Mongo {
     }
 
     public function version() {
-        if (class_exists('\\MongoClient')) {
+        if (class_exists('MongoClient')) {
             return \MongoClient::VERSION;
         }
         return '';

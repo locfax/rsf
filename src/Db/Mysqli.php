@@ -33,35 +33,36 @@ class Mysqli {
             $this->_plink = $dsn['pconnect'];
         }
         try {
-            if ($dsn['pconnect']) {
-                $this->_link = mysqli_connect('p:' . $dsn['host'], $dsn['login'], $dsn['password'], $dsn['database'], $dsn['port']);
-            } else {
-                $this->_link = mysqli_connect($dsn['host'], $dsn['login'], $dsn['password'], $dsn['database'], $dsn['port']);
+            if (is_null($this->_link)) {
+                $this->_link = mysqli_init();
             }
-            !mysqli_connect_error() && mysqli_set_charset($this->_link, $dsn['charset']);
+            if ($dsn['pconnect']) {
+                $server = 'p:' . $dsn['host'];
+            } else {
+                $server = $dsn['host'];
+            }
+            $ret = mysqli_real_connect($this->_link, $server, $dsn['login'], $dsn['password'], $dsn['database'], $dsn['port']);
+            if ($ret) {
+                mysqli_set_charset($this->_link, $dsn['charset']);
+            } else {
+                $this->_link = null;
+            }
         } catch (\ErrorException $e) {
             if ('RETRY' != $type) {
                 return $this->reconnect();
             }
-            $this->_link = null;
             return $this->_halt($this->error(), $this->errno());
         }
         return $this->_true_val;
     }
 
     public function reconnect() {
-        $this->close();
         return $this->connect($this->_dsn, $this->_dsnkey, 'RETRY');
-    }
-
-    public function select_db($dbname) {
-        !mysqli_select_db($this->_link, $dbname) && $this->_halt($this->error(), $this->errno());
     }
 
     public function close() {
         if (!$this->_plink) {
             $this->_link && mysqli_close($this->_link);
-            $this->_link = null;
         }
     }
 
@@ -305,7 +306,7 @@ class Mysqli {
 
     private function error() {
         $error = $this->_link ? mysqli_error($this->_link) : mysqli_connect_error();
-        return date('H:i:s').$error;
+        return date('H:i:s') . $error;
     }
 
     private function errno() {

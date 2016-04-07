@@ -42,40 +42,7 @@ class Response implements \Psr\Http\Message\ResponseInterface {
         return Http::getStatus($this->code);
     }
 
-    public function getCookies() {
-        return $this->cookies;
-    }
-
-    public function withCookie($name, $value, $expire = 0, $path = '/', $domain = null, $secure = null, $httponly = true) {
-        if ($secure === null) {
-            $secure = isset($_SERVER['HTTPS']) ? (bool)$_SERVER['HTTPS'] : false;
-        }
-        $key = sprintf('%s@%s:%s', $name, $domain, $path);
-        $this->cookies[$key] = [$name, $value, $expire, $path, $domain, $secure, $httponly];
-        return $this;
-    }
-
-    public function redirect($url, $status = 303) {
-        return $this->withStatus($status)->withHeader('Location', $url);
-    }
-
-    public function write($data) {
-        $this->getBody()->write($data);
-        return $this;
-    }
-
-    public function end($data = null) {
-        if ($this->end) {
-            return $this;
-        }
-        $this->end = true;
-        if ($data !== null) {
-            $this->write($data);
-        }
-        $this->send();
-        return $this;
-    }
-
+    /*
     protected function send() {
         if (!headers_sent()) {
             $code = $this->getStatusCode();
@@ -105,5 +72,5 @@ class Response implements \Psr\Http\Message\ResponseInterface {
             echo (string)$body;
         }
     }
-
+    */
 }

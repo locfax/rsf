@@ -7,12 +7,9 @@ class Controller {
     //用户信息
     protected $login_user = null;
     //当前控制器
-    protected $request;
+    protected $request = null;
     //当前动作
-    protected $response;
-    //时间戳
-    protected $timestamp;
-
+    protected $response = null;
 
     /**
      * Controller constructor.
@@ -22,36 +19,48 @@ class Controller {
     public function __construct(Swoole\Request $request, Swoole\Response $response) {
         $this->request = $request;
         $this->response = $response;
-        $this->init_var();
         $this->init_cache();
     }
 
     /**
      * @param $name
      * @param $arguments
+     * @throws Exception\Exception
      */
     public function __call($name, $arguments) {
-        $this->response('Action ' . $name . '不存在!', 500);
+        if ($this->request->isAjax()) {
+            $res = array(
+                'errcode' => 1,
+                'errmsg' => 'Action ' . $name . '不存在!'
+            );
+            $this->repjson($res, 500);
+        } else {
+            $this->rephtml('Action ' . $name . '不存在!', 500);
+        }
     }
 
     /**
-     * @param $data
+     * @param String $data
      * @param int $code
      */
-    protected function response($data, $code = 200) {
+    protected function rephtml($data = '', $code = 200) {
         if ($code !== 200) {
             $this->response->withStatus($code, Http\Http::getStatus($code));
         }
         $this->response->withHeader('Content-Type', 'text/html; charset=' . getini('site/charset'));
-        $this->response->withBody(new Http\StringStream($data));
+        $this->response->write($data);
     }
 
-    /*
-     * 初始变量
+    /**
+     * @param array $data
+     * @param int $code
      */
-
-    private function init_var() {
-        $this->timestamp = $this->request->getServerParam('REQUEST_TIME') ?: time();
+    protected function repjson($data = [], $code = 200) {
+        if ($code !== 200) {
+            $this->response->withStatus($code, Http\Http::getStatus($code));
+        }
+        $this->response->withHeader('Content-Type', 'application/json; charset=' . getini('site/charset'));
+        $this->response->write(output_json($data));
     }
 
     /*
@@ -65,7 +74,7 @@ class Controller {
     /**
      * @return null
      */
-    final function checklogin() {
+    public function checklogin() {
         if ($this->login_user) {
             return $this->login_user;
         }
@@ -79,7 +88,7 @@ class Controller {
      * @param bool $auth
      * @return bool
      */
-    final function checkacl($controllerName, $actionName, $auth = AUTH) {
+    public function checkacl($controllerName, $actionName, $auth = AUTH) {
         return Rbac::check($controllerName, $actionName, $auth);
     }
 

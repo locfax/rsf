@@ -26,4 +26,101 @@ class Request extends \Rsf\Http\Request {
         parent::__construct($server, $headers, $get, $post, $files, $cookies);
     }
 
+    public function __clone() {
+        $this->method = null;
+        $this->uri = null;
+    }
+
+    public function getServerParam($name) {
+        $name = strtoupper($name);
+        return isset($this->server[$name]) ? $this->server[$name] : false;
+    }
+
+    public function getCookieParam($name) {
+        return isset($this->cookies[$name]) ? $this->cookies[$name] : false;
+    }
+
+    public function getClientIP() {
+        if (!$this->allow_client_proxy_ip || !($ip = $this->getServerParam('http_x_forwarded_for'))) {
+            return $this->getServerParam('remote_addr');
+        }
+        if (strpos($ip, ',') === false) {
+            return $ip;
+        }
+        // private ip range, ip2long()
+        $private = [
+            [0, 50331647],             // 0.0.0.0, 2.255.255.255
+            [167772160, 184549375],    // 10.0.0.0, 10.255.255.255
+            [2130706432, 2147483647],  // 127.0.0.0, 127.255.255.255
+            [2851995648, 2852061183],  // 169.254.0.0, 169.254.255.255
+            [2886729728, 2887778303],  // 172.16.0.0, 172.31.255.255
+            [3221225984, 3221226239],  // 192.0.2.0, 192.0.2.255
+            [3232235520, 3232301055],  // 192.168.0.0, 192.168.255.255
+            [4294967040, 4294967295],  // 255.255.255.0 255.255.255.255
+        ];
+        $ip_set = array_map('trim', explode(',', $ip));
+        // 检查是否私有地址，如果不是就直接返回
+        foreach ($ip_set as $key => $ip) {
+            $long = ip2long($ip);
+            if ($long === false) {
+                unset($ip_set[$key]);
+                continue;
+            }
+            $is_private = false;
+            foreach ($private as $m) {
+                list($min, $max) = $m;
+                if ($long >= $min && $long <= $max) {
+                    $is_private = true;
+                    break;
+                }
+            }
+            if (!$is_private) {
+                return $ip;
+            }
+        }
+        return array_shift($ip_set) ?: '0.0.0.0';
+    }
+
+    public function get($key = null) {
+        if ($key === null) {
+            return $this->get;
+        }
+        return isset($this->get[$key]) ? $this->get[$key] : null;
+    }
+
+    public function hasGet($key) {
+        return array_key_exists($key, $this->get);
+    }
+
+    public function post($key = null) {
+        if ($key === null) {
+            return $this->post;
+        }
+        return isset($this->post[$key]) ? $this->post[$key] : null;
+    }
+
+    public function hasPost($key) {
+        return array_key_exists($key, $this->post);
+    }
+
+    public function isGet() {
+        return $this->getMethod() === 'GET' || $this->getMethod() === 'HEAD';
+    }
+
+    public function isPost() {
+        return $this->getMethod() === 'POST';
+    }
+
+    public function isPut() {
+        return $this->getMethod() === 'PUT';
+    }
+
+    public function isDelete() {
+        return $this->getMethod() === 'DELETE';
+    }
+
+    public function isAjax() {
+        $val = $this->getHeader('x-requested-with');
+        return $val && (strtolower($val[0]) === 'xmlhttprequest');
+    }
 }
