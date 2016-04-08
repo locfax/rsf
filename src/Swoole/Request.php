@@ -4,7 +4,9 @@ namespace Rsf\Swoole;
 
 class Request extends \Rsf\Http\Request {
 
-    //protected $swoole_request;
+    protected $allow_client_proxy_ip = false;
+
+    protected $swoole_request; //for test
 
     /**
      * Request constructor.
@@ -12,7 +14,7 @@ class Request extends \Rsf\Http\Request {
      */
     public function __construct($swoole_request) {
 
-        //$this->swoole_request = $swoole_request;
+        $this->swoole_request = $swoole_request;
 
         $server = isset($swoole_request->server) ? array_change_key_case($swoole_request->server, CASE_UPPER) : [];
         $headers = isset($swoole_request->header) ? array_change_key_case($swoole_request->header, CASE_LOWER) : [];
@@ -24,20 +26,6 @@ class Request extends \Rsf\Http\Request {
         $cookies = isset($swoole_request->cookie) ? $swoole_request->cookie : [];
 
         parent::__construct($server, $headers, $get, $post, $files, $cookies);
-    }
-
-    public function __clone() {
-        $this->method = null;
-        $this->uri = null;
-    }
-
-    public function getServerParam($name) {
-        $name = strtoupper($name);
-        return isset($this->server[$name]) ? $this->server[$name] : false;
-    }
-
-    public function getCookieParam($name) {
-        return isset($this->cookies[$name]) ? $this->cookies[$name] : false;
     }
 
     public function getClientIP() {
@@ -81,46 +69,4 @@ class Request extends \Rsf\Http\Request {
         return array_shift($ip_set) ?: '0.0.0.0';
     }
 
-    public function get($key = null) {
-        if ($key === null) {
-            return $this->get;
-        }
-        return isset($this->get[$key]) ? $this->get[$key] : null;
-    }
-
-    public function hasGet($key) {
-        return array_key_exists($key, $this->get);
-    }
-
-    public function post($key = null) {
-        if ($key === null) {
-            return $this->post;
-        }
-        return isset($this->post[$key]) ? $this->post[$key] : null;
-    }
-
-    public function hasPost($key) {
-        return array_key_exists($key, $this->post);
-    }
-
-    public function isGet() {
-        return $this->getMethod() === 'GET' || $this->getMethod() === 'HEAD';
-    }
-
-    public function isPost() {
-        return $this->getMethod() === 'POST';
-    }
-
-    public function isPut() {
-        return $this->getMethod() === 'PUT';
-    }
-
-    public function isDelete() {
-        return $this->getMethod() === 'DELETE';
-    }
-
-    public function isAjax() {
-        $val = $this->getHeader('x-requested-with');
-        return $val && (strtolower($val[0]) === 'xmlhttprequest');
-    }
 }

@@ -11,15 +11,39 @@ class App {
     const _controllerPrefix = '\\Apps\\';
     const _actionPrefix = 'act_';
 
+    private $handlers = [];
+
+    /**
+     * @param $root
+     */
     public function steup($root) {
         set_error_handler(function ($errno, $error, $file = null, $line = null) {
-            //让error变的可以扑捉
             if (error_reporting() & $errno) {
                 throw new \ErrorException($error, $errno, $errno, $file, $line);
             }
             return true;
         });
         $this->rootnamespace('\\', $root);
+    }
+
+    /**
+     * @param $key
+     * @param $handle
+     */
+    public function setHandler($key, $handle) {
+        $this->handlers[$key] = $handle;
+    }
+
+    /**
+     * @param $key
+     * @param $param
+     * @return bool|mixed
+     */
+    public function doHandler($key, $param) {
+        if (!isset($this->handlers[$key])) {
+            return true;
+        }
+        return call_user_func($this->handlers[$key], $param);
     }
 
     /**
@@ -60,7 +84,8 @@ class App {
         if (defined('AUTH') && AUTH) {
             $allow = Rbac::check($controllerName, $actionName, AUTH);
             if (!$allow) {
-                return $this->exception(' 你没有权限访问 ' . $controllerName . ' - ' . $actionName, $response);
+                $this->response(' 你没有权限访问 ' . $controllerName . ' - ' . $actionName, 500, $response);
+                return false;
             }
         }
         $this->execute($controllerName, $actionName, $request, $response);
@@ -104,9 +129,7 @@ class App {
      */
     private function exception($exception, Swoole\Response $response) {
         $data = $this->strexception($exception);
-        $response->withStatus(500);
-        $response->withHeader('Content-type', 'text/html; charset=UTF-8');
-        $response->write($data);
+        $this->response($data, 500, $response);
     }
 
     private function strexception($exception) {
@@ -116,6 +139,12 @@ class App {
             $output = $this->strexception($previous) . $output;
         }
         return $output;
+    }
+
+    private function response($data, $code = 500, Swoole\Response $response) {
+        $response->withStatus($code);
+        $response->withHeader('Content-type', 'text/html; charset=UTF-8');
+        $response->write($data);
     }
 
     /**

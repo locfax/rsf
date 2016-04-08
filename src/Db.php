@@ -11,11 +11,10 @@ class Db {
     /**
      * @param string $dsnid
      * @return null
-     * @throws Exception
      */
     public static function dbo($dsnid = APPDSN) {
         $_dsn = Context::dsn($dsnid);
-        $dsnkey = $_dsn['driver'] . '_' . $_dsn['host'] . '_' . $_dsn['login'] . '_' . $_dsn['port'] . '_' . $_dsn['database']; //连接池key
+        $dsnkey = $_dsn['dsnkey'];
         if(isset(self::$used_dbo[$dsnkey])){
             $dbo = self::$used_dbo[$dsnkey];
             $dbo->connect($_dsn, $dsnkey);

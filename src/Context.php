@@ -5,13 +5,6 @@ namespace Rsf;
 class Context {
 
     private static $dsn = [];
-    private static $request = null;
-    private static $response = null;
-
-    public static function setreq($request, $response){
-        self::$request = $request;
-        self::$response = $response;
-    }
 
     /**
      * @param $dsnid
@@ -20,12 +13,17 @@ class Context {
      */
     public static function dsn($dsnid) {
         if (!isset(self::$dsn[APPKEY])) {
-            self::$dsn[APPKEY] = self::config(APPKEY, 'dsn');
+            $dsns = self::config(APPKEY, 'dsn');
+            foreach ($dsns as $dsnid => $dsn) {
+                $dsns[$dsnid]['dsnkey'] = md5($dsn['driver'] . '_' . $dsn['host'] . '_' . $dsn['port'] . '_' . $dsn['login'] . '_' . $dsn['database']); //连接池key
+            }
+            self::$dsn[APPKEY] = $dsns;
             if (!isset(self::$dsn[APPKEY][$dsnid])) {
                 throw new Exception\Exception('无配置!' . APPKEY . $dsnid);
             }
+            $dsns = null;
         }
-        //默认都是正确的配置
+        //默认为正确的配置
         return self::$dsn[APPKEY][$dsnid];
     }
 

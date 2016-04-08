@@ -14,10 +14,16 @@ class Route {
             return false;
         }
         if (!self::$routes) {
-            self::$routes = \Rsf\Context::config('route');
+            $routes = \Rsf\Context::config('route');
+            $_routes = [];
+            foreach ($routes as $key => $val) {
+                $key = str_replace([':any', ':num'], ['[^/]+', '[0-9]+'], $key);
+                $_routes[$key] = $val;
+            }
+            self::$routes = $_routes;
+            $_routes = null;
         }
         foreach (self::$routes as $key => $val) {
-            $key = str_replace([':any', ':num'], ['[^/]+', '[0-9]+'], $key);
             if (preg_match('#' . $key . '#', $uri, $matches)) {
                 if (strpos($val, '$') !== FALSE && strpos($key, '(') !== FALSE) {
                     $val = preg_replace('#' . $key . '#', $val, $uri);

@@ -13,21 +13,6 @@ class Response extends Http\Response {
         $this->_response = $swoole_response;
     }
 
-    public function withCookie($name, $value, $expire = 0, $path = '/', $domain = null, $secure = 0, $httponly = true) {
-        $key = sprintf('%s@%s:%s', $name, $domain, $path);
-        $this->cookies[$key] = [$name, $value, $expire, $path, $domain, $secure, $httponly];
-        return $this;
-    }
-
-    public function redirect($url, $status = 303) {
-        return $this->withStatus($status)->withHeader('Location', $url);
-    }
-
-    public function write($data) {
-        $this->getBody()->write($data);
-        return $this;
-    }
-
     public function end($data = null) {
         if ($this->end) {
             return $this;
@@ -45,7 +30,7 @@ class Response extends Http\Response {
         if ($status && $status !== 200) {
             $this->_response->status($status);
         }
-        if(!empty($this->headers)) {
+        if (!empty($this->headers)) {
             foreach ($this->headers as $key => $value) {
                 if (is_array($value)) {
                     $value = implode(',', $value);
@@ -53,7 +38,7 @@ class Response extends Http\Response {
                 $this->_response->header($key, $value);
             }
         }
-        if(!empty($this->cookies)) {
+        if (!empty($this->cookies)) {
             foreach ($this->cookies as list($name, $value, $expire, $path, $domain, $secure, $httponly)) {
                 $this->_response->cookie($name, $value, $expire, $path, $domain, $secure, $httponly);
             }

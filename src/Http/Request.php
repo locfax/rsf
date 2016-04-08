@@ -16,7 +16,6 @@ class Request implements ServerRequestInterface {
     protected $cookies;
     protected $method;
     protected $uri;
-    protected $allow_client_proxy_ip = false;
 
     public function __construct($server, $headers, $get, $post, $files, $cookies) {
         $this->server = $server;
@@ -28,6 +27,11 @@ class Request implements ServerRequestInterface {
         $this->cookies = $cookies;
 
         $this->body = new ResourceStream(fopen('php://input', 'r'));
+    }
+
+    public function __clone() {
+        $this->method = null;
+        $this->uri = null;
     }
 
     public function getRequestTarget() {
@@ -125,7 +129,7 @@ class Request implements ServerRequestInterface {
         }
         $body = (string)$this->body;
         if ($body === '') {
-            return;
+            return null;
         }
         if ($content_type === 'application/json') {
             return json_decode($body, true);
@@ -135,6 +139,58 @@ class Request implements ServerRequestInterface {
 
     public function withParsedBody($data) {
         throw new \Exception('Request::withParsedBody() not implemented');
+    }
+
+    public function getServerParam($name) {
+        $name = strtoupper($name);
+        return isset($this->server[$name]) ? $this->server[$name] : false;
+    }
+
+    public function getCookieParam($name) {
+        return isset($this->cookies[$name]) ? $this->cookies[$name] : false;
+    }
+
+    public function get($key = null) {
+        if ($key === null) {
+            return $this->get;
+        }
+        return isset($this->get[$key]) ? $this->get[$key] : null;
+    }
+
+    public function post($key = null) {
+        if ($key === null) {
+            return $this->post;
+        }
+        return isset($this->post[$key]) ? $this->post[$key] : null;
+    }
+
+    public function hasGet($key) {
+        return array_key_exists($key, $this->get);
+    }
+
+    public function hasPost($key) {
+        return array_key_exists($key, $this->post);
+    }
+
+    public function isGet() {
+        return $this->getMethod() === 'GET' || $this->getMethod() === 'HEAD';
+    }
+
+    public function isPost() {
+        return $this->getMethod() === 'POST';
+    }
+
+    public function isPut() {
+        return $this->getMethod() === 'PUT';
+    }
+
+    public function isDelete() {
+        return $this->getMethod() === 'DELETE';
+    }
+
+    public function isAjax() {
+        $val = $this->getHeader('x-requested-with');
+        return $val && (strtolower($val[0]) === 'xmlhttprequest');
     }
 
 }
