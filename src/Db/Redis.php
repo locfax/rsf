@@ -12,9 +12,6 @@ class Redis {
     private $_link = null;
     private $_prefix = '';
     private $_plink = 0;
-    //return boolen variable
-    private $_true_val = 1;
-    private $_false_val = 0;
     private $_run_dev = true;
 
     public function __destruct() {
@@ -38,22 +35,21 @@ class Redis {
             } else {
                 $server = 'connect';
             }
-            $ret = $this->_link->$server($dsn['host'], $dsn['port'], $dsn['timeout']);
-            if ($ret && $dsn['password']) {
-                $ret = $this->_link->auth($dsn['login'] . "-" . $dsn['password'] . "-" . $dsn['database']);
+            $connect = $this->_link->$server($dsn['host'], $dsn['port'], $dsn['timeout']);
+            if ($connect && $dsn['password']) {
+                $connect = $this->_link->auth($dsn['login'] . "-" . $dsn['password'] . "-" . $dsn['database']);
             }
-            if ($ret) {
+            if ($connect) {
                 $this->_link->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_NONE);
-            } else {
-                $this->_link = null;
             }
         } catch (\RedisException $ex) {
             if ('RETRY' != $type) {
                 return $this->reconnect();
             }
+            $this->_link = null;
             return $this->_halt($ex->getMessage(), $ex->getCode());
         }
-        return $this->_true_val;
+        return true;
     }
 
     public function close() {
@@ -70,47 +66,11 @@ class Redis {
         return $this->_link;
     }
 
-    public function get($key) {
-        try {
-            return $this->_link->get($key);
-        } catch (\RedisException $e) {
-            return $this->_halt($e->getMessage(), $e->getCode());
-        }
-    }
-
-    public function set($key, $value, $ttl = 0) {
-        try {
-            $ret = $this->_link->set($key, $value);
-            if ($ttl > 0) {
-                $this->_link->expire($key, $ttl);
-            }
-            return $ret;
-        } catch (\RedisException $e) {
-            return $this->_halt($e->getMessage(), $e->getCode());
-        }
-    }
-
-    public function rm($key) {
-        try {
-            return $this->_link->delete($key);
-        } catch (\RedisException $e) {
-            return $this->_halt($e->getMessage(), $e->getCode());
-        }
-    }
-
-    public function clear() {
-        try {
-            return $this->_link->flushDB();
-        } catch (\RedisException $e) {
-            return $this->_halt($e->getMessage(), $e->getCode());
-        }
-    }
-
     private function _halt($message = '', $code = 0) {
         if ($this->_run_dev) {
             $this->close();
             throw new Exception\DbException($message, $code);
         }
-        return $this->_false_val;
+        return false;
     }
 }

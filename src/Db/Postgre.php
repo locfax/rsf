@@ -12,10 +12,6 @@ class Postgre {
     private $_link = null;
     private $_schema = null;
     private $_prefix = '';
-    //return boolen variable
-    private $_true_val = 1;
-    private $_false_val = 0;
-    private $_null_val = 'NULL';
     private $_run_dev = true;
 
     public function __destruct() {
@@ -32,14 +28,15 @@ class Postgre {
         }
         try {
             $this->_link = pg_connect('host=' . $dsn['host'] . ' port=' . $dsn['port'] . ' user=' . $dsn['login'] . ' password=' . $dsn['password'] . ' dbname=' . $dsn['database']);
-            $this->_link && pg_set_client_encoding($this->_link, $dsn['charset']);
+            pg_set_client_encoding($this->_link, $dsn['charset']);
         } catch (\ErrorException $e) {
             if ('RETRY' != $type) {
                 return $this->reconnect();
             }
+            $this->_link = null;
             return $this->_halt(pg_last_error());
         }
-        return $this->_true_val;
+        return true;
     }
 
     public function reconnect() {
@@ -51,8 +48,8 @@ class Postgre {
     }
 
     public function query($sql) {
-        if (is_null($this->_link)) {
-            return $this->_false_val;
+        if (!$this->_link) {
+            return false;
         }
         try {
             $query = pg_query($this->_link, $sql);
@@ -73,9 +70,9 @@ class Postgre {
         if (is_numeric($value)) {
             return $value;
         } elseif (is_bool($value)) {
-            return $value ? $this->_true_val : $this->_false_val;
+            return $value ? 1 : 0;
         } elseif (is_null($value)) {
-            return $this->_null_val;
+            return 'NULL';
         }
         if ($exist_escape_string && $this->_link) {
             $return = pg_escape_string($this->_link, $value);
@@ -118,7 +115,7 @@ class Postgre {
 
     public function create($tableName, $data, $retid = false) {
         if (empty($data)) {
-            return $this->_false_val;
+            return false;
         }
         $fields = $values = $comma = '';
         foreach ($data as $field => $value) {
@@ -138,7 +135,7 @@ class Postgre {
 
     public function replace($tableName, $data) {
         if (empty($data)) {
-            return $this->_false_val;
+            return false;
         }
         $fields = $values = $comma = '';
         foreach ($data as $field => $value) {
@@ -152,10 +149,10 @@ class Postgre {
 
     public function update($tableName, $data, $condition, $retnum = false) {
         if (empty($data)) {
-            return $this->_false_val;
+            return false;
         }
         if (empty($condition)) {
-            return $this->_false_val;
+            return false;
         }
         if (is_array($data)) {
             $data = $this->field_value($data, ',');
@@ -171,7 +168,7 @@ class Postgre {
 
     public function remove($tableName, $condition, $muti = false) {
         if (empty($condition)) {
-            return $this->_false_val;
+            return false;
         }
         if (is_array($condition)) {
             $condition = $this->field_value($condition, ' AND ');
@@ -192,7 +189,7 @@ class Postgre {
             $query = $this->query($query);
         }
         if (!$query) {
-            return $this->_false_val;
+            return false;
         }
         $row = pg_fetch_array($query, null, PGSQL_ASSOC);
         pg_free_result($query);
@@ -211,7 +208,7 @@ class Postgre {
             $query = $this->query($query);
         }
         if (!$query) {
-            return $this->_false_val;
+            return false;
         }
         if ($yield) {
             $rowsets = $this->iterator($query);
@@ -235,7 +232,7 @@ class Postgre {
             $query = $this->query($query);
         }
         if (!$query) {
-            return $this->_false_val;
+            return false;
         }
         if ($yield) {
             $rowsets = $this->iterator($query);
@@ -261,14 +258,14 @@ class Postgre {
         }
         $query = $this->query("SELECT {$field} FROM " . $this->qtable($tableName) . " {$where} LIMIT 0,1");
         if (!$query) {
-            return $this->_false_val;
+            return false;
         }
         $ret = pg_fetch_row($query);
         pg_free_result($query);
         if ($ret) {
             return $ret[0];
         }
-        return $this->_false_val;
+        return false;
     }
 
     public function count($tableName, $condition = '', $field = '*') {
@@ -313,7 +310,7 @@ class Postgre {
             $this->close();
             throw new Exception\DbException($message, $data);
         }
-        return $this->_false_val;
+        return false;
     }
 
 }

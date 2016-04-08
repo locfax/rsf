@@ -13,8 +13,6 @@ class Mongo {
     private $_client = null;
     private $_prefix = '';
     private $_plink = 0;
-    private $_true_val = 1;
-    private $_false_val = 0;
     private $_run_dev = true;
 
     public function __destruct() {
@@ -42,19 +40,16 @@ class Mongo {
                     $this->_link = new \MongoClient($server, ["connect" => false]);
                 }
             }
-            $ret = $this->_link->connect();
-            if($ret) {
-                $this->_client = $this->_link->selectDB($dsn['database']);
-            }else{
-                $this->_client = null;
-            }
+            $this->_link->connect();
+            $this->_client = $this->_link->selectDB($dsn['database']);
         } catch (\MongoConnectionException $ex) {
             if ('RETRY' != $type) {
                 return $this->reconnect();
             }
+            $this->_client = null;
             return $this->_halt($ex->getMessage(), $ex->getCode());
         }
-        return $this->_true_val;
+        return true;
     }
 
     public function close() {
@@ -72,7 +67,7 @@ class Mongo {
     }
 
     public function create($table, $document = [], $retid = false, $type = '') {
-        if (is_null($this->_client)) {
+        if (!$this->_client) {
             return $this->_halt('client is not connected!');
         }
         try {
@@ -100,7 +95,7 @@ class Mongo {
     }
 
     public function replace($table, $document = [], $type = '') {
-        if (is_null($this->_client)) {
+        if (!$this->_client) {
             return $this->_halt('client is not connected!');
         }
         try {
@@ -120,7 +115,7 @@ class Mongo {
     }
 
     public function update($table, $document = [], $condition = [], $options = 'set', $type = '') {
-        if (is_null($this->_client)) {
+        if (!$this->_client) {
             return $this->_halt('client is not connected!');
         }
         try {
@@ -160,7 +155,7 @@ class Mongo {
     }
 
     public function remove($table, $condition = [], $muti = false, $type = '') {
-        if (is_null($this->_client)) {
+        if (!$this->_client) {
             return $this->_halt('client is not connected!');
         }
         try {
@@ -184,7 +179,7 @@ class Mongo {
     }
 
     public function findOne($table, $fields = [], $condition = [], $type = '') {
-        if (is_null($this->_client)) {
+        if (!$this->_client) {
             return $this->_halt('client is not connected!');
         }
         try {
@@ -207,7 +202,7 @@ class Mongo {
     }
 
     public function findAll($table, $fields = [], $query = [], $yield = false, $type = '') {
-        if (is_null($this->_client)) {
+        if (!$this->_client) {
             return $this->_halt('client is not connected!');
         }
         try {
@@ -344,7 +339,7 @@ class Mongo {
             $this->close();
             throw new Exception\DbException($message, $code);
         }
-        return $this->_false_val;
+        return true;
     }
 
 }

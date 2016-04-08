@@ -2,7 +2,7 @@
 
 namespace Rsf\Cache;
 
-class Memcache {
+class Redis {
 
     use \Rsf\Base\Singleton;
 
@@ -17,7 +17,7 @@ class Memcache {
     public function init($config) {
         try {
             if (is_null($this->_link)) {
-                $this->_link = new \Memcache();
+                $this->_link = new \Redis();
             }
             if ($config['pconnect']) {
                 $this->_plink = 1;
@@ -26,12 +26,17 @@ class Memcache {
                 $server = 'connect';
             }
             $connect = $this->_link->$server($config['host'], $config['port'], $config['timeout']);
+            if ($connect && $config['password']) {
+                $connect = $this->_link->auth($config['login'] . "-" . $config['password'] . "-" . $config['database']);
+            }
             if ($connect) {
+                $this->_link->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_NONE);
                 $this->enable = true;
             }
-        } catch (\MemcachedException $e) {
+        } catch (\RedisException $ex) {
 
         }
+
         return $this;
     }
 
@@ -44,18 +49,19 @@ class Memcache {
     public function get($key) {
         try {
             return $this->_link->get($key);
-        } catch (\MemcachedException $e) {
+        } catch (\RedisException $e) {
             return false;
         }
     }
 
     public function set($key, $value, $ttl = 0) {
         try {
+            $ret = $this->_link->set($key, $value);
             if ($ttl > 0) {
-                return $this->_link->set($key, $value, MEMCACHE_COMPRESSED, $ttl);
+                $this->_link->expire($key, $ttl);
             }
-            return $this->_link->set($key, $value);
-        } catch (\MemcachedException $e) {
+            return $ret;
+        } catch (\RedisException $e) {
             return false;
         }
     }
@@ -63,13 +69,17 @@ class Memcache {
     public function rm($key) {
         try {
             return $this->_link->delete($key);
-        } catch (\MemcachedException $e) {
+        } catch (\RedisException $e) {
             return false;
         }
     }
 
     public function clear() {
-        return $this->_link->flush();
+        try {
+            return $this->_link->flushDB();
+        } catch (\RedisException $e) {
+            return false;
+        }
     }
 
 }

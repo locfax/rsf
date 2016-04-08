@@ -11,11 +11,15 @@ class Xcache {
     public $enable = false;
 
     public function init() {
-        if (!function_exists('xcache_get')) {
-            throw new Exception\CacheException('xcache 扩展没安装?', 0);
+        if (!extension_loaded('memcache')) {
+            throw new Exception\Exception('memcache 扩展没安装?');
         }
         $this->enable = true;
         return $this;
+    }
+
+    public function close() {
+
     }
 
     public function get($key) {

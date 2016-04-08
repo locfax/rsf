@@ -4,11 +4,8 @@ namespace Rsf;
 
 class User {
 
-    const _USERKEY = 'um';
+    const _USERKEY = 'um_';
     const _ROLEKEY = 'roles';
-
-    private static $sess_isset = 0;
-
 
     /**
      * @param $userData
@@ -17,14 +14,12 @@ class User {
      * @param int $left
      * @return bool
      */
-    public static function setUser(array $userData, $uid = '', $rolesData = null, $left = 0) {
+    public static function setUser($uid = '', array $userData, $rolesData = null, $left = 0) {
         if (!is_null($rolesData)) {
-            $userData[self::_ROLEKEY] = $rolesData;
+            $userData[self::_ROLEKEY] = is_array($rolesData) ? implode(',', $rolesData) : $rolesData;
         }
-        $data_struct = [
-            self::_USERKEY . $uid => $userData
-        ];
-        $ret = self::_setdata($data_struct, $left);
+        $datakey = self::_USERKEY . $uid;
+        $ret = self::_setData($datakey, $userData, $left);
         return $ret;
     }
 
@@ -34,18 +29,13 @@ class User {
      */
     public static function getUser($uid = '') {
         $datakey = self::_USERKEY . $uid;
-        $ret = self::_getdata($datakey);
-        if (isset($ret[$datakey])) {
-            return $ret[$datakey];
-        }
-        return null;
+        $ret = self::_getData($datakey);
+        return $ret;
     }
 
     public static function clearUser($uid = '') {
-        $arr = [
-            self::_USERKEY . $uid => ''
-        ];
-        self::_setdata($arr, -86400 * 365);
+        $datakey = self::_USERKEY . $uid;
+        self::_setData($datakey, '', -86400 * 365);
     }
 
     /**
@@ -76,75 +66,75 @@ class User {
     }
 
     /**
-     * @param $keys
+     * @param $key
      * @param null $type
      * @return array
      */
-    private static function _getdata($key, $type = null) {
+    private static function _getData($key, $type = null) {
         $ret = '';
         if (is_null($type)) {
             $type = getini('auth/handle');
         }
         if ('SESSION' == $type) {
-            if (!self::$sess_isset) {
+            if (PHP_SESSION_NONE == session_status()) {
                 session_start();
-                self::$sess_isset = 1;
             }
             $ret = isset($_SESSION[getini('auth/prefix') . $key]) ? $_SESSION[getini('auth/prefix') . $key] : null;
         } elseif ('COOKIE' == $type) {
-            $ret = (null != self::_getcookie($key)) ? json_decode(self::_authcode(self::_getcookie($key), 'DECODE'), true) : null;
+            $key = self::getCookieKey($key);
+            $ret = isset($_COOKIE[$key]) ? json_decode(self::authCode($_COOKIE[$key], 'DECODE'), true) : null;
         } elseif ('REDIS' == $type) {
-            $redis = Db::dbo('redis');
+            $redis = Db::dbo('redis.user');
             $data = $redis->get($key);
             $ret = $data ? $data : null;
         }
         return $ret;
     }
 
-    /*
-     * $arr array()
-     * $lift int
-     * prefix  int 1
-     */
 
-    private static function _setdata($data, $life = 0, $type = null) {
+    /**
+     * @param $key
+     * @param $val
+     * @param int $life
+     * @param null $type
+     * @return bool
+     */
+    private static function _setData($key, $val, $life = 0, $type = null) {
         $ret = false;
         if (is_null($type)) {
             $type = getini('auth/handle');
         }
         if ('SESSION' == $type) {
-            if (!self::$sess_isset) {
+            if (PHP_SESSION_NONE == session_status()) {
                 //$life && session_set_cookie_params($life);
                 session_start();
-                self::$sess_isset = 1;
             }
-            foreach ($data as $key => $val) {
-                if ($life >= 0 && $val) {
-                    $_SESSION[getini('auth/prefix') . $key] = $val;
-                } else {
-                    unset($_SESSION[getini('auth/prefix') . $key]);
-                }
+            if ($life >= 0) {
+                $_SESSION[getini('auth/prefix') . $key] = $val;
+            } else {
+                unset($_SESSION[getini('auth/prefix') . $key]);
             }
             $ret = true;
         } elseif ('COOKIE' == $type) {
-            foreach ($data as $key => $val) {
-                $val = $val ? self::_authcode(json_encode($val), 'ENCODE') : '';
-                self::_setcookie($key, $val, $life);
-            }
-            $ret = true;
+            $life = $life > 0 ? $life + time() : 0;
+            $secure = (443 == $_SERVER['SERVER_PORT']) ? 1 : 0;
+            $key = self::getCookieKey($key);
+            $val = $val ? self::authCode(json_encode($val), 'ENCODE') : '';
+            $ret = setcookie($key, $val, $life, getini('auth/path'), getini('auth/domain'), $secure);
         } elseif ('REDIS' == $type) {
             $redis = Db::dbo('redis.user');
-            foreach ($data as $key => $val) {
-                $redis->set($key, $val, $life);
-            }
-            $ret = true;
+            $ret = $redis->set(getini('auth/prefix') . $key, $val, $life);
         }
         return $ret;
     }
 
-    //set cookies
-    private static function _setcookie($var, $value, $life, $prefix = true, $key = null) {
-        static $setp3p = false;
+    /**
+     * @param $var
+     * @param bool $prefix
+     * @param null $key
+     * @return string
+     */
+    public static function getCookieKey($var, $prefix = true, $key = null) {
         if ($prefix) {
             if (is_null($key)) {
                 $var = getini('auth/prefix') . substr(md5(getini('auth/key')), -7, 7) . '_' . $var;
@@ -152,30 +142,18 @@ class User {
                 $var = getini('auth/prefix') . $key . '_' . $var;
             }
         }
-        if (false === $setp3p) {
-            //header('P3P: CP="CURa ADMa DEVa PSAo PSDo OUR BUS UNI PUR INT DEM STA PRE COM NAV OTC NOI DSP COR"'); //跨域
-            $setp3p = true;
-        }
-        $_life = $life > 0 ? (time() + $life) : 0;
-        return self::$response->withCookie($var, $value, $_life, getini('auth/path'), getini('auth/domain'), 443 == self::$request->getServerParam('SERVER_PORT') ? 1 : 0);
+        return $var;
     }
 
-    private static function _getcookie($var, $prefix = true, $key = null) {
-        if ($prefix) {
-            if (is_null($key)) {
-                $var = getini('auth/prefix') . substr(md5(getini('auth/key')), -7, 7) . '_' . $var;
-            } else {
-                $var = getini('auth/prefix') . $key . '_' . $var;
-            }
-        }
-        return self::$request->getCookieParam($var);
-    }
 
-    /* string to code
-    * return string
-    */
-
-    public static function _authcode($string, $operation = 'DECODE', $key = '', $expiry = 0) {
+    /**
+     * @param $string
+     * @param string $operation
+     * @param string $key
+     * @param int $expiry
+     * @return string
+     */
+    public static function authCode($string, $operation = 'DECODE', $key = '', $expiry = 0) {
         static $hash_auth = null;
         if (is_null($hash_auth)) {
             $hash_key = getini('auth/key') ?: PHP_VERSION;

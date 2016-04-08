@@ -11,12 +11,15 @@ class File {
     public $enable = false;
 
     public function init() {
-        if (is_dir(getini('data/_cache'))) {
-            $this->enable = true;
-        } else {
+        if (!is_dir(getini('data/_cache'))) {
             throw new Exception\CacheException('路径:' . getini('data/_cache') . ' 不可写', 0);
         }
+        $this->enable = true;
         return $this;
+    }
+
+    public function close() {
+
     }
 
     public function get($key) {

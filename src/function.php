@@ -49,8 +49,8 @@ function datacache($cachekey, $reset = false) {
 
 //普通级别缓存
 function cache($cmd, $key = '', $val = '', $ttl = 0) {
-    $cacher = \Rsf\Cache\Cacher::getInstance();
-    if (in_array($cmd, ['set', 'get', 'rm', 'clear'])) {
+    if (in_array($cmd, ['set', 'get', 'rm', 'clear', 'close'])) {
+        $cacher = \Rsf\Cache\Cacher::getInstance();
         switch ($cmd) {
             case 'get':
                 return $cacher->get($key);
@@ -60,6 +60,8 @@ function cache($cmd, $key = '', $val = '', $ttl = 0) {
                 return $cacher->rm($key);
             case 'clear':
                 return $cacher->clear();
+            case 'close':
+                return $cacher->close();
         }
     }
     return false;

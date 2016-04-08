@@ -13,10 +13,6 @@ class Mysqli {
     private $_schema = null;
     private $_prefix = '';
     private $_plink = 0;
-    //return boolen variable
-    private $_true_val = 1;
-    private $_false_val = 0;
-    private $_null_val = 'NULL';
     private $_run_dev = true;
 
     public function __destruct() {
@@ -41,19 +37,16 @@ class Mysqli {
             } else {
                 $server = $dsn['host'];
             }
-            $ret = mysqli_real_connect($this->_link, $server, $dsn['login'], $dsn['password'], $dsn['database'], $dsn['port']);
-            if ($ret) {
-                mysqli_set_charset($this->_link, $dsn['charset']);
-            } else {
-                $this->_link = null;
-            }
+            mysqli_real_connect($this->_link, $server, $dsn['login'], $dsn['password'], $dsn['database'], $dsn['port']);
+            mysqli_set_charset($this->_link, $dsn['charset']);
         } catch (\ErrorException $e) {
             if ('RETRY' != $type) {
                 return $this->reconnect();
             }
+            $this->_link = null;
             return $this->_halt($this->error(), $this->errno());
         }
-        return $this->_true_val;
+        return true;
     }
 
     public function reconnect() {
@@ -67,8 +60,8 @@ class Mysqli {
     }
 
     public function query($sql, $type = '') {
-        if (is_null($this->_link)) {
-            return $this->_false_val;
+        if (!$this->_link) {
+            return false;
         }
         try {
             $query = mysqli_query($this->_link, $sql);
@@ -93,10 +86,10 @@ class Mysqli {
         if (is_numeric($value)) {
             return $value;
         } elseif (is_bool($value)) {
-            return $value ? $this->_true_val : $this->_false_val;
+            return $value ? 1 : 0;
         } elseif (is_null($value)) {
-            return $this->_null_val;
-        } elseif ($exist_escape_string) {
+            return 'NULL';
+        } elseif ($exist_escape_string && $this->_link) {
             $return = mysqli_real_escape_string($this->_link, $value);
         } else {
             $return = $value;
@@ -135,7 +128,7 @@ class Mysqli {
 
     public function create($tableName, $data, $retid = false) {
         if (empty($data)) {
-            return $this->_false_val;
+            return false;
         }
         $fields = $values = $comma = '';
         foreach ($data as $field => $value) {
@@ -152,7 +145,7 @@ class Mysqli {
 
     public function replace($tableName, $data) {
         if (empty($data)) {
-            return $this->_false_val;
+            return false;
         }
         $fields = $values = $comma = '';
         foreach ($data as $field => $value) {
@@ -166,10 +159,10 @@ class Mysqli {
 
     public function update($tableName, $data, $condition, $retnum = false) {
         if (empty($data)) {
-            return $this->_false_val;
+            return false;
         }
         if (empty($condition)) {
-            return $this->_false_val;
+            return false;
         }
         if (is_array($data)) {
             $data = $this->field_value($data, ',');
@@ -188,7 +181,7 @@ class Mysqli {
 
     public function remove($tableName, $condition, $muti = false) {
         if (empty($condition)) {
-            return $this->_false_val;
+            return false;
         }
         if (is_array($condition)) {
             $condition = $this->field_value($condition, ' AND ');
@@ -209,7 +202,7 @@ class Mysqli {
             $query = $this->query($query);
         }
         if (!$query) {
-            return $this->_false_val;
+            return false;
         }
         $row = mysqli_fetch_array($query, MYSQLI_ASSOC);
         mysqli_free_result($query);
@@ -228,7 +221,7 @@ class Mysqli {
             $query = $this->query($query);
         }
         if (!$query) {
-            return $this->_false_val;
+            return false;
         }
         if ($yield) {
             $rowsets = $this->iterator($query);
@@ -252,7 +245,7 @@ class Mysqli {
             $query = $this->query($query);
         }
         if (!$query) {
-            return $this->_false_val;
+            return false;
         }
         if ($yield) {
             $rowsets = $this->iterator($query);
@@ -278,14 +271,14 @@ class Mysqli {
         }
         $query = $this->query("SELECT {$field} FROM " . $this->qtable($tableName) . " {$where} LIMIT 0,1");
         if (!$query) {
-            return $this->_false_val;
+            return false;
         }
         $ret = mysqli_fetch_array($query, MYSQLI_NUM);
         mysqli_free_result($query);
         if ($ret) {
             return $ret[0];
         }
-        return $this->_false_val;
+        return false;
     }
 
     public function count($tableName, $condition = '', $field = '*') {
@@ -333,13 +326,13 @@ class Mysqli {
             $this->close();
             throw new Exception\DbException($message, $code);
         }
-        return $this->_false_val;
+        return false;
     }
 
     public function fields($tableName) {
         $query = $this->query('SHOW FULL FIELDS FROM ' . $this->qtable($tableName));
         if (!$query) {
-            return $this->_false_val;
+            return false;
         }
         $rowsets = [];
         while ($row = mysqli_fetch_array($query, MYSQLI_ASSOC)) {
@@ -390,7 +383,7 @@ class Mysqli {
         ];
         $query = $this->query("SHOW FULL COLUMNS FROM {$tableName}");
         if (!$query) {
-            return $this->_false_val;
+            return false;
         }
         $retarr = [];
         while ($rowcur = mysqli_fetch_array($query, MYSQLI_ASSOC)) {
@@ -477,7 +470,7 @@ class Mysqli {
         }
         $query = $this->query($sql);
         if (!$query) {
-            return $this->_false_val;
+            return false;
         }
         $tables = [];
         while ($row = mysqli_fetch_row($query)) {
