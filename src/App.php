@@ -26,6 +26,11 @@ class App {
         $this->rootnamespace('\\', $root);
     }
 
+    public function finish() {
+        //清理工作
+        Db::close();
+    }
+
     /**
      * @param $key
      * @param $handle
@@ -57,6 +62,7 @@ class App {
 
         $this->dispatching($request, $response);
         $response->end();
+        $this->finish();
     }
 
     /**
@@ -88,8 +94,7 @@ class App {
                 return false;
             }
         }
-        $this->execute($controllerName, $actionName, $request, $response);
-        return true;
+        return $this->execute($controllerName, $actionName, $request, $response);
     }
 
 
@@ -114,10 +119,10 @@ class App {
             $this->exception($exception, $response);
         } catch (Exception\CacheException $exception) { //cache异常
             $this->exception($exception, $response);
+        } catch (\ErrorException $exception) {
+            $this->exception($exception, $response);
         } catch (\Throwable $exception) { //PHP7
             $this->exception($exception, $response);
-        } finally {
-            Db::close();
         }
         return true;
     }
@@ -128,11 +133,11 @@ class App {
      * @return bool
      */
     private function exception($exception, Swoole\Response $response) {
-        $data = $this->strexception($exception);
+        $data = $this->exception2str($exception);
         $this->response($data, 500, $response);
     }
 
-    private function strexception($exception) {
+    private function exception2str($exception) {
         $output = '<h3>' . $exception->getMessage() . '</h3>';
         $output .= '<p>' . nl2br($exception->getTraceAsString()) . '</p>';
         if ($previous = $exception->getPrevious()) {
