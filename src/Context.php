@@ -4,7 +4,7 @@ namespace Rsf;
 
 class Context {
 
-    private static $dsn = [];
+    private static $_dsn = [];
 
     /**
      * @param $dsnid
@@ -12,19 +12,19 @@ class Context {
      * @throws Exception\Exception
      */
     public static function dsn($dsnid) {
-        if (!isset(self::$dsn[APPKEY])) {
+        if (!isset(self::$_dsn[APPKEY])) {
             $dsns = self::config(APPKEY, 'dsn');
-            foreach ($dsns as $dsnid => $dsn) {
-                $dsns[$dsnid]['dsnkey'] = md5($dsn['driver'] . '_' . $dsn['host'] . '_' . $dsn['port'] . '_' . $dsn['login'] . '_' . $dsn['database']); //连接池key
+            foreach ($dsns as $key => $dsn) {
+                $dsns[$key]['dsnkey'] = md5($dsn['driver'] . '_' . $dsn['host'] . '_' . $dsn['port'] . '_' . $dsn['login'] . '_' . $dsn['database']); //连接池key
             }
-            self::$dsn[APPKEY] = $dsns;
-            if (!isset(self::$dsn[APPKEY][$dsnid])) {
+            self::$_dsn[APPKEY] = $dsns;
+            if (!isset(self::$_dsn[APPKEY][$dsnid])) {
                 throw new Exception\Exception('无配置!' . APPKEY . $dsnid);
             }
             $dsns = null;
         }
         //默认为正确的配置
-        return self::$dsn[APPKEY][$dsnid];
+        return self::$_dsn[APPKEY][$dsnid];
     }
 
     /**

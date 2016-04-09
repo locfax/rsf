@@ -16,11 +16,9 @@ class Memcache {
 
     public function init($config) {
         try {
-            if (is_null($this->_link)) {
-                $this->_link = new \Memcache();
-            }
+            $this->_link = new \Memcache();
             if ($config['pconnect']) {
-                $this->_plink = 1;
+                $this->_plink = true;
                 $server = 'pconnect';
             } else {
                 $server = 'connect';

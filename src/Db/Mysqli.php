@@ -6,39 +6,25 @@ use \Rsf\Exception;
 
 class Mysqli {
 
-    //dsn information
-    private $_dsn = null;
-    private $_dsnkey = null;
+    private $_config = null;
     private $_link = null;
-    private $_schema = null;
-    private $_prefix = '';
-    private $_plink = 0;
-    private $_run_dev = true;
 
     public function __destruct() {
         $this->close();
     }
 
-    public function connect($dsn, $dsnkey, $type = '') {
-        if (is_null($this->_dsn)) {
-            $this->_dsn = $dsn;
-            $this->_dsnkey = $dsnkey;
-            $this->_schema = $dsn['database'];
-            $this->_prefix = $dsn['prefix'];
-            $this->_run_dev = $dsn['rundev'];
-            $this->_plink = $dsn['pconnect'];
+    public function connect($config, $type = '') {
+        if (is_null($this->_config)) {
+            $this->_config = $config;
         }
         try {
-            if (is_null($this->_link)) {
-                $this->_link = mysqli_init();
-            }
-            if ($dsn['pconnect']) {
-                $server = 'p:' . $dsn['host'];
+            if ($config['pconnect']) {
+                $host = 'p:' . $config['host'];
             } else {
-                $server = $dsn['host'];
+                $host = $config['host'];
             }
-            mysqli_real_connect($this->_link, $server, $dsn['login'], $dsn['password'], $dsn['database'], $dsn['port']);
-            mysqli_set_charset($this->_link, $dsn['charset']);
+            $this->_link = mysqli_connect($host, $config['login'], $config['password'], $config['database'], $config['port']);
+            mysqli_set_charset($this->_link, $config['charset']);
         } catch (\ErrorException $e) {
             if ('RETRY' != $type) {
                 return $this->reconnect();
@@ -50,11 +36,11 @@ class Mysqli {
     }
 
     public function reconnect() {
-        return $this->connect($this->_dsn, $this->_dsnkey, 'RETRY');
+        return $this->connect($this->_config, 'RETRY');
     }
 
     public function close() {
-        if (!$this->_plink) {
+        if (!$this->_config['pconnect']) {
             $this->_link && mysqli_close($this->_link);
         }
     }
@@ -109,8 +95,8 @@ class Mysqli {
             $tableName = trim($parts[1]);
             $schema = trim($parts[0]);
         } else {
-            $tableName = $this->_prefix . trim($tableName);
-            $schema = $this->_schema;
+            $tableName = $this->_config['prefix'] . trim($tableName);
+            $schema = $this->_config['database'];
         }
         $_alias = $alias ? " AS {$alias}" : '';
         $ret = "`{$schema}`.`{$tableName}`" . $_alias;
@@ -322,7 +308,7 @@ class Mysqli {
     }
 
     private function _halt($message = '', $code = 0) {
-        if ($this->_run_dev) {
+        if ($this->_config['rundev']) {
             $this->close();
             throw new Exception\DbException($message, $code);
         }

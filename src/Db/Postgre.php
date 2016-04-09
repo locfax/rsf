@@ -6,29 +6,20 @@ use \Rsf\Exception;
 
 class Postgre {
 
-    //dsn information
-    private $_dsn = null;
-    private $_dsnkey = null;
+    private $_config = null;
     private $_link = null;
-    private $_schema = null;
-    private $_prefix = '';
-    private $_run_dev = true;
 
     public function __destruct() {
         $this->close();
     }
 
-    public function connect($dsn, $dsnkey, $type = '') {
-        if (is_null($this->_dsn)) {
-            $this->_dsn = $dsn;
-            $this->_dsnkey = $dsnkey;
-            $this->_schema = $dsn['database'];
-            $this->_prefix = $dsn['prefix'];
-            $this->_run_dev = $dsn['rundev'];
+    public function connect($config, $type = '') {
+        if (is_null($this->_config)) {
+            $this->_config = $config;
         }
         try {
-            $this->_link = pg_connect('host=' . $dsn['host'] . ' port=' . $dsn['port'] . ' user=' . $dsn['login'] . ' password=' . $dsn['password'] . ' dbname=' . $dsn['database']);
-            pg_set_client_encoding($this->_link, $dsn['charset']);
+            $this->_link = pg_connect('host=' . $config['host'] . ' port=' . $config['port'] . ' user=' . $config['login'] . ' password=' . $config['password'] . ' dbname=' . $config['database']);
+            pg_set_client_encoding($this->_link, $config['charset']);
         } catch (\ErrorException $e) {
             if ('RETRY' != $type) {
                 return $this->reconnect();
@@ -40,7 +31,7 @@ class Postgre {
     }
 
     public function reconnect() {
-        return $this->connect($this->_dsn, $this->_dsnkey, 'RETRY');
+        return $this->connect($this->_config, 'RETRY');
     }
 
     public function close() {
@@ -94,8 +85,8 @@ class Postgre {
             $tableName = trim($parts[1]);
             $schema = trim($parts[0]);
         } else {
-            $tableName = $this->_prefix . trim($tableName);
-            $schema = $this->_schema;
+            $tableName = $this->_config['prefix'] . trim($tableName);
+            $schema = $this->_config['database'];
         }
         $_alias = $alias ? " AS {$alias}" : '';
         $ret = "`{$schema}`.`{$tableName}`" . $_alias;
@@ -277,11 +268,7 @@ class Postgre {
     }
 
     public function ping() {
-        if (PHP_VERSION >= '4.3') {
-            return pg_ping($this->_link);
-        } else {
-            return false;
-        }
+        return pg_ping($this->_link);
     }
 
     public function error() {
@@ -306,7 +293,7 @@ class Postgre {
     }
 
     private function _halt($message = '', $data = '') {
-        if ($this->_run_dev) {
+        if ($this->_config['rundev']) {
             $this->close();
             throw new Exception\DbException($message, $data);
         }

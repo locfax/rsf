@@ -26,9 +26,12 @@ class App {
         $this->rootnamespace('\\', $root);
     }
 
-    public function finish() {
-        //清理工作
-        Db::close();
+    private function finish() {
+        try {
+            Db::close();
+        } catch (\ErrorException $e) {
+
+        }
     }
 
     /**

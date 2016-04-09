@@ -6,42 +6,31 @@ use \Rsf\Exception;
 
 class Mongo {
 
-    //dsn information
-    private $_dsn = null;
-    private $_dsnkey = null;
+    private $_config = null;
     private $_link = null;
     private $_client = null;
-    private $_prefix = '';
-    private $_plink = 0;
-    private $_run_dev = true;
 
     public function __destruct() {
         $this->close();
     }
 
-    public function connect($dsn, $dsnkey, $type = '') {
-        if (is_null($this->_dsn)) {
-            $this->_dsn = $dsn;
-            $this->_dsnkey = $dsnkey;
-            $this->_prefix = $dsn['prefix'];
-            $this->_plink = $dsn['pconnect'];
-            $this->_run_dev = $dsn['rundev'];
+    public function connect($config, $type = '') {
+        if (is_null($this->_config)) {
+            $this->_config = $config;
         }
         try {
-            if (is_null($this->_link)) {
-                if ($dsn['password']) {
-                    $server = "mongodb://{$dsn['login']}:{$dsn['password']}@{$dsn['host']}:{$dsn['port']}/{$dsn['database']}";
-                } else {
-                    $server = "mongodb://{$dsn['host']}:{$dsn['port']}/{$dsn['database']}";
-                }
-                if ($dsn['pconnect']) {
-                    $this->_link = new \MongoClient($server, ["connect" => false], ['persist' => $dsn['host'] . '_' . $dsn['port'] . '_' . $dsn['database']]);
-                } else {
-                    $this->_link = new \MongoClient($server, ["connect" => false]);
-                }
+            if ($config['password']) {
+                $dsn = "mongodb://{$config['login']}:{$config['password']}@{$config['host']}:{$config['port']}/{$config['database']}";
+            } else {
+                $dsn = "mongodb://{$config['host']}:{$config['port']}/{$config['database']}";
+            }
+            if ($config['pconnect']) {
+                $this->_link = new \MongoClient($dsn, ["connect" => false], ['persist' => $config['host'] . '_' . $config['port'] . '_' . $config['database']]);
+            } else {
+                $this->_link = new \MongoClient($dsn, ["connect" => false]);
             }
             $this->_link->connect();
-            $this->_client = $this->_link->selectDB($dsn['database']);
+            $this->_client = $this->_link->selectDB($config['database']);
         } catch (\MongoConnectionException $ex) {
             if ('RETRY' != $type) {
                 return $this->reconnect();
@@ -53,17 +42,17 @@ class Mongo {
     }
 
     public function close() {
-        if (!$this->_plink) {
+        if (!$this->_config['pconnect']) {
             $this->_link && $this->_link->close();
         }
     }
 
     public function reconnect() {
-        return $this->connect($this->_dsn, $this->_dsnkey, 'RETRY');
+        return $this->connect($this->_config, 'RETRY');
     }
 
     public function qtable($tableName) {
-        return $this->_prefix . $tableName;
+        return $this->_config['prefix'] . $tableName;
     }
 
     public function create($table, $document = [], $retid = false, $type = '') {
@@ -335,7 +324,7 @@ class Mongo {
     }
 
     private function _halt($message = '', $code = 0) {
-        if ($this->_run_dev) {
+        if ($this->_config['rundev']) {
             $this->close();
             throw new Exception\DbException($message, $code);
         }

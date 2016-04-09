@@ -16,11 +16,9 @@ class Redis {
 
     public function init($config) {
         try {
-            if (is_null($this->_link)) {
-                $this->_link = new \Redis();
-            }
+            $this->_link = new \Redis();
             if ($config['pconnect']) {
-                $this->_plink = 1;
+                $this->_plink = true;
                 $server = 'pconnect';
             } else {
                 $server = 'connect';
@@ -36,7 +34,6 @@ class Redis {
         } catch (\RedisException $ex) {
 
         }
-
         return $this;
     }
 
