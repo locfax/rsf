@@ -8,7 +8,7 @@ class App {
 
     const _dCTL = 'ctl';
     const _dACT = 'act';
-    const _controllerPrefix = '\\Apps\\';
+    const _controllerPrefix = '\\';
     const _actionPrefix = 'act_';
 
     private $handlers = [];
@@ -38,7 +38,7 @@ class App {
      * @param $key
      * @param $handle
      */
-    public function setHandler($key, $handle) {
+    public function setHandle($key, $handle) {
         $this->handlers[$key] = $handle;
     }
 
@@ -47,7 +47,7 @@ class App {
      * @param $param
      * @return bool|mixed
      */
-    public function doHandler($key, $param) {
+    public function doHandle($key, $param) {
         if (!isset($this->handlers[$key])) {
             return true;
         }

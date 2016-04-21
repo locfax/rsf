@@ -9,11 +9,11 @@ class Html {
     public function dropdown_list($name, $arr, $selected = null, $extra = null) {
         $str = "<select name=\"{$name}\" {$extra} >\n";
         foreach ($arr as $value => $title) {
-            $str .= '<option value="' . char_t($value) . '"';
+            $str .= '<option value="' . input_text($value) . '"';
             if ($selected == $value) {
                 $str .= ' selected';
             }
-            $str .= '>' . char_h($title) . "&nbsp;&nbsp;</option>\n";
+            $str .= '>' . input_text($title) . "&nbsp;&nbsp;</option>\n";
         }
         $str .= "</select>\n";
         return $str;
@@ -23,8 +23,8 @@ class Html {
         $ix = 0;
         $str = "";
         foreach ($arr as $value => $title) {
-            $value_h = char_h($value);
-            $title = char_t($title);
+            $value_h = input_text($value);
+            $title = input_text($title);
             $str .= "<input name=\"{$name}\" type=\"radio\" id=\"{$name}_{$ix}\" value=\"{$value_h}\" ";
             if ($value == $checked) {
                 $str .= "checked=\"checked\"";
@@ -67,13 +67,13 @@ class Html {
         }
         $str .= " {$extra} />\n";
         if ($label) {
-            $str .= "<label for=\"{$name}_1\">" . char_h($label) . "</label>\n";
+            $str .= "<label for=\"{$name}_1\">" . input_text($label) . "</label>\n";
         }
         return $str;
     }
 
     public function textbox($name, $value = '', $width = null, $maxLength = null, $extra = null) {
-        $str = "<input name=\"{$name}\" type=\"text\" value=\"" . char_h($value) . "\" ";
+        $str = "<input name=\"{$name}\" type=\"text\" value=\"" . input_text($value) . "\" ";
         if ($width) {
             $str .= "size=\"{$width}\" ";
         }
@@ -85,7 +85,7 @@ class Html {
     }
 
     public function password($name, $value = '', $width = null, $maxLength = null, $extra = null) {
-        $str = "<input name=\"{$name}\" type=\"password\" value=\"" . char_h($value) . "\" ";
+        $str = "<input name=\"{$name}\" type=\"password\" value=\"" . input_text($value) . "\" ";
         if ($width) {
             $str .= "size=\"{$width}\" ";
         }
@@ -105,14 +105,14 @@ class Html {
             $str .= "rows=\"{$height}\" ";
         }
         $str .= " {$extra} >";
-        $str .= char_h($value);
+        $str .= input_text($value);
         $str .= "</textarea>\n";
         return $str;
     }
 
     public function hidden($name, $value = '', $extra = null) {
         $str = "<input name=\"{$name}\" type=\"hidden\" value=\"";
-        $str .= char_h($value);
+        $str .= input_text($value);
         $str .= "\" {$extra} />\n";
         return $str;
     }

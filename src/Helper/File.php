@@ -58,7 +58,7 @@ class File {
                 }
                 unlink($dir . '/' . $f);
             } elseif (is_dir($dir . '/' . $f)) {
-                $this->clearDir($dir . '/' . $f);
+                $this->clear_dir($dir . '/' . $f);
                 rmdir($dir . '/' . $f);
             }
         }
