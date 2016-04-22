@@ -6,7 +6,7 @@ use \Rsf\Exception;
 
 class Xcache {
 
-    use \Rsf\Base\Singleton;
+    use \Rsf\Traits\Singleton;
 
     public $enable = false;
 

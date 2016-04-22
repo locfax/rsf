@@ -4,7 +4,7 @@ namespace Rsf\Helper;
 
 class Strs {
 
-    use \Rsf\Base\Singleton;
+    use \Rsf\Traits\Singleton;
 
     /*
      * 随机字符

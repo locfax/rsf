@@ -4,7 +4,7 @@ namespace Rsf\Helper;
 
 class Locker {
 
-    use \Rsf\Base\Singleton;
+    use \Rsf\Traits\Singleton;
 
     const dsn = 'general';
 

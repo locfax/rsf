@@ -4,7 +4,7 @@ namespace Rsf\Helper;
 
 class Html {
 
-    use \Rsf\Base\Singleton;
+    use \Rsf\Traits\Singleton;
 
     public function dropdown_list($name, $arr, $selected = null, $extra = null) {
         $str = "<select name=\"{$name}\" {$extra} >\n";

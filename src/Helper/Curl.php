@@ -4,7 +4,7 @@ namespace Rsf\Helper;
 
 class Curl {
 
-    use \Rsf\Base\Singleton;
+    use \Rsf\Traits\Singleton;
 
     public function send($url, $data = '', $httphead = [], $gzip = false, $charset = 'UTF-8', $rethead = false, $retsession = false) {
         $ch = curl_init();

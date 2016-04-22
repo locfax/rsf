@@ -4,8 +4,8 @@ namespace Rsf\Helper;
 
 class Pager {
 
-    use \Rsf\Base\Singleton;
-    
+    use \Rsf\Traits\Singleton;
+
     public function pagebar($pageinfo) {
         $totals = $pageinfo['totals'];
         $perpage = $pageinfo['length'];
@@ -20,7 +20,7 @@ class Pager {
         $showkbd = isset($pageinfo['showkbd']) ? $pageinfo['showkbd'] : false;
         $simple = isset($pageinfo['simple']) ? $pageinfo['simple'] : false;
         $autogoto = true;
-        $ajaxtarget = getgpc('g.ajaxtarget') ? " ajaxtarget=\"" . getgpc('g.ajaxtarget', '', 'input_char') . "\" " : '';
+        $ajaxtarget = ''; // getgpc('g.ajaxtarget') ? " ajaxtarget=\"" . getgpc('g.ajaxtarget', '', 'input_char') . "\" " : '';
         $aname = '';
         if (strexists($mpurl, '#')) {
             $astrs = explode('#', $mpurl);
@@ -51,14 +51,14 @@ class Pager {
             }
         }
         $multipage = ($curpage - $offset > 1 && $pages > $page ? '<a href="' . $mpurl . 'page=1' . $aname . '" class="first"' . $ajaxtarget . '>1 ...</a>' : '') .
-                ($curpage > 1 && !$simple ? '<a href="' . $mpurl . 'page=' . ($curpage - 1) . $aname . '" class="prev"' . $ajaxtarget . '>' . $lang['prev'] . '</a>' : '');
+            ($curpage > 1 && !$simple ? '<a href="' . $mpurl . 'page=' . ($curpage - 1) . $aname . '" class="prev"' . $ajaxtarget . '>' . $lang['prev'] . '</a>' : '');
         for ($i = $from; $i <= $to; $i++) {
             $multipage .= $i == $curpage ? '<strong>' . $i . '</strong>' :
-                    '<a href="' . $mpurl . 'page=' . $i . ($ajaxtarget && $i == $pages && $autogoto ? '#' : $aname) . '"' . $ajaxtarget . '>' . $i . '</a>';
+                '<a href="' . $mpurl . 'page=' . $i . ($ajaxtarget && $i == $pages && $autogoto ? '#' : $aname) . '"' . $ajaxtarget . '>' . $i . '</a>';
         }
         $multipage .= ($to < $pages ? '<a href="' . $mpurl . 'page=' . $pages . $aname . '" class="last"' . $ajaxtarget . '>... ' . $realpages . '</a>' : '') .
-                ($curpage < $pages && !$simple ? '<a href="' . $mpurl . 'page=' . ($curpage + 1) . $aname . '" class="nxt"' . $ajaxtarget . '>' . $lang['next'] . '</a>' : '') .
-                ($showkbd && !$simple && $pages > $page && !$ajaxtarget ? '<kbd><input type="text" name="custompage" size="3" onkeydown="if(event.keyCode==13) {window.location=\'' . $mpurl . 'page=\'+this.value; doane(event);}" /></kbd>' : '');
+            ($curpage < $pages && !$simple ? '<a href="' . $mpurl . 'page=' . ($curpage + 1) . $aname . '" class="nxt"' . $ajaxtarget . '>' . $lang['next'] . '</a>' : '') .
+            ($showkbd && !$simple && $pages > $page && !$ajaxtarget ? '<kbd><input type="text" name="custompage" size="3" onkeydown="if(event.keyCode==13) {window.location=\'' . $mpurl . 'page=\'+this.value; doane(event);}" /></kbd>' : '');
         $multipage = '<div class="pg">' . ($shownum && !$simple ? '<em>&nbsp;' . $totals . '&nbsp;</em>' : '') . $multipage . '</div>';
         //$maxpage = $realpages;
         return $multipage;

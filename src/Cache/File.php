@@ -6,7 +6,7 @@ use \Rsf\Exception;
 
 class File {
 
-    use \Rsf\Base\Singleton;
+    use \Rsf\Traits\Singleton;
 
     public $enable = false;
 

@@ -4,7 +4,7 @@ namespace Rsf\Helper;
 
 class Uploader {
 
-    use \Rsf\Base\Singleton;
+    use \Rsf\Traits\Singleton;
 
     private $_files = [];
     private $_count = 0;

@@ -78,7 +78,7 @@ class Controller {
         if ($this->login_user) {
             return $this->login_user;
         }
-        $this->login_user = Context::getUser();
+        $this->login_user = User::getUser();
         return $this->login_user;
     }
 

@@ -4,7 +4,7 @@ namespace Rsf\Cache;
 
 class Memcache {
 
-    use \Rsf\Base\Singleton;
+    use \Rsf\Traits\Singleton;
 
     public $enable = false;
     private $_link = null;

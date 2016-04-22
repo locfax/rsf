@@ -122,7 +122,7 @@ function checktplrefresh($maintpl, $subtpl, $cachetime, $cachefile, $file) {
         if ($tpltime < intval($cachetime)) {
             return;
         }
-        \Rsf\Base\Template::getInstance()->parse(getini('data/_view'), $tpldir, $maintpl, $cachefile, $file);
+        \Rsf\Template::getInstance()->parse(getini('data/_view'), $tpldir, $maintpl, $cachefile, $file);
     }
 }
 

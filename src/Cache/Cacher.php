@@ -7,7 +7,7 @@ use \Rsf\Exception;
 
 class Cacher {
 
-    use \Rsf\Base\Singleton;
+    use \Rsf\Traits\Singleton;
 
     private $config;
     private $prefix;

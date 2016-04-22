@@ -4,7 +4,7 @@ namespace Rsf\Helper;
 
 class File {
 
-    use \Rsf\Base\Singleton;
+    use \Rsf\Traits\Singleton;
 
     public function mk_dir($path, $mode = DIR_WRITE_MODE) {
         if (!is_dir($path)) {

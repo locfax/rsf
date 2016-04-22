@@ -76,7 +76,7 @@ class App {
     public function dispatching(Swoole\Request $request, Swoole\Response $response) {
         if (defined('ROUTE') && ROUTE) {
             $uri = $request->getRequestTarget();
-            $router = Base\Route::parse_routes($uri);
+            $router = Route::parse_routes($uri);
             if ($router) {
                 $_controllerName = array_shift($router);
                 $_actionName = array_shift($router);

@@ -4,7 +4,7 @@ namespace Rsf\Helper;
 
 class Xss {
 
-    use \Rsf\Base\Singleton;
+    use \Rsf\Traits\Singleton;
 
     /**
      * 非法文件名字符

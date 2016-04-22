@@ -4,7 +4,7 @@ namespace Rsf\Helper;
 
 class WaterMark {
 
-    use \Rsf\Base\Singleton;
+    use \Rsf\Traits\Singleton;
 
     /**
      * @param $groundImage
