@@ -106,7 +106,8 @@ class User {
         }
         if ('SESSION' == $type) {
             if (PHP_SESSION_NONE == session_status()) {
-                //$life && session_set_cookie_params($life);
+                $life = $life > 0 ? $life : 1800;
+                session_set_cookie_params($life, getini('auth/path'), getini('auth/domain'));
                 session_start();
             }
             if ($life >= 0) {
