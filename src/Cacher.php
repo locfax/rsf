@@ -17,7 +17,7 @@ class Cacher {
         $this->prefix = $this->config['prefix'];
         $cacher = $cacher ?: $this->config['cacher'];
         if (in_array($cacher, array('file', 'memcache', 'redis', 'xcache'))) {
-            $class = 'Cache\\' . ucfirst($cacher);
+            $class = '\\Rsf\\Cache\\' . ucfirst($cacher);
             $this->cacher = $class::getInstance()->init(Context::dsn($cacher . '.cache'));
             $this->enable = $this->cacher->enable;
             $this->type = $cacher;

@@ -69,11 +69,11 @@ class App {
     }
 
     /**
-     * @param Swoole\Request $request
-     * @param Swoole\Response $response
+     * @param $request
+     * @param $response
      * @return bool
      */
-    public function dispatching(Swoole\Request $request, Swoole\Response $response) {
+    public function dispatching($request, $response) {
         if (defined('ROUTE') && ROUTE) {
             $uri = $request->getRequestTarget();
             $router = Route::parse_routes($uri);
@@ -104,11 +104,11 @@ class App {
     /**
      * @param $controllerName
      * @param $actionName
-     * @param Swoole\Request $request
-     * @param Swoole\Response $response
+     * @param $request
+     * @param $response
      * @return bool
      */
-    private function execute($controllerName, $actionName, Swoole\Request $request, Swoole\Response $response) {
+    private function execute($controllerName, $actionName, $request, $response) {
         $controllerName = ucfirst($controllerName);
         $actionMethod = self::_actionPrefix . $actionName;
 
@@ -132,10 +132,10 @@ class App {
 
     /**
      * @param $exception
-     * @param Swoole\Response $response
+     * @param $response
      * @return bool
      */
-    private function exception($exception, Swoole\Response $response) {
+    private function exception($exception, $response) {
         $data = $this->exception2str($exception);
         $this->response($data, 500, $response);
     }
@@ -149,7 +149,7 @@ class App {
         return $output;
     }
 
-    private function response($data, $code = 500, Swoole\Response $response) {
+    private function response($data, $code = 500, $response) {
         $response->withStatus($code);
         $response->withHeader('Content-type', 'text/html; charset=UTF-8');
         $response->write($data);
