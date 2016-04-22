@@ -12,10 +12,10 @@ trait Singleton {
         throw new Exception\Exception('Cloning ' . __CLASS__ . ' is not allowed');
     }
 
-    public static function getInstance() {
+    public static function getInstance($param = null) {
         $class = get_called_class();
         if (!isset(static::$instances[$class])) {
-            static::$instances[$class] = new static;
+            static::$instances[$class] = new static($param);
         }
         return static::$instances[$class];
     }

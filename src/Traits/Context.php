@@ -7,7 +7,7 @@ use \Rsf\Exception;
  * @example
  *
  * class Foobar {
- *     use \Owl\Traits\Context;
+ *     use \Rsf\Traits\Context;
  *
  *     public function __construct() {
  *         $this->setContextHandler(\Rsf\Context::factory('cookie', $config));
@@ -31,20 +31,12 @@ trait Context {
         return $this->getContextHandler(true)->get($key);
     }
 
-    public function hasContext($key) {
-        return $this->getContextHandler(true)->has($key);
-    }
-
     public function removeContext($key) {
-        return $this->getContextHandler(true)->remove($key);
+        return $this->getContextHandler(true)->rm($key);
     }
 
     public function clearContext() {
         return $this->getContextHandler(true)->clear();
-    }
-
-    public function saveContext() {
-        return $this->getContextHandler(true)->save();
     }
 
     public function setContextHandler($handler) {
@@ -55,7 +47,6 @@ trait Context {
         if (!$this->context_handler && $throw_exception) {
             throw new Exception\Exception('Please set context handler before use');
         }
-
         return $this->context_handler ?: false;
     }
 }

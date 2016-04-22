@@ -22,7 +22,7 @@ class Db {
             $classname = '\\Rsf\\Db\\' . ucfirst($_dsn['driver']);
             $dbo = new $classname;
             $dbo->connect($_dsn, $dsnkey);
-            self::$used_dbo[$dsnkey] = $dbo;
+            self::$used_dbo[$dsnkey] = $dbo; //记录链接对象 方便关闭
         }
         return $dbo;
     }

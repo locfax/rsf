@@ -50,7 +50,7 @@ function datacache($cachekey, $reset = false) {
 //普通级别缓存
 function cache($cmd, $key = '', $val = '', $ttl = 0) {
     if (in_array($cmd, ['set', 'get', 'rm', 'clear', 'close'])) {
-        $cacher = \Rsf\Cache\Cacher::getInstance();
+        $cacher = \Rsf\Cacher::getInstance();
         switch ($cmd) {
             case 'get':
                 return $cacher->get($key);
@@ -101,7 +101,7 @@ function sysdata($cachename, $reset = false) {
     if (is_null($lost)) {
         return $data; //取到全部数据 则返回
     }
-    return \Model\Base\SysData::lost($lost, $reset);
+    return \Model\SysData::lost($lost, $reset);
 }
 
 /**

@@ -193,4 +193,63 @@ class Request implements ServerRequestInterface {
         return $val && (strtolower($val[0]) === 'xmlhttprequest');
     }
 
+    /**
+     * 构造http请求对象，供测试使用.
+     *
+     * @example
+     * $request = Request::factory([
+     *     'uri' => '/',
+     *     'method' => 'post',
+     *     'cookies' => [
+     *         $key => $value,
+     *         ...
+     *     ],
+     *     'headers' => [
+     *         $key => $value,
+     *         ...
+     *     ],
+     *     'get' => [
+     *         $key => $value,
+     *         ...
+     *     ],
+     *     'post' => [
+     *         $key => $value,
+     *         ...
+     *     ],
+     * ]);
+     */
+    public static function factory($options = []) {
+        $options = array_merge([
+            'uri' => '/',
+            'method' => 'GET',
+            'cookies' => [],
+            'headers' => [],
+            'get' => [],
+            'post' => [],
+            'ip' => '',
+        ], $options);
+
+        $server = [];
+        $server['REQUEST_METHOD'] = strtoupper($options['method']);
+        $server['REQUEST_URI'] = $options['uri'];
+
+        if ($options['ip']) {
+            $server['REMOTE_ADDR'] = $options['ip'];
+        }
+
+        if ($query = parse_url($options['uri'], PHP_URL_QUERY)) {
+            parse_str($query, $get);
+            $options['get'] = array_merge($get, $options['get']);
+        }
+
+        $cookies = $options['cookies'];
+        $get = $options['get'];
+        $post = $options['post'];
+
+        if ($server['REQUEST_METHOD'] === 'GET') {
+            $post = [];
+        }
+
+        return new self($server, $options['headers'], $get, $post, [], $cookies);
+    }
 }

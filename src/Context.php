@@ -19,7 +19,7 @@ class Context {
             }
             self::$_dsn[APPKEY] = $dsns;
             if (!isset(self::$_dsn[APPKEY][$dsnid])) {
-                throw new Exception\Exception('无配置!' . APPKEY . $dsnid);
+                return null;
             }
             $dsns = null;
         }
