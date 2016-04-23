@@ -37,7 +37,7 @@ abstract class Crontab {
         // 把进程ID和开始时间记录到上下文中
         $this->setContext(self::KEY_PROC_ID, posix_getpid());
         $this->setContext(self::KEY_PROC_TIME, time());
-        $this->saveContext();
+        //$this->saveContext();
 
         // 执行任务逻辑
         try {
@@ -61,7 +61,7 @@ abstract class Crontab {
     public function stop() {
         $this->removeContext(self::KEY_PROC_ID);
         $this->removeContext(self::KEY_PROC_TIME);
-        $this->saveContext();
+        //$this->saveContext();
 
         $this->log('info', 'Job execute completed');
     }
@@ -134,7 +134,7 @@ abstract class Crontab {
     }
 
     protected function log($level, $message, array $context = []) {
-        if ($logger = self::$logger) {
+        if (self::$logger) {
             $defaults = [
                 'class' => get_class($this),
             ];
@@ -145,7 +145,7 @@ abstract class Crontab {
 
             $context = array_merge($defaults, $context);
 
-            $logger->log($level, $message, $context);
+            self::$logger->log($level, $message, $context);
         }
     }
 
