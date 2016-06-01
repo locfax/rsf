@@ -8,13 +8,9 @@ abstract class Crontab {
 
     const KEY_PROC_ID = '__proc_id__';
     const KEY_PROC_TIME = '__proc_start__';
-
     protected $name;
-
     protected $timeout = 600;
-
     abstract protected function execute();
-
     private static $logger;
 
     /**

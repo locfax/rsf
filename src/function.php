@@ -67,43 +67,6 @@ function cache($cmd, $key = '', $val = '', $ttl = 0) {
     return false;
 }
 
-//加载系统级别缓存
-function loadcache($cachename, $reset = false) {
-    if (!$cachename) {
-        return null;
-    }
-    $data = sysdata($cachename, $reset);
-    if ('settings' === $cachename && $data) {
-        \Rsf\Context::mergeVars('cfg', ['settings' => json_decode($data, true)]);
-        return true;
-    }
-    return json_decode($data, true);
-}
-
-/**
- * 系统级别缓存数据
- * @param $cachename
- * @param $reset
- * @return array
- */
-
-function sysdata($cachename, $reset = false) {
-    $lost = null;
-    if ($reset) {
-        $lost = $cachename; //强制设置为没取到
-        $data = '[]';
-    } else {
-        $data = cache('get', 'sys_' . $cachename);
-        if (!$data) {
-            $lost = $cachename;  //未取到数据
-        }
-    }
-    if (is_null($lost)) {
-        return $data; //取到全部数据 则返回
-    }
-    return \Model\SysData::lost($lost, $reset);
-}
-
 /**
  * @param $maintpl
  * @param $subtpl
@@ -128,25 +91,17 @@ function checktplrefresh($maintpl, $subtpl, $cachetime, $cachefile, $file) {
 
 /**
  * @param $file
- * @param string $templateid
- * @param bool $gettplfile
  * @return string
  */
-function template($file, $templateid = '', $gettplfile = false) {
-    if (strpos($file, ':')) {
-        list($templateid, $file) = explode(':', $file, 2);
-    }
-    $_file = $file;
-    //$skin = $templateid ? $templateid : getini('settings/defskin');
+function template($file) {
     $_tplid = getini('site/themes');
-    $tplfile = $_tplid . '/' . $_file . '.htm';
-    if ($gettplfile) {
-        return $tplfile;
-    }
-    $cachefile = strtolower(APPKEY) . '_' . $_tplid . '_' . str_replace('/', '_', $_file) . '_tpl.php';
+    $tplfile = $_tplid . '/' . $file . '.htm';
+    $cachefile = strtolower(APPKEY) . '_' . $_tplid . '_' . str_replace('/', '_', $file) . '_tpl.php';
     $cachetpl = getini('data/_view') . $cachefile;
     $cachetime = is_file($cachetpl) ? filemtime($cachetpl) : 0;
-    checktplrefresh($tplfile, $tplfile, $cachetime, $cachefile, $_file);
+    checktplrefresh($tplfile, $tplfile, $cachetime, $cachefile, $file);
+    ob_get_length() && ob_clean();
+    ob_start();
     return $cachetpl;
 }
 

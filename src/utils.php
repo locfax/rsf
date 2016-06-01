@@ -8,19 +8,17 @@ function dimplode($arr) {
 
 /*
  *
- * 屏蔽单双引号等
- * 提供给数据库搜索
+ * 屏蔽单双引号等 没被转义
  */
 function input_char($text) {
     if (empty($text)) {
         return $text;
     }
-    return htmlspecialchars(trim($text), ENT_QUOTES, 'UTF-8');
+    return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
 }
 
 /*
-*  屏蔽单双引号等
-*  提供给html显示 或者 input输入框
+*  屏蔽单双引号等 被转义过
 */
 function input_text($text) {
     if (empty($text)) {
