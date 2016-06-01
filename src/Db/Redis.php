@@ -32,7 +32,7 @@ class Redis {
                 $this->_link->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_NONE);
             }
         } catch (\RedisException $ex) {
-            if ('RETRY' != $type) {
+            if ('RETRY' !== $type) {
                 return $this->reconnect();
             }
             $this->_link = null;

@@ -32,7 +32,7 @@ class Mongo {
             $this->_link->connect();
             $this->_client = $this->_link->selectDB($config['database']);
         } catch (\MongoConnectionException $ex) {
-            if ('RETRY' != $type) {
+            if ('RETRY' !== $type) {
                 return $this->reconnect();
             }
             $this->_client = null;

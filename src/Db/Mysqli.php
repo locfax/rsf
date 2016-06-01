@@ -57,7 +57,7 @@ class Mysqli {
         if ($query) {
             return $query;
         }
-        if (in_array($this->errno(), [2006, 2013]) && 'RETRY' != substr($type, 0, 5)) { //2006, 2013 db无应答
+        if (in_array($this->errno(), [2006, 2013]) && 'RETRY' !== substr($type, 0, 5)) { //2006, 2013 db无应答
             $this->reconnect();
             return $this->query($sql, 'RETRY' . $type);
         }

@@ -21,7 +21,7 @@ class Postgre {
             $this->_link = pg_connect('host=' . $config['host'] . ' port=' . $config['port'] . ' user=' . $config['login'] . ' password=' . $config['password'] . ' dbname=' . $config['database']);
             pg_set_client_encoding($this->_link, $config['charset']);
         } catch (\ErrorException $e) {
-            if ('RETRY' != $type) {
+            if ('RETRY' !== $type) {
                 return $this->reconnect();
             }
             $this->_link = null;
