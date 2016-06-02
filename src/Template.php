@@ -57,7 +57,7 @@ class Template {
         $template = str_replace("{LF}", PHP_EOL, $template);
 
         $template = preg_replace("/\{(\\\$[a-zA-Z0-9_\-\>\[\]\'\"\$\.\x7f-\xff]+)\}/s", "<?=\\1?>", $template);
-        $template = preg_replace_callback("/$var_regexp/s", [$this, 'addquote'], $template);
+        //$template = preg_replace_callback("/$var_regexp/s", [$this, 'addquote'], $template);
         $template = preg_replace_callback("/\<\?\=\<\?\=$var_regexp\?\>\?\>/s", [$this, 'addquote'], $template);
 
         $headeradd = '';
