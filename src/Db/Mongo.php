@@ -46,6 +46,7 @@ class Mongo {
             }
             $this->_link->connect();
             $this->_client = $this->_link->selectDB($config['database']);
+            return true;
         } catch (\MongoConnectionException $ex) {
             if ('RETRY' !== $type) {
                 return $this->reconnect();
@@ -53,7 +54,6 @@ class Mongo {
             $this->_client = null;
             return $this->_halt($ex->getMessage(), $ex->getCode());
         }
-        return true;
     }
 
     public function close() {
@@ -255,25 +255,25 @@ class Mongo {
 	/**
      * @param $table
      * @param array $fields
-     * @param array $query
+     * @param array $conditon
      * @param bool $yield
      * @param string $type
      * @return array|bool|\Generator
      * @throws Exception\DbException
      */
-    public function findAll($table, $fields = [], $query = [], $yield = false, $type = '') {
+    public function findAll($table, $fields = [], $conditon = [], $yield = false, $type = '') {
         if (!$this->_client) {
             return $this->_halt('client is not connected!');
         }
         try {
             $collection = $this->_client->selectCollection($this->qtable($table));
-            if (isset($query['query'])) {
-                $cursor = $collection->find($query['query'], $fields);
-                if (isset($query['sort'])) {
-                    $cursor = $cursor->sort($query['sort']);
+            if (isset($conditon['query'])) {
+                $cursor = $collection->find($conditon['query'], $fields);
+                if (isset($conditon['sort'])) {
+                    $cursor = $cursor->sort($conditon['sort']);
                 }
             } else {
-                $cursor = $collection->find($query, $fields);
+                $cursor = $collection->find($conditon, $fields);
             }
             if ($yield) {
                 return $this->iterator($cursor);
@@ -283,15 +283,17 @@ class Mongo {
         } catch (\MongoException $ex) {
             if ('RETRY' !== $type) {
                 $this->reconnect();
-                return $this->findAll($table, $fields, $query, $yield, 'RETRY');
+                return $this->findAll($table, $fields, $conditon, $yield, 'RETRY');
             }
             return $this->_halt($ex->getMessage(), $ex->getCode());
         }
     }
 
+
 	/**
      * @param $table
-     * @param array $query
+     * @param array $fileds
+     * @param array $conditon
      * @param int $offset
      * @param int $length
      * @param bool $yield
@@ -299,16 +301,16 @@ class Mongo {
      * @return bool
      * @throws Exception\DbException
      */
-    public function page($table, $query = [], $offset = 0, $length = 18, $yield = false, $type = '') {
+    public function page($table, $fileds=[], $conditon = [], $offset = 0, $length = 18, $yield = false, $type = '') {
         if (!$this->_client) {
             return $this->_halt('client is not connected!');
         }
         try {
             $collection = $this->_client->selectCollection($this->qtable($table));
-            if ('fields' == $query['type']) {
-                $cursor = $collection->find($query['query'], $query['fields']);
-                if (isset($query['sort'])) {
-                    $cursor = $cursor->sort($query['sort']);
+            if ('fields' == $conditon['type']) {
+                $cursor = $collection->find($conditon['query'], $fileds);
+                if (isset($conditon['sort'])) {
+                    $cursor = $cursor->sort($conditon['sort']);
                 }
                 $cursor = $cursor->limit($length)->skip($offset);
                 if ($yield) {
@@ -318,16 +320,16 @@ class Mongo {
                 }
             } else {
                 //内镶文档查询
-                if (!$query['field']) {
+                if (!$fileds) {
                     throw new Exception\DbException('fields is empty', 0);
                 }
-                $cursor = $collection->findOne($query['query'], [$query['field'] => ['$slice' => [$offset, $length]]]);
-                return $cursor[$query['field']];
+                $cursor = $collection->findOne($conditon['query'], [$fileds => ['$slice' => [$offset, $length]]]);
+                return $cursor[$fileds];
             }
         } catch (\MongoException $ex) {
             if ('RETRY' !== $type) {
                 $this->reconnect();
-                return $this->page($table, $query, $offset, $length, $yield, 'RETRY');
+                return $this->page($table, $fileds, $conditon, $offset, $length, $yield, 'RETRY');
             }
             return $this->_halt($ex->getMessage(), $ex->getCode());
         }
@@ -385,34 +387,8 @@ class Mongo {
         }
     }
 
-	/**
-     * @param $table
-     * @param string $type
-     * @return bool
-     * @throws Exception\DbException
-     */
-    public function drop($table, $type = '') {
-        if (!$this->_client) {
-            return $this->_halt('client is not connected!');
-        }
-        try {
-            $collection = $this->_client->selectCollection($this->qtable($table));
-            return $collection->drop();
-        } catch (\MongoException $ex) {
-            if ('RETRY' !== $type) {
-                $this->reconnect();
-                return $this->drop($table, 'RETRY');
-            }
-            return $this->_halt($ex->getMessage(), $ex->getCode());
-        }
-    }
-
-
     public function version() {
-        if (class_exists('MongoClient')) {
-            return \MongoClient::VERSION;
-        }
-        return '';
+        return 'mongo null';
     }
 
 	/**

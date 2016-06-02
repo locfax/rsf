@@ -40,6 +40,7 @@ class Pdox {
 				\PDO::ATTR_PERSISTENT => false
 			);
 			$this->_link = new \PDO("mysql:host={$config['host']};port={$config['port']};dbname={$config['database']};charset={$config['charset']}", $config['login'], $config['password'], $opt);
+			return true;
 		} catch (\PDOException $e) {
 			if ('RETRY' !== $type) {
 				return $this->reconnect();
@@ -47,7 +48,6 @@ class Pdox {
 			$this->_link = null;
 			return $this->_halt($e->getMessage(), $e->getCode());
 		}
-		return true;
 	}
 
 	/**
@@ -353,7 +353,7 @@ class Pdox {
 	}
 
 	public function version() {
-		return 'NULL';
+		return 'pdo null';
 	}
 
 	public function start_trans() {
