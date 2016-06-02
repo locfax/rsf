@@ -14,6 +14,21 @@ class Mongo {
         $this->close();
     }
 
+    /**
+     * @param $func
+     * @param $args
+     * @return mixed
+     */
+    public function __call($func, $args) {
+        return call_user_func_array(array($this->_client, $func), $args);
+    }
+
+	/**
+     * @param $config
+     * @param string $type
+     * @return bool
+     * @throws Exception\DbException
+     */
     public function connect($config, $type = '') {
         if (is_null($this->_config)) {
             $this->_config = $config;
@@ -47,14 +62,29 @@ class Mongo {
         }
     }
 
+	/**
+     * @return bool
+     */
     public function reconnect() {
         return $this->connect($this->_config, 'RETRY');
     }
 
+	/**
+     * @param $tableName
+     * @return string
+     */
     public function qtable($tableName) {
         return $this->_config['prefix'] . $tableName;
     }
 
+	/**
+     * @param $table
+     * @param array $document
+     * @param bool $retid
+     * @param string $type
+     * @return bool|string
+     * @throws Exception\DbException
+     */
     public function create($table, $document = [], $retid = false, $type = '') {
         if (!$this->_client) {
             return $this->_halt('client is not connected!');
@@ -83,6 +113,13 @@ class Mongo {
         }
     }
 
+	/**
+     * @param $table
+     * @param array $document
+     * @param string $type
+     * @return bool
+     * @throws Exception\DbException
+     */
     public function replace($table, $document = [], $type = '') {
         if (!$this->_client) {
             return $this->_halt('client is not connected!');
@@ -103,6 +140,15 @@ class Mongo {
         }
     }
 
+	/**
+     * @param $table
+     * @param array $document
+     * @param array $condition
+     * @param string $options
+     * @param string $type
+     * @return bool
+     * @throws Exception\DbException
+     */
     public function update($table, $document = [], $condition = [], $options = 'set', $type = '') {
         if (!$this->_client) {
             return $this->_halt('client is not connected!');
@@ -143,6 +189,14 @@ class Mongo {
         }
     }
 
+	/**
+     * @param $table
+     * @param array $condition
+     * @param bool $muti
+     * @param string $type
+     * @return bool
+     * @throws Exception\DbException
+     */
     public function remove($table, $condition = [], $muti = false, $type = '') {
         if (!$this->_client) {
             return $this->_halt('client is not connected!');
@@ -167,6 +221,14 @@ class Mongo {
         }
     }
 
+	/**
+     * @param $table
+     * @param array $fields
+     * @param array $condition
+     * @param string $type
+     * @return bool
+     * @throws Exception\DbException
+     */
     public function findOne($table, $fields = [], $condition = [], $type = '') {
         if (!$this->_client) {
             return $this->_halt('client is not connected!');
@@ -190,6 +252,15 @@ class Mongo {
         }
     }
 
+	/**
+     * @param $table
+     * @param array $fields
+     * @param array $query
+     * @param bool $yield
+     * @param string $type
+     * @return array|bool|\Generator
+     * @throws Exception\DbException
+     */
     public function findAll($table, $fields = [], $query = [], $yield = false, $type = '') {
         if (!$this->_client) {
             return $this->_halt('client is not connected!');
@@ -218,6 +289,16 @@ class Mongo {
         }
     }
 
+	/**
+     * @param $table
+     * @param array $query
+     * @param int $offset
+     * @param int $length
+     * @param bool $yield
+     * @param string $type
+     * @return bool
+     * @throws Exception\DbException
+     */
     public function page($table, $query = [], $offset = 0, $length = 18, $yield = false, $type = '') {
         if (!$this->_client) {
             return $this->_halt('client is not connected!');
@@ -252,6 +333,10 @@ class Mongo {
         }
     }
 
+	/**
+     * @param $cursor
+     * @return \Generator
+     */
     private function iterator($cursor) {
         while ($cursor->hasNext()) {
             $row = $cursor->getNext();
@@ -260,6 +345,10 @@ class Mongo {
         }
     }
 
+	/**
+     * @param $cursor
+     * @return array
+     */
     private function getrows($cursor) {
         $rowsets = [];
         while ($cursor->hasNext()) {
@@ -270,6 +359,13 @@ class Mongo {
         return $rowsets;
     }
 
+	/**
+     * @param $table
+     * @param array $condition
+     * @param string $type
+     * @return bool
+     * @throws Exception\DbException
+     */
     public function count($table, $condition = [], $type = '') {
         if (!$this->_client) {
             return $this->_halt('client is not connected!');
@@ -289,6 +385,12 @@ class Mongo {
         }
     }
 
+	/**
+     * @param $table
+     * @param string $type
+     * @return bool
+     * @throws Exception\DbException
+     */
     public function drop($table, $type = '') {
         if (!$this->_client) {
             return $this->_halt('client is not connected!');
@@ -305,16 +407,6 @@ class Mongo {
         }
     }
 
-    public function client() {
-        return $this->_client;
-    }
-
-    public function error() {
-        if (method_exists($this->_client, "lastError")) {
-            return $this->_client->lastError();
-        }
-        return '';
-    }
 
     public function version() {
         if (class_exists('MongoClient')) {
@@ -323,6 +415,12 @@ class Mongo {
         return '';
     }
 
+	/**
+     * @param string $message
+     * @param int $code
+     * @return bool
+     * @throws Exception\DbException
+     */
     private function _halt($message = '', $code = 0) {
         if ($this->_config['rundev']) {
             $this->close();

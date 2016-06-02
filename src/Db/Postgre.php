@@ -13,6 +13,15 @@ class Postgre {
         $this->close();
     }
 
+    /**
+     * @param $func
+     * @param $args
+     * @return mixed
+     */
+    public function __call($func, $args) {
+        return call_user_func_array(array($this->_link, $func), $args);
+    }
+
     public function connect($config, $type = '') {
         if (is_null($this->_config)) {
             $this->_config = $config;

@@ -114,7 +114,11 @@ class Pdox {
 	public function field_value(array $fields, $glue = ',') {
 		$addsql = $comma = '';
 		foreach ($fields as $field => $value) {
-			$addsql .= $comma . $this->qfield($field) . '=' . $value;
+			if (strpos($value, '+')) {
+				$addsql .= $comma . $this->qfield($field) . '=' . $value;
+			} else {
+				$addsql .= $comma . $this->qfield($field) . "='" . $value . "'";
+			}
 			$comma = $glue;
 		}
 		return $addsql;
@@ -152,6 +156,12 @@ class Pdox {
 		}
 	}
 
+	/**
+	 * @param $tableName
+	 * @param array $data
+	 * @return bool
+	 * @throws Exception\DbException
+	 */
 	public function replace($tableName, array $data) {
 		if (empty($data)) {
 			return false;
@@ -173,35 +183,36 @@ class Pdox {
 		}
 	}
 
+
 	/**
 	 * @param $tableName
-	 * @param array $data
+	 * @param $data
 	 * @param $condition
 	 * @param bool $retnum
 	 * @return bool
 	 * @throws Exception\DbException
 	 */
-	public function update($tableName, array $data, $condition, $retnum = false) {
+	public function update($tableName, $data, $condition, $retnum = false) {
 		if (empty($data)) {
 			return false;
 		}
-		if (empty($condition)) {
-			return false;
-		}
-		list($data, $argsf) = $this->field_param($data, ',');
-		if (is_array($condition)) {
-			list($condition, $argsw) = $this->field_param($condition, ' AND ');
-		} else {
-			$argsw = [];
-		}
-		$args = array_merge($argsf, $argsw);
 		try {
-			$sth = $this->_link->prepare("UPDATE " . $this->qtable($tableName) . " SET $data WHERE $condition");
-			$ret = $sth->execute($args);
-			if ($ret && $retnum) {
-				return $sth->rowCount();
+			if (is_array($condition)) {
+				list($data, $argsf) = $this->field_param($data, ',');
+				list($condition, $argsw) = $this->field_param($condition, ' AND ');
+				$args = array_merge($argsf, $argsw);
+				$sth = $this->_link->prepare("UPDATE " . $this->qtable($tableName) . " SET $data WHERE $condition");
+				$ret = $sth->execute($args);
+				if ($ret && $retnum) {
+					return $sth->rowCount();
+				}
+				return $ret;
+			} else {
+				if (is_array($data)) {
+					$data = $this->field_value($data, ',');
+				}
+				return $this->_link->exec("UPDATE " . $this->qtable($tableName) . " SET $data WHERE $condition");
 			}
-			return $ret;
 		} catch (\PDOException $e) {
 			$this->_halt($e->getMessage(), $e->getCode());
 			return false;
@@ -234,12 +245,12 @@ class Pdox {
 
 	/**
 	 * @param $tableName
-	 * @param string $field
+	 * @param $field
 	 * @param $condition
 	 * @return bool
 	 * @throws Exception\DbException
 	 */
-	public function findOne($tableName, $field = '*', $condition) {
+	public function findOne($tableName, $field, $condition) {
 		try {
 			if (is_array($condition)) {
 				list($condition, $args) = $this->field_param($condition, ' AND ');
@@ -255,15 +266,16 @@ class Pdox {
 		}
 	}
 
+
 	/**
 	 * @param $tableName
-	 * @param string $field
+	 * @param $field
 	 * @param $condition
 	 * @param bool $yield
 	 * @return bool
 	 * @throws Exception\DbException
 	 */
-	public function findAll($tableName, $field = '*', $condition, $yield = false) {
+	public function findAll($tableName, $field, $condition, $yield = false) {
 		try {
 			if (is_array($condition)) {
 				list($condition, $args) = $this->field_param($condition, ' AND ');
@@ -279,9 +291,10 @@ class Pdox {
 		}
 	}
 
+
 	/**
 	 * @param $tableName
-	 * @param string $field
+	 * @param $field
 	 * @param $condition
 	 * @param int $offset
 	 * @param int $length
@@ -289,7 +302,7 @@ class Pdox {
 	 * @return bool
 	 * @throws Exception\DbException
 	 */
-	public function page($tableName, $field = '*', $condition, $offset = 0, $length = 20, $yield = false) {
+	public function page($tableName, $field, $condition, $offset = 0, $length = 20, $yield = false) {
 		try {
 			if (is_array($condition)) {
 				list($condition, $args) = $this->field_param($condition, ' AND ');
@@ -314,15 +327,19 @@ class Pdox {
 	 * @return bool
 	 */
 	public function result_first($tableName, $field, $condition) {
-		if (is_array($condition)) {
-			list($condition, $args) = $this->field_value(field_param, ' AND ');
-		}
-		$sth = $this->_link->prepare("SELECT {$field} AS result FROM " . $this->qtable($tableName) . " WHERE  {$condition} LIMIT 0,1");
-		$ret = $sth->execute($args);
-		if ($ret) {
+		try {
+			if (is_array($condition)) {
+				list($condition, $args) = $this->field_param(field_param, ' AND ');
+				$sth = $this->_link->prepare("SELECT {$field} AS result FROM " . $this->qtable($tableName) . " WHERE  {$condition} LIMIT 0,1");
+				$sth->execute($args);
+			} else {
+				$sth = $this->_link->query("SELECT {$field} AS result FROM " . $this->qtable($tableName) . " WHERE  {$condition} LIMIT 0,1");
+			}
 			return $sth->fetchColumn();
+		} catch (\PDOException $e) {
+			$this->_halt($e->getMessage(), $e->getCode());
+			return false;
 		}
-		return $ret;
 	}
 
 	/**
@@ -331,7 +348,7 @@ class Pdox {
 	 * @param string $field
 	 * @return bool
 	 */
-	public function count($tableName, $condition = '', $field = '*') {
+	public function count($tableName, $condition, $field = '*') {
 		return $this->result_first($tableName, "COUNT({$field})", $condition);
 	}
 
@@ -343,6 +360,9 @@ class Pdox {
 		$this->_link->beginTransaction();
 	}
 
+	/**
+	 * @param bool $commit_no_errors
+	 */
 	public function end_trans($commit_no_errors = true) {
 		if ($commit_no_errors) {
 			$this->_link->commit();
@@ -351,10 +371,16 @@ class Pdox {
 		}
 	}
 
+	/**
+	 * @param string $message
+	 * @param int $code
+	 * @return bool
+	 * @throws Exception\DbException
+	 */
 	private function _halt($message = '', $code = 0) {
 		if ($this->_config['rundev']) {
 			$this->close();
-			throw new \Rsf\Exception\DbException($message, $code);
+			throw new Exception\DbException($message, $code);
 		}
 		return false;
 	}
