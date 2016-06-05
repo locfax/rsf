@@ -67,7 +67,7 @@ class Locker {
                 $ret = $db->replace('common_process', ['processid' => $name, 'expiry' => time() + $ttl]);
                 break;
             case 'get':
-                $ret = $db->findOne('common_process', "SELECT * FROM %s WHERE processid='$name'");
+                $ret = $db->findOne('common_process', '*', ['processid' => $name]);
                 if (empty($ret) || $ret['expiry'] < time()) {
                     $ret = false;
                 } else {

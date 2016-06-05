@@ -23,7 +23,7 @@ class Mongo {
         return call_user_func_array(array($this->_client, $func), $args);
     }
 
-	/**
+    /**
      * @param $config
      * @param string $type
      * @return bool
@@ -62,14 +62,14 @@ class Mongo {
         }
     }
 
-	/**
+    /**
      * @return bool
      */
     public function reconnect() {
         return $this->connect($this->_config, 'RETRY');
     }
 
-	/**
+    /**
      * @param $tableName
      * @return string
      */
@@ -77,7 +77,7 @@ class Mongo {
         return $this->_config['prefix'] . $tableName;
     }
 
-	/**
+    /**
      * @param $table
      * @param array $document
      * @param bool $retid
@@ -113,7 +113,7 @@ class Mongo {
         }
     }
 
-	/**
+    /**
      * @param $table
      * @param array $document
      * @param string $type
@@ -140,7 +140,7 @@ class Mongo {
         }
     }
 
-	/**
+    /**
      * @param $table
      * @param array $document
      * @param array $condition
@@ -189,7 +189,7 @@ class Mongo {
         }
     }
 
-	/**
+    /**
      * @param $table
      * @param array $condition
      * @param bool $muti
@@ -221,7 +221,7 @@ class Mongo {
         }
     }
 
-	/**
+    /**
      * @param $table
      * @param array $fields
      * @param array $condition
@@ -252,7 +252,7 @@ class Mongo {
         }
     }
 
-	/**
+    /**
      * @param $table
      * @param array $fields
      * @param array $conditon
@@ -290,7 +290,7 @@ class Mongo {
     }
 
 
-	/**
+    /**
      * @param $table
      * @param array $fileds
      * @param array $conditon
@@ -301,7 +301,7 @@ class Mongo {
      * @return bool
      * @throws Exception\DbException
      */
-    public function page($table, $fileds=[], $conditon = [], $offset = 0, $length = 18, $yield = false, $type = '') {
+    public function page($table, $fileds = [], $conditon = [], $offset = 0, $length = 18, $yield = false, $type = '') {
         if (!$this->_client) {
             return $this->_halt('client is not connected!');
         }
@@ -335,7 +335,7 @@ class Mongo {
         }
     }
 
-	/**
+    /**
      * @param $cursor
      * @return \Generator
      */
@@ -347,7 +347,7 @@ class Mongo {
         }
     }
 
-	/**
+    /**
      * @param $cursor
      * @return array
      */
@@ -361,7 +361,7 @@ class Mongo {
         return $rowsets;
     }
 
-	/**
+    /**
      * @param $table
      * @param array $condition
      * @param string $type
@@ -391,7 +391,7 @@ class Mongo {
         return 'mongo null';
     }
 
-	/**
+    /**
      * @param string $message
      * @param int $code
      * @return bool
