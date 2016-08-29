@@ -32,7 +32,7 @@ class Rbac {
             }
         }
         // get user rolearray
-        $roles = Context::getRolesArray();
+        $roles = User::getRolesArray();
         // 1, check user's role whether allow to call controller
         if (!self::_check($roles, $ACT)) {
             return false;

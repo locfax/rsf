@@ -63,7 +63,7 @@ class Context {
      * @param $code
      * @param $data
      */
-    public static function log($code, $data) {
+    public static function dblog($code, $data) {
         $post = [
             'dateline' => time(),
             'logcode' => $code,

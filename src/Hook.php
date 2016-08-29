@@ -11,7 +11,7 @@ class Hook {
      * @return bool|string
      */
     private static function _filePath($fileName, $absPath = BASE, $ext = 'php') {
-        return $absPath .'/'. $fileName . '.' . $ext;
+        return $absPath . '/' . $fileName . '.' . $ext;
     }
 
     /**
@@ -36,7 +36,7 @@ class Hook {
         if (isset($is_loaded[$filemd5]) && $loadOnce) {
             return true;
         }
-        if(!is_file($file)){
+        if (!is_file($file)) {
             return false;
         }
         $is_loaded[$filemd5] = true;
@@ -131,38 +131,9 @@ class Hook {
     public static function plugin($classPath, $isClass = false) {
 
         if ($isClass) {
-            return self::loadClass('Plugin/' . $classPath , "\\Plugin\\" . self::_className($classPath), PSROOT);
+            return self::loadClass('Plugin/' . $classPath, "\\Plugin\\" . self::_className($classPath), PSROOT);
         }
         return self::loadFile('Plugin/' . $classPath, true, PSROOT);
-    }
-
-    /**
-     * @param $classPath 区分大小写
-     * @param null $className 区分大小写
-     * @param mixed $classParam
-     * @param string $ext
-     * @return mixed
-     */
-    public static function getVendor($classPath, $className = null, $classParam = null, $ext = 'php') {
-        if (is_null($className)) {
-            //无指定类名 使用标准类名
-            $className = '\\vendor\\' . self::_className($classPath);
-        }
-        return self::getClass('vendor/' . $classPath, $className, $classParam, BASE, $ext);
-    }
-
-    /**
-     * @param $classPath 区分大小写
-     * @param null $className 区分大小写
-     * @param string $ext
-     * @return bool|mixed|null
-     */
-    public static function vendor($classPath, $className = null, $ext = 'php') {
-        if (!is_null($className)) {
-            //指定了类名 使用类名加载
-            return self::loadClass('vendor/' . $classPath, $className, BASE, $ext);
-        }
-        return self::loadFile('vendor/' . $classPath, true, BASE, $ext);
     }
 
 }
