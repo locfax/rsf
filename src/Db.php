@@ -15,14 +15,14 @@ class Db {
      */
     public static function dbo($dsnid = 'portal') {
         $_dsn = \Context::dsn($dsnid);
-        $dsnkey = $_dsn['driver'] . '_' . $_dsn['host'] . '_' . $_dsn['login'] . '_' . $_dsn['port'] . '_' . $_dsn['database']; //连接池key
+        $dsnkey = md5($_dsn['driver'] . '_' . $_dsn['dsn']); //连接池key
         if (isset(self::$used_dbo[$dsnkey])) {
             $dbo = self::$used_dbo[$dsnkey];
-            $dbo->connect($_dsn, $dsnkey);
+            $dbo->connect($_dsn);
         } else {
             $classname = '\\db\\' . ucfirst($_dsn['driver']);
             $dbo = new $classname;
-            $dbo->connect($_dsn, $dsnkey);
+            $dbo->connect($_dsn);
             self::$used_dbo[$dsnkey] = $dbo;
         }
         return $dbo;

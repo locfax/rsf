@@ -36,11 +36,10 @@ class Pdox {
             $opt = array(
                 \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
                 \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
-                \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES ' . $config['charset'],
                 \PDO::ATTR_EMULATE_PREPARES => false,
                 \PDO::ATTR_PERSISTENT => false
             );
-            $this->_link = new \PDO("mysql:host={$config['host']};port={$config['port']};dbname={$config['database']};charset={$config['charset']}", $config['login'], $config['password'], $opt);
+            $this->_link = new \PDO($config['dsn'], $config['login'], $config['secret'], $opt);
             return true;
         } catch (\PDOException $e) {
             if ('RETRY' !== $type) {
@@ -78,17 +77,9 @@ class Pdox {
      * @return string
      */
     public function qtable($tableName, $alias = '') {
-        if (strpos($tableName, '.')) {
-            $parts = explode('.', $tableName);
-            $tableName = trim($parts[1]);
-            $schema = trim($parts[0]);
-        } else {
-            $tableName = $this->_config['prefix'] . trim($tableName);
-            $schema = $this->_config['database'];
-        }
+        $tableName = trim($tableName);
         $_alias = $alias ? " AS {$alias}" : '';
-        $ret = "`{$schema}`.`{$tableName}`" . $_alias;
-        return $ret;
+        return "`{$tableName}`" . $_alias;
     }
 
     /**
@@ -427,7 +418,8 @@ class Pdox {
     private function _halt($message = '', $code = 0) {
         if ($this->_config['rundev']) {
             $this->close();
-            throw new Exception\DbException($message, $code);
+            $message = iconv('gbk', 'utf-8', $message);
+            throw new Exception\DbException($message, intval($code));
         }
         return false;
     }

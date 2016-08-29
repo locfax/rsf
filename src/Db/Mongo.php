@@ -34,16 +34,7 @@ class Mongo {
             $this->_config = $config;
         }
         try {
-            if ($config['password']) {
-                $dsn = "mongodb://{$config['login']}:{$config['password']}@{$config['host']}:{$config['port']}/{$config['database']}";
-            } else {
-                $dsn = "mongodb://{$config['host']}:{$config['port']}/{$config['database']}";
-            }
-            if ($config['pconnect']) {
-                $this->_link = new \MongoClient($dsn, ["connect" => false], ['persist' => $config['host'] . '_' . $config['port'] . '_' . $config['database']]);
-            } else {
-                $this->_link = new \MongoClient($dsn, ["connect" => false]);
-            }
+            $this->_link = new \MongoClient($config['dsn'], ["connect" => false]);
             $this->_link->connect();
             $this->_client = $this->_link->selectDB($config['database']);
             return true;
@@ -74,7 +65,7 @@ class Mongo {
      * @return string
      */
     public function qtable($tableName) {
-        return $this->_config['prefix'] . $tableName;
+        return trim($tableName);
     }
 
     /**
@@ -400,7 +391,8 @@ class Mongo {
     private function _halt($message = '', $code = 0) {
         if ($this->_config['rundev']) {
             $this->close();
-            throw new Exception\DbException($message, $code);
+            $message = iconv('gbk', 'utf-8', $message);
+            throw new Exception\DbException($message, intval($code));
         }
         return true;
     }
