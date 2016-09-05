@@ -327,7 +327,7 @@ class Db {
     public static function query($table, $sql) {
         $db = self::Using(self::$using_dbo_id);
         if ($table) {
-            $sql = sprintf($sql, $db->qtable($table));
+            $sql = sprintf($sql, $table);
         }
         return $db->query($sql);
     }
@@ -349,40 +349,6 @@ class Db {
             }
         }
         return self::dbo(self::$using_dbo_id);
-    }
-
-    /**
-     * 过滤数据表
-     *
-     * @param string $table
-     * @param string $alias
-     * @return mixed
-     */
-    public static function qtable($table, $alias = '') {
-        $db = self::Using(self::$using_dbo_id);
-        return $db->qtable($table, $alias);
-    }
-
-    /**
-     * 过滤提交的数据
-     *
-     * @param mixed $var
-     * @return mixed
-     */
-    public static function qstr($var) {
-        $db = self::Using(self::$using_dbo_id);
-        return $db->qstr($var);
-    }
-
-    /**
-     * 过滤表字段
-     *
-     * @param mixed $var
-     * @return mixed
-     */
-    public static function qfield($var) {
-        $db = self::Using(self::$using_dbo_id);
-        return $db->qfield($var);
     }
 
     /**

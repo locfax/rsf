@@ -10,7 +10,7 @@ use \Rsf\Exception;
  *     use \Rsf\Traits\Context;
  *
  *     public function __construct() {
- *         $this->setContextHandler(\Rsf\Context::factory('cookie', $config));
+ *         $this->setContextHandler(\Rsf\Context::factory('redis', $config));
  *     }
  * }
  *

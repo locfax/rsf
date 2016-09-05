@@ -61,14 +61,6 @@ class Mongo {
     }
 
     /**
-     * @param $tableName
-     * @return string
-     */
-    public function qtable($tableName) {
-        return trim($tableName);
-    }
-
-    /**
      * @param $table
      * @param array $document
      * @param bool $retid
@@ -88,7 +80,7 @@ class Mongo {
             } else {
                 $document['_id'] = new \MongoId();
             }
-            $collection = $this->_client->selectCollection($this->qtable($table));
+            $collection = $this->_client->selectCollection($table);
             $ret = $collection->insert($document, ['w' => 1]);
             if ($retid && $ret) {
                 $insert_id = (string)$document['_id'];
@@ -119,7 +111,7 @@ class Mongo {
             if (isset($document['_id'])) {
                 $document['_id'] = new \MongoId($document['_id']);
             }
-            $collection = $this->_client->selectCollection($this->qtable($table));
+            $collection = $this->_client->selectCollection($table);
             $ret = $collection->save($document);
             return $ret['ok'];
         } catch (\MongoException $ex) {
@@ -148,7 +140,7 @@ class Mongo {
             if (isset($condition['_id'])) {
                 $condition['_id'] = new \MongoId($condition['_id']);
             }
-            $collection = $this->_client->selectCollection($this->qtable($table));
+            $collection = $this->_client->selectCollection($table);
             if (is_bool($options)) {
                 $options = 'set';
             }
@@ -196,7 +188,7 @@ class Mongo {
             if (isset($condition['_id'])) {
                 $condition['_id'] = new \MongoId($condition['_id']);
             }
-            $collection = $this->_client->selectCollection($this->qtable($table));
+            $collection = $this->_client->selectCollection($table);
             if ($muti) {
                 $ret = $collection->remove($condition);
             } else {
@@ -228,7 +220,7 @@ class Mongo {
             if (isset($condition['_id'])) {
                 $condition['_id'] = new \MongoId($condition['_id']);
             }
-            $collection = $this->_client->selectCollection($this->qtable($table));
+            $collection = $this->_client->selectCollection($table);
             $cursor = $collection->findOne($condition, $fields);
             if (isset($cursor['_id'])) {
                 $cursor['_id'] = $cursor['_id']->{'$id'};
@@ -257,7 +249,7 @@ class Mongo {
             return $this->_halt('client is not connected!');
         }
         try {
-            $collection = $this->_client->selectCollection($this->qtable($table));
+            $collection = $this->_client->selectCollection($table);
             if (isset($conditon['query'])) {
                 $cursor = $collection->find($conditon['query'], $fields);
                 if (isset($conditon['sort'])) {
@@ -297,7 +289,7 @@ class Mongo {
             return $this->_halt('client is not connected!');
         }
         try {
-            $collection = $this->_client->selectCollection($this->qtable($table));
+            $collection = $this->_client->selectCollection($table);
             if ('fields' == $conditon['type']) {
                 $cursor = $collection->find($conditon['query'], $fileds);
                 if (isset($conditon['sort'])) {
@@ -364,7 +356,7 @@ class Mongo {
             return $this->_halt('client is not connected!');
         }
         try {
-            $collection = $this->_client->selectCollection($this->qtable($table));
+            $collection = $this->_client->selectCollection($table);
             if (isset($condition['_id'])) {
                 $condition['_id'] = new \MongoId($condition['_id']);
             }
@@ -391,7 +383,7 @@ class Mongo {
     private function _halt($message = '', $code = 0) {
         if ($this->_config['rundev']) {
             $this->close();
-            $message = iconv('gbk', 'utf-8', $message);
+            $message = mb_convert_encoding($message, 'utf-8', 'gbk');
             throw new Exception\DbException($message, intval($code));
         }
         return true;

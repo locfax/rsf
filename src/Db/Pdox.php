@@ -419,7 +419,7 @@ class Pdox {
     private function _halt($message = '', $code = 0) {
         if ($this->_config['rundev']) {
             $this->close();
-            $message = iconv('gbk', 'utf-8', $message);
+            $message = mb_convert_encoding($message, 'utf-8', 'gbk');
             throw new Exception\DbException($message, intval($code));
         }
         return false;

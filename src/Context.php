@@ -4,6 +4,8 @@ namespace Rsf;
 
 class Context {
 
+    use Traits\Context;
+
     private static $_dsn = [];
 
     /**
@@ -63,7 +65,7 @@ class Context {
      * @param $code
      * @param $data
      */
-    public static function dblog($code, $data) {
+    public static function dblog($data, $code = 0) {
         $post = [
             'dateline' => time(),
             'logcode' => $code,
@@ -72,4 +74,22 @@ class Context {
         Db::dbo('general')->create('weixin_log', $post);
     }
 
+    /**
+     * @param $data
+     * @param string $code
+     */
+    public static function log($data, $code = 'debug') {
+        $logfile = DATA . 'log/run.log';
+        $log = new \Monolog\Logger('run');
+        $log->pushHandler(new \Monolog\Handler\StreamHandler($logfile, \Monolog\Logger::WARNING));
+        if ($code == 'info') {
+            $log->addInfo($data);
+        } elseif ($code == 'warn') {
+            $log->addWarning($data);
+        } elseif ($code == 'error') {
+            $log->addError($data);
+        } else {
+            $log->addDebug($data);
+        }
+    }
 }
