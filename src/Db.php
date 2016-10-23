@@ -14,7 +14,7 @@ class Db {
      * @throws Exception
      */
     public static function dbo($dsnid = 'portal') {
-        $_dsn = \Context::dsn($dsnid);
+        $_dsn = Context::dsn($dsnid);
         $dsnkey = md5($_dsn['driver'] . '_' . $_dsn['dsn']); //连接池key
         if (isset(self::$used_dbo[$dsnkey])) {
             $dbo = self::$used_dbo[$dsnkey];
@@ -22,6 +22,25 @@ class Db {
         } else {
             $classname = '\\db\\' . ucfirst($_dsn['driver']);
             $dbo = new $classname;
+            $dbo->connect($_dsn);
+            self::$used_dbo[$dsnkey] = $dbo;
+        }
+        return $dbo;
+    }
+
+    /**
+     * @param string $dsnid
+     * @return null
+     * @throws Exception
+     */
+    public static function dbm($dsnid = 'portal') {
+        $_dsn = Context::dsn($dsnid);
+        $dsnkey = md5($_dsn['driver'] . '_' . $_dsn['dsn']); //连接池key
+        if (isset(self::$used_dbo[$dsnkey])) {
+            $dbo = self::$used_dbo[$dsnkey];
+            $dbo->connect($_dsn);
+        } else {
+            $dbo = new Db\Pdox;
             $dbo->connect($_dsn);
             self::$used_dbo[$dsnkey] = $dbo;
         }
@@ -119,10 +138,9 @@ class Db {
      * @param $condition
      * @param int $length
      * @param int $pageparm
-     * @param bool $yield
      * @return array
      */
-    public static function page($table, $field, $condition, $pageparm = 0, $length = 18, $yield = true) {
+    public static function page($table, $field, $condition, $pageparm = 0, $length = 18) {
         $db = self::Using(self::$using_dbo_id);
         if (is_array($pageparm)) {
             //固定长度分页模式
@@ -134,7 +152,7 @@ class Db {
                 return $ret;
             }
             $start = self::page_start($pageparm['curpage'], $length, $pageparm['totals']);
-            $data = $db->page($table, $field, $condition, $start, $length, $yield);
+            $data = $db->page($table, $field, $condition, $start, $length);
             if (!isset($pageparm['type']) || 'pagebar' == $pageparm['type']) {
                 $defpageparm = [
                     'curpage' => 1,
@@ -169,7 +187,7 @@ class Db {
         } else {
             //任意长度模式
             $start = $pageparm;
-            $data = $db->page($table, $field, $condition, $start, $length, $yield);
+            $data = $db->page($table, $field, $condition, $start, $length);
             return $data;
         }
     }
@@ -194,12 +212,11 @@ class Db {
      * @param string $table
      * @param string $field
      * @param string $condition
-     * @param bool $yield
      * @return mixed
      */
-    public static function findAll($table, $field = '*', $condition = '1', $yield = false) {
+    public static function findAll($table, $field = '*', $condition = '1') {
         $db = self::Using(self::$using_dbo_id);
-        return $db->findAll($table, $field, $condition, $yield);
+        return $db->findAll($table, $field, $condition);
     }
 
     /**
@@ -320,16 +337,12 @@ class Db {
     /**
      * mysql query
      *
-     * @param string $table
      * @param string $sql
      * @return mixed
      */
-    public static function query($table, $sql) {
+    public static function exec($sql) {
         $db = self::Using(self::$using_dbo_id);
-        if ($table) {
-            $sql = sprintf($sql, $table);
-        }
-        return $db->query($sql);
+        return $db->exec($sql);
     }
 
     /**
@@ -347,6 +360,9 @@ class Db {
             if ($id != self::$using_dbo_id) {
                 self::$using_dbo_id = $id;
             }
+        }
+        if (self::$using_dbo_id === 'none') {
+            throw new Exception\DbException('dsn is none', 0);
         }
         return self::dbo(self::$using_dbo_id);
     }

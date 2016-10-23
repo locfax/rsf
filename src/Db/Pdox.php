@@ -26,7 +26,6 @@ class Pdox {
      * @param $config
      * @param string $type
      * @return bool
-     * @throws Exception\DbException
      */
     public function connect($config, $type = '') {
         if (is_null($this->_config)) {
@@ -73,17 +72,6 @@ class Pdox {
     }
 
     /**
-     * @param $tableName
-     * @param string $alias
-     * @return string
-     */
-    public function qtable($tableName, $alias = '') {
-        $tableName = trim($tableName);
-        $_alias = $alias ? " AS {$alias}" : '';
-        return "`{$tableName}`" . $_alias;
-    }
-
-    /**
      * @param array $fields
      * @param string $glue
      * @return array
@@ -93,7 +81,7 @@ class Pdox {
         $sql = $comma = '';
         foreach ($fields as $field => $value) {
             $sql .= $comma . $this->qfield($field) . '=:' . $field;
-            $args[':' . $field] = $value;
+            $args[':' . $field] = daddslashes($value);
             $comma = $glue;
         }
         return [$sql, $args];
@@ -107,10 +95,10 @@ class Pdox {
     public function field_value(array $fields, $glue = ',') {
         $addsql = $comma = '';
         foreach ($fields as $field => $value) {
-            if (strpos($value, '+')) {
+            if (strpos($value, '+') || strpos($value, '-')) {
                 $addsql .= $comma . $this->qfield($field) . '=' . $value;
             } else {
-                $addsql .= $comma . $this->qfield($field) . "='" . $value . "'";
+                $addsql .= $comma . $this->qfield($field) . "='" . daddslashes($value) . "'";
             }
             $comma = $glue;
         }
@@ -122,7 +110,6 @@ class Pdox {
      * @param array $data
      * @param bool $retid
      * @return bool
-     * @throws Exception\DbException
      */
     public function create($tableName, array $data, $retid = false) {
         if (empty($data)) {
@@ -133,11 +120,11 @@ class Pdox {
         foreach ($data as $field => $value) {
             $fields .= $comma . $this->qfield($field);
             $values .= $comma . ':' . $field;
-            $args[':' . $field] = $value;
+            $args[':' . $field] = daddslashes($value);
             $comma = ',';
         }
         try {
-            $sth = $this->_link->prepare('INSERT INTO ' . $this->qtable($tableName) . '(' . $fields . ') VALUES (' . $values . ')');
+            $sth = $this->_link->prepare('INSERT INTO ' . $tableName . '(' . $fields . ') VALUES (' . $values . ')');
             $ret = $sth->execute($args);
             if ($ret && $retid) {
                 return $this->_link->lastInsertId();
@@ -153,7 +140,6 @@ class Pdox {
      * @param $tableName
      * @param array $data
      * @return bool
-     * @throws Exception\DbException
      */
     public function replace($tableName, array $data) {
         if (empty($data)) {
@@ -164,11 +150,11 @@ class Pdox {
         foreach ($data as $field => $value) {
             $fields .= $comma . $this->qfield($field);
             $values .= $comma . ':' . $field;
-            $args[':' . $field] = $value;
+            $args[':' . $field] = daddslashes($value);
             $comma = ',';
         }
         try {
-            $sth = $this->_link->prepare('REPLACE INTO ' . $this->qtable($tableName) . '(' . $fields . ') VALUES (' . $values . ')');
+            $sth = $this->_link->prepare('REPLACE INTO ' . $tableName . '(' . $fields . ') VALUES (' . $values . ')');
             return $sth->execute($args);
         } catch (\PDOException $e) {
             $this->_halt($e->getMessage(), $e->getCode());
@@ -183,7 +169,6 @@ class Pdox {
      * @param $condition
      * @param bool $retnum
      * @return bool
-     * @throws Exception\DbException
      */
     public function update($tableName, $data, $condition, $retnum = false) {
         if (empty($data)) {
@@ -191,10 +176,13 @@ class Pdox {
         }
         try {
             if (is_array($condition)) {
+                if (!is_array($data)) {
+                    $this->_halt('$data参数必须为数组', 0);
+                }
                 list($data, $argsf) = $this->field_param($data, ',');
                 list($condition, $argsw) = $this->field_param($condition, ' AND ');
                 $args = array_merge($argsf, $argsw);
-                $sth = $this->_link->prepare("UPDATE " . $this->qtable($tableName) . " SET $data WHERE $condition");
+                $sth = $this->_link->prepare("UPDATE {$tableName} SET {$data} WHERE {$condition}");
                 $sth->execute($args);
                 if ($retnum) {
                     return $sth->rowCount();
@@ -204,7 +192,7 @@ class Pdox {
                 if (is_array($data)) {
                     $data = $this->field_value($data, ',');
                 }
-                return $this->_link->exec("UPDATE " . $this->qtable($tableName) . " SET $data WHERE $condition");
+                return $this->_link->exec("UPDATE {$tableName} SET {$data} WHERE {$condition}");
             }
         } catch (\PDOException $e) {
             $this->_halt($e->getMessage(), $e->getCode());
@@ -217,9 +205,8 @@ class Pdox {
      * @param $condition
      * @param bool $muti
      * @return bool
-     * @throws Exception\DbException
      */
-    public function remove($tableName, $condition, $muti = false) {
+    public function remove($tableName, $condition, $muti = true) {
         if (empty($condition)) {
             return false;
         }
@@ -228,7 +215,7 @@ class Pdox {
         }
         $limit = $muti ? '' : ' LIMIT 1';
         try {
-            return $this->_link->exec('DELETE FROM ' . $this->qtable($tableName) . ' WHERE ' . $condition . $limit);
+            return $this->_link->exec('DELETE FROM ' . $tableName . ' WHERE ' . $condition . $limit);
         } catch (\PDOException $e) {
             $this->_halt($e->getMessage(), $e->getCode());
             return false;
@@ -241,16 +228,15 @@ class Pdox {
      * @param $field
      * @param $condition
      * @return bool
-     * @throws Exception\DbException
      */
     public function findOne($tableName, $field, $condition) {
         try {
             if (is_array($condition)) {
                 list($condition, $args) = $this->field_param($condition, ' AND ');
-                $sth = $this->_link->prepare('SELECT ' . $field . ' FROM ' . $this->qtable($tableName) . ' WHERE ' . $condition . ' LIMIT 0,1');
+                $sth = $this->_link->prepare('SELECT ' . $field . ' FROM ' . $tableName . ' WHERE ' . $condition . ' LIMIT 0,1');
                 $sth->execute($args);
             } else {
-                $sth = $this->_link->query('SELECT ' . $field . ' FROM ' . $this->qtable($tableName) . ' WHERE ' . $condition . ' LIMIT 0,1');
+                $sth = $this->_link->query('SELECT ' . $field . ' FROM ' . $tableName . ' WHERE ' . $condition . ' LIMIT 0,1');
             }
             return $sth->fetch();
         } catch (\PDOException $e) {
@@ -264,18 +250,16 @@ class Pdox {
      * @param $tableName
      * @param $field
      * @param $condition
-     * @param bool $yield
      * @return bool
-     * @throws Exception\DbException
      */
-    public function findAll($tableName, $field = '*', $condition = '1', $yield = false) {
+    public function findAll($tableName, $field = '*', $condition = '1') {
         try {
             if (is_array($condition)) {
                 list($condition, $args) = $this->field_param($condition, ' AND ');
-                $sth = $this->_link->prepare('SELECT ' . $field . ' FROM ' . $this->qtable($tableName) . ' WHERE ' . $condition);
+                $sth = $this->_link->prepare('SELECT ' . $field . ' FROM ' . $tableName . ' WHERE ' . $condition);
                 $sth->execute($args);
             } else {
-                $sth = $this->_link->query('SELECT ' . $field . ' FROM ' . $this->qtable($tableName) . ' WHERE ' . $condition);
+                $sth = $this->_link->query('SELECT ' . $field . ' FROM ' . $tableName . ' WHERE ' . $condition);
             }
             return $sth->fetchAll();
         } catch (\PDOException $e) {
@@ -291,20 +275,18 @@ class Pdox {
      * @param $condition
      * @param int $offset
      * @param int $length
-     * @param bool $yield
      * @return bool
-     * @throws Exception\DbException
      */
-    public function page($tableName, $field, $condition, $offset = 0, $length = 20, $yield = false) {
+    public function page($tableName, $field, $condition, $offset = 0, $length = 20) {
         try {
             if (is_array($condition)) {
                 list($condition, $args) = $this->field_param($condition, ' AND ');
                 $args[':offset'] = $offset;
                 $args[':length'] = $length;
-                $sth = $this->_link->prepare('SELECT ' . $field . ' FROM ' . $this->qtable($tableName) . ' WHERE ' . $condition . ' LIMIT :offset, :length');
+                $sth = $this->_link->prepare('SELECT ' . $field . ' FROM ' . $tableName . ' WHERE ' . $condition . ' LIMIT :offset, :length');
                 $sth->execute($args);
             } else {
-                $sth = $this->_link->query('SELECT ' . $field . ' FROM ' . $this->qtable($tableName) . ' WHERE ' . $condition . " LIMIT {$offset},{$length}");
+                $sth = $this->_link->query('SELECT ' . $field . ' FROM ' . $tableName . ' WHERE ' . $condition . " LIMIT {$offset},{$length}");
             }
             return $sth->fetchAll();
         } catch (\PDOException $e) {
@@ -317,7 +299,6 @@ class Pdox {
     /**
      * @param $sql
      * @return bool
-     * @throws Exception\DbException
      */
     public function one($sql) {
         try {
@@ -332,7 +313,6 @@ class Pdox {
     /**
      * @param $sql
      * @return bool
-     * @throws Exception\DbException
      */
     public function all($sql) {
         try {
@@ -347,7 +327,6 @@ class Pdox {
     /**
      * @param $sql
      * @return bool
-     * @throws Exception\DbException
      */
     public function pages($sql) {
         try {
@@ -369,10 +348,10 @@ class Pdox {
         try {
             if (is_array($condition)) {
                 list($condition, $args) = $this->field_param(field_param, ' AND ');
-                $sth = $this->_link->prepare("SELECT {$field} AS result FROM " . $this->qtable($tableName) . " WHERE  {$condition} LIMIT 0,1");
+                $sth = $this->_link->prepare("SELECT {$field} AS result FROM {$tableName} WHERE {$condition} LIMIT 0,1");
                 $sth->execute($args);
             } else {
-                $sth = $this->_link->query("SELECT {$field} AS result FROM " . $this->qtable($tableName) . " WHERE  {$condition} LIMIT 0,1");
+                $sth = $this->_link->query("SELECT {$field} AS result FROM {$tableName} WHERE {$condition} LIMIT 0,1");
             }
             return $sth->fetchColumn();
         } catch (\PDOException $e) {

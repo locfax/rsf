@@ -61,7 +61,7 @@ class Locker {
 
     private static function dblock($cmd, $name, $ttl = 0) {
         $ret = '';
-        $db = \Rsf\Db::dbo(self::dsn);
+        $db = \Rsf\Db::dbm(self::dsn);
         switch ($cmd) {
             case 'set':
                 $ret = $db->replace('common_process', ['processid' => $name, 'expiry' => time() + $ttl]);

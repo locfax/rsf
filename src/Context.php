@@ -71,7 +71,7 @@ class Context {
             'logcode' => $code,
             'logmsg' => var_export($data, true)
         ];
-        Db::dbo('general')->create('weixin_log', $post);
+        Db::dbm('general')->create('weixin_log', $post);
     }
 
     /**

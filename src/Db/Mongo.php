@@ -223,7 +223,7 @@ class Mongo {
             $collection = $this->_client->selectCollection($table);
             $cursor = $collection->findOne($condition, $fields);
             if (isset($cursor['_id'])) {
-                $cursor['_id'] = $cursor['_id']->{'$id'};
+                $cursor['_id'] = $cursor['nid'] = $cursor['_id']->{'$id'};
             }
             return $cursor;
         } catch (\MongoException $ex) {
@@ -244,7 +244,7 @@ class Mongo {
      * @return array|bool|\Generator
      * @throws Exception\DbException
      */
-    public function findAll($table, $fields = [], $conditon = [], $yield = false, $type = '') {
+    public function findAll($table, $fields = [], $conditon = [], $type = '') {
         if (!$this->_client) {
             return $this->_halt('client is not connected!');
         }
@@ -258,15 +258,17 @@ class Mongo {
             } else {
                 $cursor = $collection->find($conditon, $fields);
             }
-            if ($yield) {
-                return $this->iterator($cursor);
-            } else {
-                return $this->getrows($cursor);
+            $rowsets = [];
+            while ($cursor->hasNext()) {
+                $row = $cursor->getNext();
+                $row['_id'] = $cursor['nid'] = $row['_id']->{'$id'};
+                $rowsets[] = $row;
             }
+            return $rowsets;
         } catch (\MongoException $ex) {
             if ('RETRY' !== $type) {
                 $this->reconnect();
-                return $this->findAll($table, $fields, $conditon, $yield, 'RETRY');
+                return $this->findAll($table, $fields, $conditon, 'RETRY');
             }
             return $this->_halt($ex->getMessage(), $ex->getCode());
         }
@@ -284,7 +286,7 @@ class Mongo {
      * @return bool
      * @throws Exception\DbException
      */
-    public function page($table, $fileds = [], $conditon = [], $offset = 0, $length = 18, $yield = false, $type = '') {
+    public function page($table, $fileds = [], $conditon = [], $offset = 0, $length = 18, $type = '') {
         if (!$this->_client) {
             return $this->_halt('client is not connected!');
         }
@@ -296,11 +298,13 @@ class Mongo {
                     $cursor = $cursor->sort($conditon['sort']);
                 }
                 $cursor = $cursor->limit($length)->skip($offset);
-                if ($yield) {
-                    return $this->iterator($cursor);
-                } else {
-                    return $this->getrows($cursor);
+                $rowsets = [];
+                while ($cursor->hasNext()) {
+                    $row = $cursor->getNext();
+                    $row['_id'] = $cursor['nid'] = $row['_id']->{'$id'};
+                    $rowsets[] = $row;
                 }
+                return $rowsets;
             } else {
                 //内镶文档查询
                 if (!$fileds) {
@@ -312,36 +316,10 @@ class Mongo {
         } catch (\MongoException $ex) {
             if ('RETRY' !== $type) {
                 $this->reconnect();
-                return $this->page($table, $fileds, $conditon, $offset, $length, $yield, 'RETRY');
+                return $this->page($table, $fileds, $conditon, $offset, $length, 'RETRY');
             }
             return $this->_halt($ex->getMessage(), $ex->getCode());
         }
-    }
-
-    /**
-     * @param $cursor
-     * @return \Generator
-     */
-    private function iterator($cursor) {
-        while ($cursor->hasNext()) {
-            $row = $cursor->getNext();
-            $row['_id'] = $row['_id']->{'$id'};
-            yield $row;
-        }
-    }
-
-    /**
-     * @param $cursor
-     * @return array
-     */
-    private function getrows($cursor) {
-        $rowsets = [];
-        while ($cursor->hasNext()) {
-            $row = $cursor->getNext();
-            $row['_id'] = $row['_id']->{'$id'};
-            $rowsets[] = $row;
-        }
-        return $rowsets;
     }
 
     /**
