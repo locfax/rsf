@@ -180,7 +180,7 @@ class Template {
     }
 
     private function script_tags($parameter) {
-        $tplfile = template($parameter[1], '', true);
+        $tplfile = template($parameter[1], true);
         $content = implode('', file($this->tpldir . $tplfile));
         return $content;
     }
@@ -225,7 +225,7 @@ class Template {
     }
 
     private function tag_subtemplate($file) {
-        $tplfile = template($file[2], '', true);
+        $tplfile = template($file[2], true);
         $content = implode('', file($this->tpldir . $tplfile));
         if ($content) {
             $this->subtemplates[] = $tplfile;

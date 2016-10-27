@@ -75,18 +75,16 @@ function cache($cmd, $key = '', $val = '', $ttl = 0) {
  * @param $file
  */
 function checktplrefresh($maintpl, $subtpl, $cachetime, $cachefile, $file) {
-    static $tplrefresh = null;
-    if (null == $tplrefresh) {
-        $tplrefresh = getini('data/tplrefresh') > 1 ? getini('data/tplrefresh') : 1;
-    }
-    if ($tplrefresh > 0 || !$cachetime) {
-        $tpldir = getini('data/tpldir');
+    $tpldir = getini('data/tpldir');
+    if (is_file($tpldir . $subtpl)) {
         $tpltime = filemtime($tpldir . $subtpl);
-        if ($tpltime < intval($cachetime)) {
-            return;
-        }
-        \Rsf\Template::getInstance()->parse(getini('data/_view'), $tpldir, $maintpl, $cachefile, $file);
+    } else {
+        $tpltime = 0;
     }
+    if ($tpltime < intval($cachetime)) {
+        return;
+    }
+    \Rsf\Template::getInstance()->parse(getini('data/_view'), $tpldir, $maintpl, $cachefile, $file);
 }
 
 /**
