@@ -13,7 +13,8 @@
   ],
   "require": {
     "php": ">=5.5.0",
-    "psr/http-message": "^1.0"
+    "psr/http-message": "^1.0",
+    "monolog/monolog": "^1.17"
   },
   "suggest": {
     "monolog/monolog": "Allows more advanced logging of the application flow"
