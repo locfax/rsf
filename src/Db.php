@@ -212,11 +212,12 @@ class Db {
      * @param string $table
      * @param string $field
      * @param string $condition
+     * @param string $index
      * @return mixed
      */
-    public static function findAll($table, $field = '*', $condition = '1') {
+    public static function findAll($table, $field = '*', $condition = '1', $index = null) {
         $db = self::Using(self::$using_dbo_id);
-        return $db->findAll($table, $field, $condition);
+        return $db->findAll($table, $field, $condition, $index);
     }
 
     /**
@@ -316,33 +317,23 @@ class Db {
 
     /**
      * @param $query
+     * @param $args
      * @return mixed
      */
-    public static function one($query) {
+    public static function row($query , $args = null) {
         $db = self::Using(self::$using_dbo_id);
-        return $db->one($query);
+        return $db->row($query, $args);
     }
 
     /**
      * @param $query
+     * @param $args
+     * @param $index
      * @return mixed
      */
-    public static function all($query) {
+    public static function rowset($query, $args = null, $index = null) {
         $db = self::Using(self::$using_dbo_id);
-        return $db->all($query);
-    }
-
-    //--------------多表联合查询--------end----------//
-
-    /**
-     * mysql query
-     *
-     * @param string $sql
-     * @return mixed
-     */
-    public static function exec($sql) {
-        $db = self::Using(self::$using_dbo_id);
-        return $db->exec($sql);
+        return $db->rowset($query, $args, $index);
     }
 
     /**

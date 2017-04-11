@@ -24,18 +24,18 @@ function getini($key) {
  * 有模型的缓存  model/data/*.php
  * @param $cachekey
  * @param bool $reset
- * @return bool|mixed|void
+ * @return bool|mixed|string
  */
-function datacache($cachekey, $reset = false) {
+function modealdata($cachekey, $reset = false) {
     if (!$cachekey) {
         return false;
     }
     if (!$reset) {
-        $data = cache('get', $cachekey);
+        $data = \Rsf\Context::cache('get', $cachekey);
         if (is_null($data)) {
             $dataclass = '\\Model\\Data\\' . ucfirst($cachekey);
             $data = $dataclass::getInstance()->getdata();
-            cache('set', $cachekey, output_json($data));
+            \Rsf\Context::cache('set', $cachekey, output_json($data));
         } else {
             $data = json_decode($data, true);
         }
@@ -43,28 +43,8 @@ function datacache($cachekey, $reset = false) {
     } else {//重置缓存
         $dataclass = '\\Model\\Data\\' . ucfirst($cachekey);
         $data = $dataclass::getInstance()->getdata();
-        return cache('set', $cachekey, output_json($data));
+        return \Rsf\Context::cache('set', $cachekey, output_json($data));
     }
-}
-
-//普通级别缓存
-function cache($cmd, $key = '', $val = '', $ttl = 0) {
-    if (in_array($cmd, ['set', 'get', 'rm', 'clear', 'close'])) {
-        $cacher = \Rsf\Cacher::getInstance();
-        switch ($cmd) {
-            case 'get':
-                return $cacher->get($key);
-            case 'set':
-                return $cacher->set($key, $val, $ttl);
-            case 'rm':
-                return $cacher->rm($key);
-            case 'clear':
-                return $cacher->clear();
-            case 'close':
-                return $cacher->close();
-        }
-    }
-    return false;
 }
 
 /**
@@ -130,4 +110,17 @@ function topassword($pass, $salt, $md5 = false) {
     } else {
         return md5(md5($pass) . $salt);
     }
+}
+
+/**
+ * @param $code
+ * @param $data
+ */
+function dblog($data, $code = 0) {
+    $post = [
+        'dateline' => time(),
+        'logcode' => $code,
+        'logmsg' => var_export($data, true)
+    ];
+    \Rsf\Db::dbm('general')->create('weixin_log', $post);
 }

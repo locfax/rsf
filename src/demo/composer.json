@@ -1,0 +1,15 @@
+{
+  "name": "locphp/rsf-cli",
+  "description": "php framework for swoole http",
+  "keywords": ["rsf","swoole"],
+  "license": "MIT",
+  "type": "project",
+  "require": {
+    "locphp/rsf": "^0.3",
+    "monolog/monolog": "^1.17",
+    "predis/predis": "^1.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^5.1.0"
+  }
+}

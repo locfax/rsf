@@ -1,3 +1,3 @@
 # rsf
 
-php framework for swoole http server
+php framework for swoole

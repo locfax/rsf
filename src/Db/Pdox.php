@@ -81,7 +81,7 @@ class Pdox {
         $sql = $comma = '';
         foreach ($fields as $field => $value) {
             $sql .= $comma . $this->qfield($field) . '=:' . $field;
-            $args[':' . $field] = daddslashes($value);
+            $args[':' . $field] = $this->daddslashes($value);
             $comma = $glue;
         }
         return [$sql, $args];
@@ -98,7 +98,7 @@ class Pdox {
             if (strpos($value, '+') || strpos($value, '-')) {
                 $addsql .= $comma . $this->qfield($field) . '=' . $value;
             } else {
-                $addsql .= $comma . $this->qfield($field) . "='" . daddslashes($value) . "'";
+                $addsql .= $comma . $this->qfield($field) . "='" . $this->daddslashes($value) . "'";
             }
             $comma = $glue;
         }
@@ -120,7 +120,7 @@ class Pdox {
         foreach ($data as $field => $value) {
             $fields .= $comma . $this->qfield($field);
             $values .= $comma . ':' . $field;
-            $args[':' . $field] = daddslashes($value);
+            $args[':' . $field] = $this->daddslashes($value);
             $comma = ',';
         }
         try {
@@ -131,8 +131,7 @@ class Pdox {
             }
             return $ret;
         } catch (\PDOException $e) {
-            $this->_halt($e->getMessage(), $e->getCode());
-            return false;
+            return $this->_halt($e->getMessage(), $e->getCode());
         }
     }
 
@@ -150,15 +149,14 @@ class Pdox {
         foreach ($data as $field => $value) {
             $fields .= $comma . $this->qfield($field);
             $values .= $comma . ':' . $field;
-            $args[':' . $field] = daddslashes($value);
+            $args[':' . $field] = $this->daddslashes($value);
             $comma = ',';
         }
         try {
             $sth = $this->_link->prepare('REPLACE INTO ' . $tableName . '(' . $fields . ') VALUES (' . $values . ')');
             return $sth->execute($args);
         } catch (\PDOException $e) {
-            $this->_halt($e->getMessage(), $e->getCode());
-            return false;
+            return $this->_halt($e->getMessage(), $e->getCode());
         }
     }
 
@@ -195,8 +193,7 @@ class Pdox {
                 return $this->_link->exec("UPDATE {$tableName} SET {$data} WHERE {$condition}");
             }
         } catch (\PDOException $e) {
-            $this->_halt($e->getMessage(), $e->getCode());
-            return false;
+            return $this->_halt($e->getMessage(), $e->getCode());
         }
     }
 
@@ -217,8 +214,7 @@ class Pdox {
         try {
             return $this->_link->exec('DELETE FROM ' . $tableName . ' WHERE ' . $condition . $limit);
         } catch (\PDOException $e) {
-            $this->_halt($e->getMessage(), $e->getCode());
-            return false;
+            return $this->_halt($e->getMessage(), $e->getCode());
         }
     }
 
@@ -240,8 +236,7 @@ class Pdox {
             }
             return $sth->fetch();
         } catch (\PDOException $e) {
-            $this->_halt($e->getMessage(), $e->getCode());
-            return false;
+            return $this->_halt($e->getMessage(), $e->getCode());
         }
     }
 
@@ -250,9 +245,10 @@ class Pdox {
      * @param $tableName
      * @param $field
      * @param $condition
-     * @return bool
+     * @param $index
+     * @return bool|array
      */
-    public function findAll($tableName, $field = '*', $condition = '1') {
+    public function findAll($tableName, $field = '*', $condition = '1', $index = null) {
         try {
             if (is_array($condition)) {
                 list($condition, $args) = $this->field_param($condition, ' AND ');
@@ -261,10 +257,13 @@ class Pdox {
             } else {
                 $sth = $this->_link->query('SELECT ' . $field . ' FROM ' . $tableName . ' WHERE ' . $condition);
             }
-            return $sth->fetchAll();
+            $data = $sth->fetchAll();
+            if (is_null($index)) {
+                return $data;
+            }
+            return $this->array_index($data, $index);
         } catch (\PDOException $e) {
-            $this->_halt($e->getMessage(), $e->getCode());
-            return false;
+            return $this->_halt($e->getMessage(), $e->getCode());
         }
     }
 
@@ -290,37 +289,52 @@ class Pdox {
             }
             return $sth->fetchAll();
         } catch (\PDOException $e) {
-            $this->_halt($e->getMessage(), $e->getCode());
-            return false;
+            return $this->_halt($e->getMessage(), $e->getCode());
         }
     }
 
-
     /**
      * @param $sql
+     * @param $args
      * @return bool
      */
-    public function one($sql) {
+    public function row($sql, $args = null) {
         try {
-            $sth = $this->_link->query($sql . ' LIMIT 0,1');
+            if (is_null($args)) {
+                $sth = $this->_link->query($sql);
+            } else {
+                list($_, $_args) = $this->field_param($args);
+                $sth = $this->_link->prepare($sql);
+                $sth->execute($_args);
+            }
             return $sth->fetch();
         } catch (\PDOException $e) {
-            $this->_halt($e->getMessage(), $e->getCode());
-            return false;
+            return $this->_halt($e->getMessage(), $e->getCode());
         }
     }
 
     /**
      * @param $sql
-     * @return bool
+     * @param $args
+     * @param $index
+     * @return bool|array
      */
-    public function all($sql) {
+    public function rowset($sql, $args = null, $index = null) {
         try {
-            $sth = $this->_link->query($sql . ' LIMIT 0,1');
-            return $sth->fetchAll();
+            if (is_null($args)) {
+                $sth = $this->_link->query($sql);
+            } else {
+                list($_, $_args) = $this->field_param($args);
+                $sth = $this->_link->prepare($sql);
+                $sth->execute($_args);
+            }
+            $data = $sth->fetchAll();
+            if (is_null($index)) {
+                return $data;
+            }
+            return $this->array_index($data, $index);
         } catch (\PDOException $e) {
-            $this->_halt($e->getMessage(), $e->getCode());
-            return false;
+            return $this->_halt($e->getMessage(), $e->getCode());
         }
     }
 
@@ -333,8 +347,7 @@ class Pdox {
             $sth = $this->_link->query($sql . ' LIMIT 0,1');
             return $sth->fetchAll();
         } catch (\PDOException $e) {
-            $this->_halt($e->getMessage(), $e->getCode());
-            return false;
+            return $this->_halt($e->getMessage(), $e->getCode());
         }
     }
 
@@ -402,6 +415,39 @@ class Pdox {
             throw new Exception\DbException($message, intval($code));
         }
         return false;
+    }
+
+    /**
+     * @param $string
+     * @return array|string
+     */
+    private function daddslashes($string) {
+        if (empty($string)) {
+            return $string;
+        }
+        if (is_numeric($string)) {
+            return $string;
+        }
+        if (is_array($string)) {
+            return array_map('$this->daddslashes', $string);
+        }
+        return addslashes($string);
+    }
+
+    /**
+     * @param $arr
+     * @param $col
+     * @return array
+     */
+    function array_index($arr, $col) {
+        if (!is_array($arr)) {
+            return $arr;
+        }
+        $rows = [];
+        foreach ($arr as $row) {
+            $rows[$row[$col]] = $row;
+        }
+        return $rows;
     }
 
 }

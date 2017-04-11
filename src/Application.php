@@ -26,8 +26,9 @@ class Application {
         $this->rootnamespace('\\', $root);
     }
 
-    private function finish() {
+    private function finish($response) {
         try {
+            $response->end();
             Db::close();
         } catch (\ErrorException $e) {
 
@@ -62,16 +63,13 @@ class Application {
 
         $request = new Swoole\Request($request);
         $response = new Swoole\Response($response);
-
-        $data = $this->dispatching($request, $response);
-        $response->end($data);
-        $this->finish();
+        $this->dispatching($request, $response);
+        $this->finish($response);
     }
 
     /**
      * @param $request
      * @param $response
-     * @return mixed
      */
     public function dispatching(Swoole\Request $request, Swoole\Response $response) {
         if (defined('ROUTE') && ROUTE) {
@@ -94,10 +92,10 @@ class Application {
             $allow = Rbac::check($controllerName, $actionName, AUTH);
             if (!$allow) {
                 $this->response(' 你没有权限访问 ' . $controllerName . ' - ' . $actionName, 500, $response);
-                return false;
+                return;
             }
         }
-        return $this->execute($controllerName, $actionName, $request, $response);
+        $this->execute($controllerName, $actionName, $request, $response);
     }
 
 
@@ -106,7 +104,6 @@ class Application {
      * @param $actionName
      * @param $request
      * @param $response
-     * @return mixed
      */
     private function execute($controllerName, $actionName, Swoole\Request $request, Swoole\Response $response) {
         $controllerName = ucfirst($controllerName);
@@ -115,7 +112,8 @@ class Application {
         $controllerClass = self::_controllerPrefix . APPKEY . '\\' . $controllerName;
         try {
             $controller = new $controllerClass($request, $response);
-            return call_user_func([$controller, $actionMethod]);
+            $data = call_user_func([$controller, $actionMethod]);
+            $this->response($data, 200, $response);
         } catch (Exception\Exception $exception) { //普通异常
             $this->exception($exception, $response);
         } catch (Exception\DbException $exception) { //db异常
@@ -127,19 +125,21 @@ class Application {
         } catch (\Throwable $exception) { //PHP7
             $this->exception($exception, $response);
         }
-        return null;
     }
 
     /**
      * @param $exception
      * @param $response
-     * @return bool
      */
     private function exception($exception, Swoole\Response $response) {
         $data = $this->exception2str($exception);
         $this->response($data, 500, $response);
     }
 
+    /**
+     * @param $exception
+     * @return string
+     */
     private function exception2str($exception) {
         $output = '<h3>' . $exception->getMessage() . '</h3>';
         $output .= '<p>' . nl2br($exception->getTraceAsString()) . '</p>';
@@ -149,6 +149,11 @@ class Application {
         return $output;
     }
 
+    /**
+     * @param $data
+     * @param int $code
+     * @param Swoole\Response $response
+     */
     private function response($data, $code = 500, Swoole\Response $response) {
         $response->withStatus($code);
         $response->withHeader('Content-type', 'text/html; charset=UTF-8');

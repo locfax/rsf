@@ -62,23 +62,36 @@ class Context {
     }
 
     /**
-     * @param $code
-     * @param $data
+     * @param $cmd
+     * @param string $key
+     * @param string $val
+     * @param int $ttl
+     * @return bool
      */
-    public static function dblog($data, $code = 0) {
-        $post = [
-            'dateline' => time(),
-            'logcode' => $code,
-            'logmsg' => var_export($data, true)
-        ];
-        Db::dbm('general')->create('weixin_log', $post);
+    public static function cache($cmd, $key = '', $val = '', $ttl = 0) {
+        if (in_array($cmd, ['set', 'get', 'rm', 'clear', 'close'])) {
+            $cacher = \Rsf\Cacher::getInstance();
+            switch ($cmd) {
+                case 'get':
+                    return $cacher->get($key);
+                case 'set':
+                    return $cacher->set($key, $val, $ttl);
+                case 'rm':
+                    return $cacher->rm($key);
+                case 'clear':
+                    return $cacher->clear();
+                case 'close':
+                    return $cacher->close();
+            }
+        }
+        return false;
     }
 
     /**
      * @param $data
      * @param string $code
      */
-    public static function log($data, $code = 'debug') {
+    public static function runlog($data, $code = 'debug') {
         $logfile = DATA . 'log/run.log';
         $log = new \Monolog\Logger('run');
         $log->pushHandler(new \Monolog\Handler\StreamHandler($logfile, \Monolog\Logger::WARNING));

@@ -56,7 +56,7 @@ class Locker {
         if ('file' == getini('cache/cacher')) {
             return self::dblock($cmd, $name, $ttl);
         }
-        return cache($cmd, 'process_' . $name, time(), $ttl);
+        return \Rsf\Context::cache($cmd, 'process_' . $name, time(), $ttl);
     }
 
     private static function dblock($cmd, $name, $ttl = 0) {
