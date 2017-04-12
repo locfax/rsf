@@ -169,7 +169,7 @@ class Application {
         $path = rtrim($path, '/');
         $loader = function ($classname) use ($namespace, $path) {
             if ($namespace && stripos($classname, $namespace) !== 0) {
-                return false;
+                return;
             }
             $file = trim(substr($classname, strlen($namespace)), '\\');
             $file = $path . '/' . str_replace('\\', '/', $file) . '.php';
@@ -177,7 +177,6 @@ class Application {
                 throw new Exception\Exception($file . '不存在');
             }
             require $file;
-            return true;
         };
         spl_autoload_register($loader);
     }
