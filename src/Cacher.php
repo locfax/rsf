@@ -18,7 +18,12 @@ class Cacher {
         $cacher = $cacher ?: $this->config['cacher'];
         if (in_array($cacher, array('file', 'memcache', 'redis', 'xcache'))) {
             $class = '\\Rsf\\Cache\\' . ucfirst($cacher);
-            $this->cacher = $class::getInstance()->init(Context::dsn($cacher . '.cache'));
+            if ($cacher != 'file') {
+                $config = Context::dsn($cacher . '.cache');
+            } else {
+                $config = null;
+            }
+            $this->cacher = $class::getInstance()->init($config);
             $this->enable = $this->cacher->enable;
             $this->type = $cacher;
         }

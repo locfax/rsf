@@ -54,7 +54,7 @@ class Context {
      * @return mixed
      */
     public static function mergeVars($group, $vars = null) {
-        static $_CDATA = [APPKEY => ['cfg' => null]];
+        static $_CDATA = [APPKEY => ['dsn' => null, 'cfg' => null, 'data' => null]];
         if (is_null($vars)) {
             return $_CDATA[APPKEY][$group];
         }
