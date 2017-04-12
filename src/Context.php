@@ -6,27 +6,27 @@ class Context {
 
     use Traits\Context;
 
-    private static $_dsn = [];
+    private static $_dsns = [];
+    private static $_configs = [];
 
     /**
      * @param $dsnid
      * @return mixed
-     * @throws Exception\Exception
      */
     public static function dsn($dsnid) {
-        if (!isset(self::$_dsn[APPKEY])) {
-            $dsns = self::config(APPKEY, 'dsn');
+        if (!isset(self::$_dsns[APPKEY])) {
+            $dsns = self::mergeVars('dsn');
             foreach ($dsns as $key => $dsn) {
-                $dsns[$key]['dsnkey'] = md5($dsn['driver'] . '_' . $dsn['host'] . '_' . $dsn['port'] . '_' . $dsn['login'] . '_' . $dsn['database']); //连接池key
+                $dsns[$key]['dsnkey'] = md5(APPKEY . '_' . $key . '_' . $dsn['driver'] . '_' . $dsn['dsn']); //连接池key
             }
-            self::$_dsn[APPKEY] = $dsns;
-            if (!isset(self::$_dsn[APPKEY][$dsnid])) {
-                return null;
+            self::$_dsns[APPKEY] = $dsns;
+            if (!isset(self::$_dsns[APPKEY][$dsnid])) {
+                self::$_dsns[APPKEY][$dsnid] = [];
             }
             $dsns = null;
         }
-        //默认为正确的配置
-        return self::$_dsn[APPKEY][$dsnid];
+        //如果没配置$dsnid 会报错
+        return self::$_dsns[APPKEY][$dsnid];
     }
 
     /**
@@ -35,11 +35,17 @@ class Context {
      * @return bool|mixed
      */
     public static function config($name, $type = 'inc') {
+        $key = APPKEY . '.' . $name . '.' . $type;
+        if (isset(self::$_configs[$key])) {
+            return self::$_configs[$key];
+        }
         $file = PSROOT . '/config/' . strtolower($name) . '.' . $type . '.php';
         if (!is_file($file)) {
+            self::$_configs[$key] = [];
             return [];
         }
-        return include $file;
+        self::$_configs[$key] = include $file;
+        return self::$_configs[$key];
     }
 
     /**
@@ -48,15 +54,14 @@ class Context {
      * @return mixed
      */
     public static function mergeVars($group, $vars = null) {
-        static $_CDATA = ['cfg' => null];
+        static $_CDATA = [APPKEY => ['cfg' => null]];
         if (is_null($vars)) {
-            return $_CDATA[$group];
+            return $_CDATA[APPKEY][$group];
+        }
+        if (is_null($_CDATA[APPKEY][$group])) {
+            $_CDATA[APPKEY][$group] = $vars;
         } else {
-            if (is_null($_CDATA[$group])) {
-                $_CDATA[$group] = $vars;
-            } else {
-                $_CDATA[$group] = array_merge($_CDATA[$group], $vars);
-            }
+            $_CDATA[APPKEY][$group] = array_merge($_CDATA[APPKEY][$group], $vars);
         }
         return true;
     }

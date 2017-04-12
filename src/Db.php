@@ -11,11 +11,10 @@ class Db {
     /**
      * @param string $dsnid
      * @return null
-     * @throws Exception
      */
     public static function dbo($dsnid = 'portal') {
         $_dsn = Context::dsn($dsnid);
-        $dsnkey = md5($_dsn['driver'] . '_' . $_dsn['dsn']); //连接池key
+        $dsnkey = $_dsn['dsnkey']; //连接池key
         if (isset(self::$used_dbo[$dsnkey])) {
             $dbo = self::$used_dbo[$dsnkey];
             $dbo->connect($_dsn);
@@ -31,11 +30,10 @@ class Db {
     /**
      * @param string $dsnid
      * @return null
-     * @throws Exception
      */
     public static function dbm($dsnid = 'portal') {
         $_dsn = Context::dsn($dsnid);
-        $dsnkey = md5($_dsn['driver'] . '_' . $_dsn['dsn']); //连接池key
+        $dsnkey = $_dsn['dsnkey']; //连接池key
         if (isset(self::$used_dbo[$dsnkey])) {
             $dbo = self::$used_dbo[$dsnkey];
             $dbo->connect($_dsn);
