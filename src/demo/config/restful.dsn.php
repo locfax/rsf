@@ -34,6 +34,8 @@ return [
         'rundev' => true
     ],
     'redis.cache' => [
+        'driver' => 'redis',
+        'dsn' => '',
         'host' => $redis_host,
         'port' => $redis_port,
         'login' => $redis_user,
@@ -44,6 +46,8 @@ return [
         'rundev' => true
     ],
     'memcache.cache' => [
+        'driver' => 'memcache',
+        'dsn' => '',
         'host' => '127.0.0.1',
         'port' => '11211',
         'login' => '',
