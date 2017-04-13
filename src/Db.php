@@ -4,7 +4,7 @@ namespace Rsf;
 
 class Db {
 
-    private static $default_dbo_id = APPDSN;
+    private static $default_dbo_id = 'portal';
     private static $using_dbo_id = null;
     private static $used_dbo = [];
 
@@ -121,9 +121,36 @@ class Db {
     }
 
     /**
+     * 查找一条数据
+     * 如果要链表 使用 DB::one
+     *
+     * @param string $table
+     * @param mixed $field
+     * @param mixed $condition
+     * @return mixed
+     */
+    public static function findOne($table, $field, $condition) {
+        $db = self::Using(self::$using_dbo_id);
+        return $db->findOne($table, $field, $condition);
+    }
+
+    /**
+     * 通用取多条数据的简洁方式 如果要链表 使用 DB::all
+     *
+     * @param string $table
+     * @param string $field
+     * @param string $condition
+     * @param string $index
+     * @return mixed
+     */
+    public static function findAll($table, $field = '*', $condition = '1', $index = null) {
+        $db = self::Using(self::$using_dbo_id);
+        return $db->findAll($table, $field, $condition, $index);
+    }
+
+    /**
      * 带分页数据的DB::all
-     * @param string table
-     * @param mixed $query
+     * @param string $table
      * - mysql: string 查询字符串  完整的SQL语句
      * - mongo: array
      * array(
@@ -191,34 +218,6 @@ class Db {
     }
 
     /**
-     * 查找一条数据
-     * 如果要链表 使用 DB::one
-     *
-     * @param string $table
-     * @param mixed $field
-     * @param mixed $condition
-     * @return mixed
-     */
-    public static function findOne($table, $field, $condition) {
-        $db = self::Using(self::$using_dbo_id);
-        return $db->findOne($table, $field, $condition);
-    }
-
-    /**
-     * 通用取多条数据的简洁方式 如果要链表 使用 DB::all
-     *
-     * @param string $table
-     * @param string $field
-     * @param string $condition
-     * @param string $index
-     * @return mixed
-     */
-    public static function findAll($table, $field = '*', $condition = '1', $index = null) {
-        $db = self::Using(self::$using_dbo_id);
-        return $db->findAll($table, $field, $condition, $index);
-    }
-
-    /**
      * 单表符合条件的数量
      * - mysql:
      * $field count($field)
@@ -253,6 +252,36 @@ class Db {
 
 
     //--------------多表联合查询---start---------------//
+
+    /**
+     * @param $sql
+     * @return mixed
+     */
+    public static function exec($sql) {
+        $db = self::Using(self::$using_dbo_id);
+        return $db->exec($sql);
+    }
+
+    /**
+     * @param $query
+     * @param $args
+     * @return mixed
+     */
+    public static function row($query , $args = null) {
+        $db = self::Using(self::$using_dbo_id);
+        return $db->row($query, $args);
+    }
+
+    /**
+     * @param $query
+     * @param $args
+     * @param $index
+     * @return mixed
+     */
+    public static function rowset($query, $args = null, $index = null) {
+        $db = self::Using(self::$using_dbo_id);
+        return $db->rowset($query, $args, $index);
+    }
 
     /**
      * @param $sql
@@ -312,33 +341,12 @@ class Db {
         }
     }
 
-
-    /**
-     * @param $query
-     * @param $args
-     * @return mixed
-     */
-    public static function row($query , $args = null) {
-        $db = self::Using(self::$using_dbo_id);
-        return $db->row($query, $args);
-    }
-
-    /**
-     * @param $query
-     * @param $args
-     * @param $index
-     * @return mixed
-     */
-    public static function rowset($query, $args = null, $index = null) {
-        $db = self::Using(self::$using_dbo_id);
-        return $db->rowset($query, $args, $index);
-    }
-
     /**
      * 切换数据源对象
      *
      * @param null $id
-     * @return mixed
+     * @return object
+     * @throws Exception\DbException
      */
     public static function Using($id = null) {
         if (!$id) {
