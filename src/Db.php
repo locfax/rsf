@@ -255,11 +255,12 @@ class Db {
 
     /**
      * @param $sql
+     * @param $args
      * @return mixed
      */
-    public static function exec($sql) {
+    public static function exec($sql, $args = null) {
         $db = self::Using(self::$using_dbo_id);
-        return $db->exec($sql);
+        return $db->exec($sql, $args);
     }
 
     /**
@@ -267,7 +268,7 @@ class Db {
      * @param $args
      * @return mixed
      */
-    public static function row($query , $args = null) {
+    public static function row($query, $args = null) {
         $db = self::Using(self::$using_dbo_id);
         return $db->row($query, $args);
     }
