@@ -1,17 +1,15 @@
 <?php
 
-namespace Rsf\Helper;
+namespace Xcs\Helper;
 
 class Strs {
-
-    use \Rsf\Traits\Singleton;
 
     /*
      * 随机字符
      */
-    function random($length = 4) {
+    public static function random($length = 4) {
         $reqid = '';
-        $characters = ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "2", "3", "4", "5", "6", "7", "8", "9"];
+        $characters = array("A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "2", "3", "4", "5", "6", "7", "8", "9");
         shuffle($characters);
         for (; strlen($reqid) < $length;) {
             $reqid .= $characters[rand(0, count($characters) - 1)];
@@ -22,7 +20,7 @@ class Strs {
     /* qutotes get post cookie by \char(21)'
      * return string
      */
-    function daddcslashes($string) {
+    public static function daddcslashes($string) {
         if (empty($string)) {
             return $string;
         }
@@ -32,13 +30,13 @@ class Strs {
         if (is_array($string)) {
             return array_map('daddcslashes', $string);
         }
-        return addcslashes($string);
+        return addcslashes($string, '');
     }
 
     /*
      * it's paire to daddcslashes
      */
-    function dstripcslashes($value) {
+    public static function dstripcslashes($value) {
         if (empty($value)) {
             return $value;
         }
@@ -54,8 +52,8 @@ class Strs {
     /* cut string to set length
      * return string
      */
-    function cutstr($string, $length, $suffix = true, $charset = "utf-8", $start = 0, $dot = ' ...') {
-        $str = str_replace(['&amp;', '&quot;', '&lt;', '&gt;'], ['&', '"', '<', '>'], $string);
+    public static function cutstr($string, $length, $suffix = true, $charset = "utf-8", $start = 0, $dot = ' ...') {
+        $str = str_replace(array('&amp;', '&quot;', '&lt;', '&gt;'), array('&', '"', '<', '>'), $string);
         if (function_exists("mb_substr")) {
             $strcut = mb_substr($str, $start, $length, $charset);
             if (mb_strlen($str, $charset) > $length) {
@@ -63,19 +61,19 @@ class Strs {
             }
             return $strcut;
         }
-        $re = [];
-        $match = [''];
+        $re = array();
+        $match = array('');
         $re['utf-8'] = "/[\x01-\x7f]|[\xc2-\xdf][\x80-\xbf]|[\xe0-\xef][\x80-\xbf]{2}|[\xf0-\xff][\x80-\xbf]{3}/";
         $re['gb2312'] = "/[\x01-\x7f]|[\xb0-\xf7][\xa0-\xfe]/";
         $re['gbk'] = "/[\x01-\x7f]|[\x81-\xfe][\x40-\xfe]/";
         $re['big5'] = "/[\x01-\x7f]|[\x81-\xfe]([\x40-\x7e]|\xa1-\xfe])/";
         preg_match_all($re[$charset], $str, $match);
         $slice = join("", array_slice($match[0], $start, $length));
-        $strcut = str_replace(['&', '"', '<', '>'], ['&amp;', '&quot;', '&lt;', '&gt;'], $slice);
+        $strcut = str_replace(array('&', '"', '<', '>'), array('&amp;', '&quot;', '&lt;', '&gt;'), $slice);
         return $suffix ? $strcut . $dot : $strcut;
     }
 
-    function getstr($string, $length, $out_slashes = 0, $html = 0) {
+    public static function getstr($string, $length, $out_slashes = 0, $html = 0) {
         $string = stripslashes($string);
         if ($html < 0) {
             $string = preg_replace("/(\<[^\<]*\>|\r|\n|\s|\[.+?\])/is", ' ', $string);
@@ -83,7 +81,7 @@ class Strs {
             $string = htmlspecialchars($string, ENT_QUOTES);
         }
         if ($length) {
-            $string = $this->cutstr($string, $length, '');
+            $string = self::cutstr($string, $length, '');
         }
         if ($out_slashes) {
             $string = addslashes($string);
@@ -91,7 +89,7 @@ class Strs {
         return $string;
     }
 
-    function convert_encode($in, $out, $string) { // string change charset return string
+    public static function convert_encode($in, $out, $string) { // string change charset return string
         if (function_exists('mb_convert_encoding')) {
             return mb_convert_encoding($string, $out, $in);
             //return mb_convert_encoding($string, $out, $in);
@@ -102,16 +100,16 @@ class Strs {
         }
     }
 
-    function convert_char($in, $out, $string) {
+    public static function convert_char($in, $out, $string) {
         // string change charset return mix
         if (is_array($string)) {
-            $ret = [];
+            $ret = array();
             foreach ($string as $str) {
-                $ret[] = $this->convert_char($in, $out, $str);
+                $ret[] = self::convert_char($in, $out, $str);
             }
             return $ret;
         }
-        return $this->convert_encode($in, $out, $string);
+        return self::convert_encode($in, $out, $string);
     }
 
 }

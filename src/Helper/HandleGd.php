@@ -1,7 +1,6 @@
 <?php
 
-namespace Rsf\Helper;
-
+namespace Xcs\Helper;
 
 class HandleGd {
 
@@ -112,7 +111,7 @@ class HandleGd {
                 $oy = ($height - $sy) / 2;
         }
 
-        list ($r, $g, $b) = imagegd::hex2rgb($bgcolor, '0xffffff');
+        list ($r, $g, $b) = ImageGd::hex2rgb($bgcolor, '0xffffff');
         $bgcolor = imagecolorallocate($dest, $r, $g, $b);
         imagefilledrectangle($dest, 0, 0, $width, $height, $bgcolor);
         imagecolordeallocate($dest, $bgcolor);
@@ -124,15 +123,15 @@ class HandleGd {
         return $this;
     }
 
-    public function cut($options = []) {
+    public function cut($options = array()) {
         if (is_null($this->_handle)) {
             return $this;
         }
-        $default_options = [
-            'pos' => ['lux' => 0, 'luy' => 0, 'ldx' => 0, 'ldy' => 100, 'rux' => 100, 'rdx' => 100, 'rdy' => 100],
+        $default_options = array(
+            'pos' => array('lux' => 0, 'luy' => 0, 'ldx' => 0, 'ldy' => 100, 'rux' => 100, 'rdx' => 100, 'rdy' => 100),
             'bgcolor' => '0xfff',
             'border' => 0
-        ];
+        );
         $options = array_merge($default_options, $options);
 
         $dst_w = round($options['pos']['rux'] - $options['pos']['lux']);
@@ -143,14 +142,14 @@ class HandleGd {
             $bgw = round($options['pos']['rux'] - $options['pos']['lux']) + $options['border'] * 2;
             $bgh = round($options['pos']['ldy'] - $options['pos']['luy']) + $options['border'] * 2;
             $dest = imagecreatetruecolor($bgw, $bgh);
-            list ($r, $g, $b) = imagegd::hex2rgb($options['bgcolor'], '0xffffff');
+            list ($r, $g, $b) = ImageGd::hex2rgb($options['bgcolor'], '0xffffff');
             $bgcolor = imagecolorallocate($dest, $r, $g, $b);
             imagefilledrectangle($dest, 0, 0, $bgw, $bgh, $bgcolor);
             imagecolordeallocate($dest, $bgcolor);
         } else {
             //for no background images
             $dest = imagecreatetruecolor($dst_w, $dst_h);
-            list ($r, $g, $b) = imagegd::hex2rgb($options['bgcolor'], '0xffffff');
+            list ($r, $g, $b) = ImageGd::hex2rgb($options['bgcolor'], '0xffffff');
             $bgcolor = imagecolorallocate($dest, $r, $g, $b);
             imagefilledrectangle($dest, 0, 0, $dst_w, $dst_h, $bgcolor);
             imagecolordeallocate($dest, $bgcolor);
@@ -170,22 +169,22 @@ class HandleGd {
         return $this;
     }
 
-    public function crop($width, $height, $options = []) {
+    public function crop($width, $height, $options = array()) {
         if (is_null($this->_handle)) {
             return $this;
         }
-        $default_options = [
+        $default_options = array(
             'fullimage' => true,
             'pos' => 'center',
             'bgcolor' => '0xfff',
             'enlarge' => true,
             'reduce' => true,
             'border' => 0
-        ];
+        );
         $options = array_merge($default_options, $options);
         $dest = imagecreatetruecolor($width, $height);
 
-        list ($r, $g, $b) = imagegd::hex2rgb($options['bgcolor'], '0xffffff');
+        list ($r, $g, $b) = ImageGd::hex2rgb($options['bgcolor'], '0xffffff');
         $bgcolor = imagecolorallocate($dest, $r, $g, $b);
         imagefilledrectangle($dest, 0, 0, $width, $height, $bgcolor);
         imagecolordeallocate($dest, $bgcolor);
@@ -305,7 +304,7 @@ function imagecreatefrombmp($fname) {
         case 4:
             $colorset = unpack("L*", substr($buf, 54, 64));
             for ($y = 0; $y < $info_header["biHeight"]; $y++) {
-                $colors = [];
+                $colors = array();
                 $y_pos = $y * $line_len + $file_header["bfOffBits"];
                 for ($x = 0; $x < $info_header["biWidth"]; $x++) {
                     if ($x % 2)
@@ -320,7 +319,7 @@ function imagecreatefrombmp($fname) {
         case 8:
             $colorset = unpack("L*", substr($buf, 54, 1024));
             for ($y = 0; $y < $info_header["biHeight"]; $y++) {
-                $colors = [];
+                $colors = array();
                 $y_pos = $y * $line_len + $file_header["bfOffBits"];
                 for ($x = 0; $x < $info_header["biWidth"]; $x++) {
                     $colors[] = $colorset[ord($buf[$y_pos + $x]) + 1];
@@ -331,7 +330,7 @@ function imagecreatefrombmp($fname) {
             break;
         case 16:
             for ($y = 0; $y < $info_header["biHeight"]; $y++) {
-                $colors = [];
+                $colors = array();
                 $y_pos = $y * $line_len + $file_header["bfOffBits"];
                 for ($x = 0; $x < $info_header["biWidth"]; $x++) {
                     $i = $x * 2;
@@ -344,7 +343,7 @@ function imagecreatefrombmp($fname) {
             break;
         case 24:
             for ($y = 0; $y < $info_header["biHeight"]; $y++) {
-                $colors = [];
+                $colors = array();
                 $y_pos = $y * $line_len + $file_header["bfOffBits"];
                 for ($x = 0; $x < $info_header["biWidth"]; $x++) {
                     $i = $x * 3;

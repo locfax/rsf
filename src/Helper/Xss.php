@@ -1,16 +1,16 @@
 <?php
 
-namespace Rsf\Helper;
+namespace Xcs\Helper;
 
-class Xss {
+use Xcs\Traits\Singleton;
 
-    use \Rsf\Traits\Singleton;
+class Xss extends Singleton {
 
     /**
      * 非法文件名字符
-     * @var	array
+     * @var    array
      */
-    public $filename_bad_chars = [
+    public $filename_bad_chars = array(
         '../', '<!--', '-->', '<', '>',
         "'", '"', '&', '$', '#',
         '{', '}', '[', ']', '=',
@@ -27,8 +27,8 @@ class Xss {
         '%3f', // ?
         '%3b', // ;
         '%3d'  // =
-    ];
-    protected $never_allowed_str = [
+    );
+    protected $never_allowed_str = array(
         'document.cookie' => '[del]',
         'document.write' => '[del]',
         '.parentNode' => '[del]',
@@ -38,8 +38,8 @@ class Xss {
         '-->' => '--&gt;',
         '<![CDATA[' => '&lt;![CDATA[',
         '<comment>' => '&lt;comment&gt;'
-   ];
-    protected $never_allowed_regex = [
+    );
+    protected $never_allowed_regex = array(
         'javascript\s*:',
         '(document|(document\.)?window)\.(location|on\w*)',
         'expression\s*(\(|&\#40;)', // CSS and IE
@@ -49,11 +49,11 @@ class Xss {
         'vbs\s*:', // IE
         'Redirect\s+30\d',
         "([\"'])?data\s*:[^\\1]*?base64[^\\1]*?,[^\\1]*?\\1?"
-    ];
+    );
     protected $_xss_hash = null;
 
     public function remove_invisible_characters($str, $url_encoded = true) {
-        $non_displayables = [];
+        $non_displayables = array();
         if ($url_encoded) {
             $non_displayables[] = '/%0[0-8bcef]/';
             $non_displayables[] = '/%1[0-9a-f]/';
@@ -82,8 +82,8 @@ class Xss {
             $str = rawurldecode($str);
         } while (preg_match('/%[0-9a-f]{2,}/i', $str));
 
-        $str = preg_replace_callback("/[^a-z0-9>]+[a-z0-9]+=([\'\"]).*?\\1/si", [$this, '_convert_attribute'], $str);
-        $str = preg_replace_callback('/<\w+.*/si', [$this, '_decode_entity'], $str);
+        $str = preg_replace_callback("/[^a-z0-9>]+[a-z0-9]+=([\'\"]).*?\\1/si", array($this, '_convert_attribute'), $str);
+        $str = preg_replace_callback('/<\w+.*/si', array($this, '_decode_entity'), $str);
         $str = $this->remove_invisible_characters($str);
         $str = str_replace("\t", ' ', $str);
         $converted_string = $str;
@@ -92,27 +92,27 @@ class Xss {
         if (true == $is_image) {
             $str = preg_replace('/<\?(php)/i', '&lt;?\\1', $str);
         } else {
-            $str = str_replace(['<?', '?' . '>'], ['&lt;?', '?&gt;'], $str);
+            $str = str_replace(array('<?', '?' . '>'), array('&lt;?', '?&gt;'), $str);
         }
 
-        $words = [
+        $words = array(
             'javascript', 'expression', 'vbscript', 'jscript', 'wscript',
             'vbs', 'script', 'base64', 'applet', 'alert', 'document',
             'write', 'cookie', 'window', 'confirm', 'prompt'
-        ];
+        );
 
         foreach ($words as $word) {
             $word = implode('\s*', str_split($word)) . '\s*';
-            $str = preg_replace_callback('#(' . substr($word, 0, -3) . ')(\W)#is', [$this, '_compact_exploded_words'], $str);
+            $str = preg_replace_callback('#(' . substr($word, 0, -3) . ')(\W)#is', array($this, '_compact_exploded_words'), $str);
         }
 
         do {
             $original = $str;
             if (preg_match('/<a/i', $str)) {
-                $str = preg_replace_callback('#<a[^a-z0-9>]+([^>]*?)(?:>|$)#si', [$this, '_js_link_removal'], $str);
+                $str = preg_replace_callback('#<a[^a-z0-9>]+([^>]*?)(?:>|$)#si', array($this, '_js_link_removal'), $str);
             }
             if (preg_match('/<img/i', $str)) {
-                $str = preg_replace_callback('#<img[^a-z0-9]+([^>]*?)(?:\s?/?>|$)#si', [$this, '_js_img_removal'], $str);
+                $str = preg_replace_callback('#<img[^a-z0-9]+([^>]*?)(?:\s?/?>|$)#si', array($this, '_js_img_removal'), $str);
             }
             if (preg_match('/script|xss/i', $str)) {
                 $str = preg_replace('#</*(?:script|xss).*?>#si', '[del]', $str);
@@ -124,7 +124,7 @@ class Xss {
         $str = $this->_remove_evil_attributes($str, $is_image);
 
         $naughty = 'alert|prompt|confirm|applet|audio|basefont|base|behavior|bgsound|blink|body|embed|expression|form|frameset|frame|head|html|ilayer|iframe|input|button|select|isindex|layer|link|meta|keygen|object|plaintext|style|script|textarea|title|math|video|svg|xml|xss';
-        $str = preg_replace_callback('#<(/*\s*)(' . $naughty . ')([^><]*)([><]*)#is', [$this, '_sanitize_naughty_html'], $str);
+        $str = preg_replace_callback('#<(/*\s*)(' . $naughty . ')([^><]*)([><]*)#is', array($this, '_sanitize_naughty_html'), $str);
 
         $str = preg_replace('#(alert|prompt|confirm|cmd|passthru|eval|exec|expression|system|fopen|fsockopen|file|file_get_contents|readfile|unlink)(\s*)\((.*?)\)#si', '\\1\\2&#40;\\3&#41;', $str);
 
@@ -138,13 +138,13 @@ class Xss {
     }
 
     protected function _remove_evil_attributes($str, $is_image) {
-        $evil_attributes = ['on\w*', 'style', 'xmlns', 'formaction', 'form', 'xlink:href'];
+        $evil_attributes = array('on\w*', 'style', 'xmlns', 'formaction', 'form', 'xlink:href');
         if (true == $is_image) {
             unset($evil_attributes[array_search('xmlns', $evil_attributes)]);
         }
         do {
             $count = 0;
-            $attribs = [];
+            $attribs = array();
             preg_match_all('/(?<!\w)(' . implode('|', $evil_attributes) . ')\s*=\s*(\042|\047)([^\\2]*?)(\\2)/is', $str, $matches, PREG_SET_ORDER);
             foreach ($matches as $attr) {
                 $attribs[] = preg_quote($attr[0], '/');
@@ -162,15 +162,15 @@ class Xss {
     }
 
     protected function _sanitize_naughty_html($matches) {
-        return '&lt;' . $matches[1] . $matches[2] . $matches[3] . str_replace(['>', '<'], ['&gt;', '&lt;'], $matches[4]);
+        return '&lt;' . $matches[1] . $matches[2] . $matches[3] . str_replace(array('>', '<'), array('&gt;', '&lt;'), $matches[4]);
     }
 
     protected function _js_link_removal($match) {
-        return str_replace($match[1], preg_replace('#href=.*?(?:(?:alert|prompt|confirm)(?:\(|&\#40;)|javascript:|livescript:|mocha:|charset=|window\.|document\.|\.cookie|<script|<xss|data\s*:)#si', '', $this->_filter_attributes(str_replace(['<', '>'], '', $match[1]))), $match[0]);
+        return str_replace($match[1], preg_replace('#href=.*?(?:(?:alert|prompt|confirm)(?:\(|&\#40;)|javascript:|livescript:|mocha:|charset=|window\.|document\.|\.cookie|<script|<xss|data\s*:)#si', '', $this->_filter_attributes(str_replace(array('<', '>'), '', $match[1]))), $match[0]);
     }
 
     protected function _js_img_removal($match) {
-        return str_replace($match[1], preg_replace('#src=.*?(?:(?:alert|prompt|confirm)(?:\(|&\#40;)|javascript:|livescript:|mocha:|charset=|window\.|document\.|\.cookie|<script|<xss|base64\s*,)#si', '', $this->_filter_attributes(str_replace(['<', '>'], '', $match[1]))), $match[0]);
+        return str_replace($match[1], preg_replace('#src=.*?(?:(?:alert|prompt|confirm)(?:\(|&\#40;)|javascript:|livescript:|mocha:|charset=|window\.|document\.|\.cookie|<script|<xss|base64\s*,)#si', '', $this->_filter_attributes(str_replace(array('<', '>'), '', $match[1]))), $match[0]);
     }
 
     protected function _compact_exploded_words($matches) {
@@ -178,7 +178,7 @@ class Xss {
     }
 
     protected function _convert_attribute($match) {
-        return str_replace(['>', '<', '\\'], ['&gt;', '&lt;', '\\\\'], $match[0]);
+        return str_replace(array('>', '<', '\\'), array('&gt;', '&lt;', '\\\\'), $match[0]);
     }
 
     protected function _filter_attributes($str) {
@@ -200,7 +200,7 @@ class Xss {
     }
 
     public function get_random_bytes($length) {
-        if (empty($length) || !ctype_digit((string) $length)) {
+        if (empty($length) || !ctype_digit((string)$length)) {
             return false;
         }
 
@@ -239,7 +239,7 @@ class Xss {
             $c = preg_match_all('/&[a-z]{2,}(?![a-z;])/i', $str, $matches);
             if ($c) {
                 if (!isset($_entities)) {
-                    $_entities = array_map('strtolower', get_html_translation_table(HTML_ENTITIES, $flag, $charset));
+                    $_entities = array_map('strtolower', get_html_translation_table(HTML_ENTITIES, $flag));
                     if ($flag === ENT_COMPAT) {
                         $_entities[':'] = '&colon;';
                         $_entities['('] = '&lpar;';
@@ -248,7 +248,7 @@ class Xss {
                         $_entities["\t"] = '&tab;';
                     }
                 }
-                $replace = [];
+                $replace = array();
                 $matches = array_unique(array_map('strtolower', $matches[0]));
                 for ($i = 0; $i < $c; $i++) {
                     if (false !== ($char = array_search($matches[$i] . ';', $_entities, true))) {

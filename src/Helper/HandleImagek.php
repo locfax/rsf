@@ -1,7 +1,6 @@
 <?php
 
-namespace Rsf\Helper;
-
+namespace Xcs\Helper;
 
 class HandleImagek {
 
@@ -27,14 +26,14 @@ class HandleImagek {
       参数:
      */
 
-    public function crop($width, $height, $options = []) {
+    public function crop($width, $height, $options = array()) {
         if (is_null($this->_handle)) {
             return $this;
         }
-        $default_options = [
+        $default_options = array(
             'bestfit' => true,
             'fill' => false
-        ];
+        );
         $options = array_merge($default_options, $options);
         $this->_handle->thumbnailImage($width, $height, $options['bestfit'], $options['fill']);
     }
@@ -101,7 +100,7 @@ class HandleImagek {
      */
 
     public function text($text, $color, $size, $font = 'FetteSteinschrift') {
-        $font = BASE . "vendor/captcha/fonts/en/" . $font . ".ttf";
+        $font = APPPATH . "vendor/captcha/fonts/en/" . $font . ".ttf";
         $draw = new \ImagickDraw();
         $draw->setGravity(\Imagick::GRAVITY_CENTER);
         $draw->setFont($font);
@@ -300,7 +299,7 @@ class HandleImagek {
 
     public function polaroidEffect($src, $color, $angle = 0) {
         if (15 != abs($angle)) {
-            $srcs = [$src, $src, $src, $src];
+            $srcs = array($src, $src, $src, $src);
             $bg = new \ImagickDraw();
             $images = new \Imagick($srcs);
             $format = $images->getImageFormat();

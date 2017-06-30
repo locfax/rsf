@@ -1,10 +1,8 @@
 <?php
 
-namespace Rsf\Helper;
+namespace Xcs\Helper;
 
 class Locker {
-
-    use \Rsf\Traits\Singleton;
 
     const dsn = 'general';
 
@@ -25,7 +23,7 @@ class Locker {
 
     //锁状态设置
     public static function status($action, $process) {
-        static $plist = [];
+        static $plist = array();
         switch ($action) {
             case 'set' :
                 $plist[$process] = true;
@@ -56,18 +54,18 @@ class Locker {
         if ('file' == getini('cache/cacher')) {
             return self::dblock($cmd, $name, $ttl);
         }
-        return \Rsf\Context::cache($cmd, 'process_' . $name, time(), $ttl);
+        return \Xcs\Context::cache($cmd, 'process_' . $name, time(), $ttl);
     }
 
     private static function dblock($cmd, $name, $ttl = 0) {
         $ret = '';
-        $db = \Rsf\Db::dbm(self::dsn);
+        $db = \Xcs\DB::dbo(self::dsn);
         switch ($cmd) {
             case 'set':
-                $ret = $db->replace('common_process', ['processid' => $name, 'expiry' => time() + $ttl]);
+                $ret = $db->replace('common_process', array('processid' => $name, 'expiry' => time() + $ttl));
                 break;
             case 'get':
-                $ret = $db->findOne('common_process', '*', ['processid' => $name]);
+                $ret = $db->findOne('common_process', '*', array('processid' => $name));
                 if (empty($ret) || $ret['expiry'] < time()) {
                     $ret = false;
                 } else {
@@ -75,7 +73,7 @@ class Locker {
                 }
                 break;
             case 'rm':
-                $ret = $db->remove('common_process', "processid='$name' OR expiry<" . time());
+                $ret = $db->remove('common_process', "processid='$name' OR expiry < " . time());
                 break;
         }
         return $ret;

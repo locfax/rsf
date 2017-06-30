@@ -1,12 +1,12 @@
 <?php
 
-namespace Rsf\Helper;
+namespace Xcs\Helper;
 
-class Uploader {
+use Xcs\Traits\Singleton;
 
-    use \Rsf\Traits\Singleton;
+class Uploader extends Singleton {
 
-    private $_files = [];
+    private $_files = array();
     private $_count = 0;
 
     public function init($tempfiles, $cascade = false) {
@@ -20,7 +20,7 @@ class Uploader {
                 continue;
             }
             if (is_array($struct['error'])) {
-                $arr = [];
+                $arr = array();
                 for ($i = 0; $i < count($struct['error']); $i++) {
                     if ($struct['error'][$i] != UPLOAD_ERR_NO_FILE) {
                         $arr[] = new HandleUpload($struct, $field, $i);
@@ -42,8 +42,8 @@ class Uploader {
         return $this;
     }
 
-    public function reset(){
-        $this->_files = [];
+    public function reset() {
+        $this->_files = array();
         $this->_count = 0;
     }
 

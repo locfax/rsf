@@ -1,12 +1,10 @@
 <?php
 
-namespace Rsf\Helper;
+namespace Xcs\Helper;
 
 class Pager {
 
-    use \Rsf\Traits\Singleton;
-
-    public function pagebar($pageinfo) {
+    public static function pagebar($pageinfo) {
         $totals = $pageinfo['totals'];
         $perpage = $pageinfo['length'];
         $curpage = $pageinfo['curpage'];
@@ -20,7 +18,7 @@ class Pager {
         $showkbd = isset($pageinfo['showkbd']) ? $pageinfo['showkbd'] : false;
         $simple = isset($pageinfo['simple']) ? $pageinfo['simple'] : false;
         $autogoto = true;
-        $ajaxtarget = ''; // getgpc('g.ajaxtarget') ? " ajaxtarget=\"" . getgpc('g.ajaxtarget', '', 'input_char') . "\" " : '';
+        $ajaxtarget = getgpc('g.ajaxtarget') ? " ajaxtarget=\"" . getgpc('g.ajaxtarget', '', 'input_char') . "\" " : '';
         $aname = '';
         if (strexists($mpurl, '#')) {
             $astrs = explode('#', $mpurl);
@@ -64,7 +62,7 @@ class Pager {
         return $multipage;
     }
 
-    public function simplepage($pageinfo) {
+    public static function simplepage($pageinfo) {
         //<ul class='pager'>
         //<li class="previous"><a href="{SITEPATH}list/分享发现/page1/">上一页</a></li><li class="pager-nums">2 / 4</li><li class='next'><a href='{SITEPATH}list/分享发现/lastest/page3/'>下一页</a></li>
         //</ul>

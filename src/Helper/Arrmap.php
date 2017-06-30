@@ -1,18 +1,16 @@
 <?php
 
-namespace Rsf\Helper;
+namespace Xcs\Helper;
 
 class Arrmap {
 
-    use \Rsf\Traits\Singleton;
-
     //php5.5+自带这个函数 只能处理二维
     //取出数组的指定列值
-    public function column(array $array, $column_key) {
-        $retarr = [];
+    public static function column(array $array, $column_key) {
+        $retarr = array();
         foreach ($array as $arr) {
             if (is_array($column_key)) {
-                $ret = [];
+                $ret = array();
                 foreach ($column_key as $key) {
                     $ret[] = isset($arr[$key]) ? $arr[$key] : null;
                 }
@@ -33,8 +31,8 @@ class Arrmap {
      *
      * @return array
      */
-    public function sort_field($arr, $sortField, $sortDirection = SORT_ASC) {
-        $this->sort_multi($arr, [$sortField => $sortDirection]);
+    public static function sort_field($arr, $sortField, $sortDirection = SORT_ASC) {
+        self::sort_multi($arr, array($sortField => $sortDirection));
         return $arr;
     }
 
@@ -42,8 +40,8 @@ class Arrmap {
      * 数组排序
      */
 
-    private function sort_multi(& $arr, array $args) {
-        $sortArray = [];
+    private static function sort_multi(& $arr, array $args) {
+        $sortArray = array();
         $sortRule = '';
         foreach ($args as $sortField => $sortDir) {
             foreach ($arr as $offset => $row) {
@@ -62,13 +60,13 @@ class Arrmap {
      * 遍历多维数组
      */
 
-    public function walk($arr, callable $function, $apply_keys = false) {
+    public static function walk($arr, callable $function, $apply_keys = false) {
         if (empty($arr)) {
-            return;
+            return null;
         }
         foreach ($arr as $key => $value) {
             if (is_array($value)) {
-                $arr[$key] = $this->walk($value, $function, $apply_keys);
+                $arr[$key] = self::walk($value, $function, $apply_keys);
             } else {
                 $val = $function($value);
                 if ($apply_keys) {
@@ -89,14 +87,15 @@ class Arrmap {
      * 移除val为指定值的项目
      * @param $arr
      * @param string $delval
+     * @return array
      */
-    public function remove_value($arr, $delval = '') {
+    public static function remove_value($arr, $delval = '') {
         if (empty($arr)) {
-            return;
+            return null;
         }
         foreach ($arr as $key => $value) {
             if (is_array($value)) {
-                $arr[$key] = $this->remove_value($value, $delval);
+                $arr[$key] = self::remove_value($value, $delval);
             } else {
                 if ($delval === $value) {
                     unset($arr[$key]);
@@ -112,14 +111,15 @@ class Arrmap {
      *  多维
      * 移除val为空的项
      * @param $arr
+     * @return array
      */
-    public function remove_empty($arr) {
+    public static function remove_empty($arr) {
         if (empty($arr)) {
-            return;
+            return null;
         }
         foreach ($arr as $key => $value) {
             if (is_array($value)) {
-                $arr[$key] = $this->remove_empty($value);
+                $arr[$key] = self::remove_empty($value);
             } else {
                 if (empty($value)) {
                     unset($arr[$key]);
@@ -142,8 +142,8 @@ class Arrmap {
      *
      * @return array
      */
-    public function to_map($arr, $keyField = null, $valueField = null) {
-        $map = [];
+    public static function to_map($arr, $keyField = null, $valueField = null) {
+        $map = array();
         if ($valueField) {
             foreach ($arr as $row) {
                 if ($keyField) {
@@ -172,8 +172,8 @@ class Arrmap {
      *
      * @return array
      */
-    public function group_by($arr, $groupField) {
-        $ret = [];
+    public static function group_by($arr, $groupField) {
+        $ret = array();
         foreach ($arr as $row) {
             $ret[$row[$groupField]][] = $row;
         }
@@ -195,14 +195,14 @@ class Arrmap {
      *
      * @return array
      */
-    public function to_tree($arr, $fid = 'catid', $fparent = 'upid', $index = 'catid', $fchildrens = 'children', $returnReferences = false) {
+    public static function to_tree($arr, $fid = 'catid', $fparent = 'upid', $index = 'catid', $fchildrens = 'children', $returnReferences = false) {
         $refs = $arr;
-        $pkvRefs = [];
+        $pkvRefs = array();
         foreach ($arr as $offset => $row) {
             $pkvRefs[$row[$fid]] = &$arr[$offset];
         }
 
-        $tree = [];
+        $tree = array();
         foreach ($arr as $offset => $row) {
             $parentId = $row[$fparent];
             if ($parentId) {
@@ -224,7 +224,7 @@ class Arrmap {
             }
         }
         if ($returnReferences) {
-            return ['tree' => $tree, 'refs' => $refs];
+            return array('tree' => $tree, 'refs' => $refs);
         }
         return $tree;
     }
@@ -237,11 +237,11 @@ class Arrmap {
      *
      * @return array
      */
-    public function tree_to($tree, $fchildrens = 'children') {
-        $arr = [];
+    public static function tree_to($tree, $fchildrens = 'children') {
+        $arr = array();
         if (isset($tree[$fchildrens]) && is_array($tree[$fchildrens])) {
             foreach ($tree[$fchildrens] as $child) {
-                $arr = array_merge($arr, $this->tree_to($child, $fchildrens));
+                $arr = array_merge($arr, self::tree_to($child, $fchildrens));
             }
             unset($tree[$fchildrens]);
             $arr[] = $tree;
