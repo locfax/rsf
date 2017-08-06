@@ -1,8 +1,6 @@
 <?php
 
-namespace Rsf\Db;
-
-use \Rsf\Exception;
+namespace Rsf\Database;
 
 class Mongo {
 
@@ -27,19 +25,18 @@ class Mongo {
      * @param $config
      * @param string $type
      * @return bool
-     * @throws Exception\DbException
      */
     public function connect($config, $type = '') {
         if (is_null($this->_config)) {
             $this->_config = $config;
         }
         try {
-            $this->_link = new \MongoClient($config['dsn'], ["connect" => false]);
+            $this->_link = new \MongoClient($config['dsn'], array("connect" => false));
             $this->_link->connect();
             $this->_client = $this->_link->selectDB($config['database']);
             return true;
         } catch (\MongoConnectionException $ex) {
-            if ('RETRY' !== $type) {
+            if ('RETRY' != $type) {
                 return $this->reconnect();
             }
             $this->_client = null;
@@ -48,9 +45,7 @@ class Mongo {
     }
 
     public function close() {
-        if (!$this->_config['pconnect']) {
-            $this->_link && $this->_link->close();
-        }
+        $this->_link && $this->_link->close();
     }
 
     /**
@@ -66,9 +61,8 @@ class Mongo {
      * @param bool $retid
      * @param string $type
      * @return bool|string
-     * @throws Exception\DbException
      */
-    public function create($table, $document = [], $retid = false, $type = '') {
+    public function create($table, $document = array(), $retid = false, $type = '') {
         if (!$this->_client) {
             return $this->_halt('client is not connected!');
         }
@@ -81,7 +75,7 @@ class Mongo {
                 $document['_id'] = new \MongoId();
             }
             $collection = $this->_client->selectCollection($table);
-            $ret = $collection->insert($document, ['w' => 1]);
+            $ret = $collection->insert($document, array('w' => 1));
             if ($retid && $ret) {
                 $insert_id = (string)$document['_id'];
                 return $insert_id;
@@ -101,9 +95,8 @@ class Mongo {
      * @param array $document
      * @param string $type
      * @return bool
-     * @throws Exception\DbException
      */
-    public function replace($table, $document = [], $type = '') {
+    public function replace($table, $document = array(), $type = '') {
         if (!$this->_client) {
             return $this->_halt('client is not connected!');
         }
@@ -130,9 +123,8 @@ class Mongo {
      * @param string $options
      * @param string $type
      * @return bool
-     * @throws Exception\DbException
      */
-    public function update($table, $document = [], $condition = [], $options = 'set', $type = '') {
+    public function update($table, $document = array(), $condition = array(), $options = 'set', $type = '') {
         if (!$this->_client) {
             return $this->_halt('client is not connected!');
         }
@@ -144,22 +136,23 @@ class Mongo {
             if (is_bool($options)) {
                 $options = 'set';
             }
+            $ret = null;
             if ('muti' == $options) {
                 $ret = $collection->update($condition, $document);
             } elseif ('set' == $options) { //更新 字段
-                $ret = $collection->update($condition, ['$set' => $document]);
+                $ret = $collection->update($condition, array('$set' => $document));
             } elseif ('inc' == $options) { //递增 字段
-                $ret = $collection->update($condition, ['$inc' => $document]);
+                $ret = $collection->update($condition, array('$inc' => $document));
             } elseif ('unset' == $options) { //删除 字段
-                $ret = $collection->update($condition, ['$unset' => $document]);
+                $ret = $collection->update($condition, array('$unset' => $document));
             } elseif ('push' == $options) { //推入内镶文档
-                $ret = $collection->update($condition, ['$push' => $document]);
+                $ret = $collection->update($condition, array('$push' => $document));
             } elseif ('pop' == $options) { //删除内镶文档最后一个或者第一个
-                $ret = $collection->update($condition, ['$pop' => $document]);
+                $ret = $collection->update($condition, array('$pop' => $document));
             } elseif ('pull' == $options) { //删除内镶文档某个值得项
-                $ret = $collection->update($condition, ['$pull' => $document]);
+                $ret = $collection->update($condition, array('$pull' => $document));
             } elseif ('addToSet' == $options) { //追加到内镶文档
-                $ret = $collection->update($condition, ['$addToSet' => $document]);
+                $ret = $collection->update($condition, array('$addToSet' => $document));
             }
             //$pushAll $pullAll
             return $ret;
@@ -178,9 +171,8 @@ class Mongo {
      * @param bool $muti
      * @param string $type
      * @return bool
-     * @throws Exception\DbException
      */
-    public function remove($table, $condition = [], $muti = false, $type = '') {
+    public function remove($table, $condition = array(), $muti = false, $type = '') {
         if (!$this->_client) {
             return $this->_halt('client is not connected!');
         }
@@ -192,7 +184,7 @@ class Mongo {
             if ($muti) {
                 $ret = $collection->remove($condition);
             } else {
-                $ret = $collection->remove($condition, ['justOne' => true]);
+                $ret = $collection->remove($condition, array('justOne' => true));
             }
             return $ret;
         } catch (\MongoException $ex) {
@@ -210,9 +202,8 @@ class Mongo {
      * @param array $condition
      * @param string $type
      * @return bool
-     * @throws Exception\DbException
      */
-    public function findOne($table, $fields = [], $condition = [], $type = '') {
+    public function findOne($table, $fields = array(), $condition = array(), $type = '') {
         if (!$this->_client) {
             return $this->_halt('client is not connected!');
         }
@@ -238,87 +229,109 @@ class Mongo {
     /**
      * @param $table
      * @param array $fields
-     * @param array $conditon
-     * @param bool $yield
+     * @param array $query
      * @param string $type
      * @return array|bool|\Generator
-     * @throws Exception\DbException
      */
-    public function findAll($table, $fields = [], $conditon = [], $type = '') {
+    public function findAll($table, $fields = array(), $query = array(), $type = '') {
         if (!$this->_client) {
             return $this->_halt('client is not connected!');
         }
         try {
             $collection = $this->_client->selectCollection($table);
-            if (isset($conditon['query'])) {
-                $cursor = $collection->find($conditon['query'], $fields);
-                if (isset($conditon['sort'])) {
-                    $cursor = $cursor->sort($conditon['sort']);
+            if (isset($query['query'])) {
+                $cursor = $collection->find($query['query'], $fields);
+                if (isset($query['sort'])) {
+                    $cursor = $cursor->sort($query['sort']);
                 }
             } else {
-                $cursor = $collection->find($conditon, $fields);
+                $cursor = $collection->find($query, $fields);
             }
-            $rowsets = [];
+            $rowsets = array();
             while ($cursor->hasNext()) {
                 $row = $cursor->getNext();
-                $row['_id'] = $cursor['nid'] = $row['_id']->{'$id'};
+                $row['_id'] = $row['nid'] = $row['_id']->{'$id'};
                 $rowsets[] = $row;
             }
             return $rowsets;
         } catch (\MongoException $ex) {
             if ('RETRY' !== $type) {
                 $this->reconnect();
-                return $this->findAll($table, $fields, $conditon, 'RETRY');
+                return $this->findAll($table, $fields, $query, 'RETRY');
             }
             return $this->_halt($ex->getMessage(), $ex->getCode());
         }
     }
 
-
     /**
      * @param $table
-     * @param array $fileds
-     * @param array $conditon
+     * @param $fields
+     * @param $condition
      * @param int $offset
      * @param int $length
-     * @param bool $yield
      * @param string $type
-     * @return bool
-     * @throws Exception\DbException
+     * @return array|bool
+     * @throws \Rsf\Exception\Exception
      */
-    public function page($table, $fileds = [], $conditon = [], $offset = 0, $length = 18, $type = '') {
+    private function _page($table, $fields, $condition, $offset = 0, $length = 18, $type = '') {
         if (!$this->_client) {
             return $this->_halt('client is not connected!');
         }
         try {
             $collection = $this->_client->selectCollection($table);
-            if ('fields' == $conditon['type']) {
-                $cursor = $collection->find($conditon['query'], $fileds);
-                if (isset($conditon['sort'])) {
-                    $cursor = $cursor->sort($conditon['sort']);
+            if ('fields' == $condition['type']) {
+                $cursor = $collection->find($condition['query'], $fields);
+                if (isset($condition['sort'])) {
+                    $cursor = $cursor->sort($condition['sort']);
                 }
                 $cursor = $cursor->limit($length)->skip($offset);
-                $rowsets = [];
+                $rowsets = array();
                 while ($cursor->hasNext()) {
                     $row = $cursor->getNext();
-                    $row['_id'] = $cursor['nid'] = $row['_id']->{'$id'};
+                    $row['_id'] = $row['nid'] = $row['_id']->{'$id'};
                     $rowsets[] = $row;
                 }
                 return $rowsets;
             } else {
                 //内镶文档查询
-                if (!$fileds) {
-                    throw new Exception\DbException('fields is empty', 0);
+                if (!$fields) {
+                    throw new \Rsf\Exception\Exception('fields is empty', 0);
                 }
-                $cursor = $collection->findOne($conditon['query'], [$fileds => ['$slice' => [$offset, $length]]]);
-                return $cursor[$fileds];
+                $cursor = $collection->findOne($condition['query'], array($fields => array('$slice' => array($offset, $length))));
+                return $cursor[$fields];
             }
         } catch (\MongoException $ex) {
             if ('RETRY' !== $type) {
                 $this->reconnect();
-                return $this->page($table, $fileds, $conditon, $offset, $length, 'RETRY');
+                return $this->_page($table, $fields, $condition, $offset, $length, 'RETRY');
             }
             return $this->_halt($ex->getMessage(), $ex->getCode());
+        }
+    }
+
+    /**
+     * @param $table
+     * @param $field
+     * @param $condition
+     * @param int $pageparm
+     * @param int $length
+     * @return array|bool
+     */
+    function page($table, $field, $condition, $pageparm = 0, $length = 18) {
+        if (is_array($pageparm)) {
+            //固定长度分页模式
+            $ret = array('rowsets' => array(), 'pagebar' => '');
+            if ($pageparm['totals'] <= 0) {
+                return $ret;
+            }
+            $start = \Rsf\DB::page_start($pageparm['curpage'], $length, $pageparm['totals']);
+            $ret['rowsets'] = $this->_page($table, $field, $condition, $start, $length);;
+            $ret['pagebar'] = \Rsf\DB::pagebar($pageparm, $length);
+            return $ret;
+        } else {
+            //任意长度模式
+            $start = $pageparm;
+            return $this->_page($table, $field, $condition, $start, $length);
         }
     }
 
@@ -327,9 +340,8 @@ class Mongo {
      * @param array $condition
      * @param string $type
      * @return bool
-     * @throws Exception\DbException
      */
-    public function count($table, $condition = [], $type = '') {
+    public function count($table, $condition = array(), $type = '') {
         if (!$this->_client) {
             return $this->_halt('client is not connected!');
         }
@@ -348,23 +360,20 @@ class Mongo {
         }
     }
 
+    /**
+     * @return string
+     */
     public function version() {
         return 'mongo null';
     }
 
-    /**
-     * @param string $message
-     * @param int $code
-     * @return bool
-     * @throws Exception\DbException
-     */
     private function _halt($message = '', $code = 0) {
         if ($this->_config['rundev']) {
             $this->close();
             $message = mb_convert_encoding($message, 'utf-8', 'gbk');
-            throw new Exception\DbException($message, intval($code));
+            throw new \Rsf\Exception\DbException($message, intval($code));
         }
-        return true;
+        return false;
     }
 
 }

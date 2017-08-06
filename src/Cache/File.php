@@ -2,7 +2,7 @@
 
 namespace Rsf\Cache;
 
-use \Rsf\Exception;
+use \Rsf\Exception\Exception;
 
 class File {
 
@@ -10,9 +10,13 @@ class File {
 
     public $enable = false;
 
+    /**
+     * @return $this
+     * @throws Exception
+     */
     public function init() {
         if (!is_dir(getini('data/_cache'))) {
-            throw new Exception\CacheException('路径:' . getini('data/_cache') . ' 不可写', 0);
+            throw new Exception('路径:' . getini('data/_cache') . ' 不可写');
         }
         $this->enable = true;
         return $this;
@@ -22,6 +26,10 @@ class File {
 
     }
 
+    /**
+     * @param $key
+     * @return null
+     */
     public function get($key) {
         $cachefile = getini('data/_cache') . $key . '.php';
         if (is_file($cachefile)) {
@@ -34,6 +42,12 @@ class File {
         return null;
     }
 
+    /**
+     * @param $key
+     * @param $val
+     * @param int $ttl
+     * @return bool|int
+     */
     public function set($key, $val, $ttl = 0) {
         if ($ttl > 0) {
             $timeout = time() + $ttl;
@@ -43,11 +57,24 @@ class File {
         }
 
         $cachefile = getini('data/_cache') . $key . '.php';
-        $cachedata = "return ['data' => '{$val}', 'timeout' => {$timeout}];";
+        $cachedata = "return array('data' => '{$val}', 'timeout' => {$timeout});";
         $content = "<?php \n//CACHE FILE, DO NOT MODIFY ME PLEASE!\n//Identify: " . md5($key . time()) . "\n\n{$cachedata}";
         return $this->save($cachefile, $content, FILE_WRITE_MODE);
     }
 
+    /**
+     * @param $key
+     * @param int $ttl
+     * @return bool
+     */
+    public function expire($key, $ttl = 0) {
+        return false;
+    }
+
+    /**
+     * @param $key
+     * @return bool
+     */
     public function rm($key) {
         $cachefile = getini('data/_cache') . $key . '.php';
         if (file_exists($cachefile)) {
@@ -56,15 +83,24 @@ class File {
         return true;
     }
 
+    /**
+     * @return bool
+     */
     public function clear() {
         $cachedir = getini('data/_cache');
-        $files = \Rsf\Helper\File::getInstance()->list_files($cachedir);
+        $files = \Rsf\Helper\File::list_files($cachedir);
         foreach ($files as $file) {
             unlink($cachedir . $file);
         }
         return true;
     }
 
+    /**
+     * @param $filename
+     * @param $content
+     * @param $mode
+     * @return bool|int
+     */
     public function save($filename, $content, $mode) {
         if (!is_file($filename)) {
             file_exists($filename) && unlink($filename);

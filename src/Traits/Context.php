@@ -3,6 +3,7 @@
 namespace Rsf\Traits;
 
 use \Rsf\Exception;
+
 /**
  * @example
  *

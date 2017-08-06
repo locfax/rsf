@@ -1,6 +1,6 @@
 <?php
 
-namespace Xcs\Helper;
+namespace Rsf\Helper;
 
 class Locker {
 
@@ -78,7 +78,21 @@ class Locker {
         if ('file' == getini('cache/cacher')) {
             return self::dblock($cmd, $name, $ttl);
         }
-        return \Xcs\Context::cache($cmd, 'process_' . $name, time(), $ttl);
+
+        $ret = false;
+        switch ($cmd) {
+            case 'set':
+                $ret = \Rsf\Cache::set('process_' . $name, time(), $ttl);
+                break;
+            case 'get':
+                $ret = \Rsf\Cache::get('process_' . $name);
+                break;
+            case 'rm':
+                $ret = \Rsf\Cache::set('process_' . $name);
+                break;
+        }
+
+        return $ret;
     }
 
     /**
@@ -89,7 +103,7 @@ class Locker {
      */
     private static function dblock($cmd, $name, $ttl = 0) {
         $ret = '';
-        $db = \Xcs\DB::dbo(self::dsn);
+        $db = \Rsf\DB::dbo(self::dsn);
         switch ($cmd) {
             case 'set':
                 $ret = $db->replace('common_process', array('processid' => $name, 'expiry' => time() + $ttl));

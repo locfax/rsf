@@ -2,15 +2,15 @@
 
 namespace Rsf;
 
-class Db {
+class DB {
 
-    private static $default_dbo_id = 'portal';
+    private static $default_dbo_id = APPDSN;
     private static $using_dbo_id = null;
-    private static $used_dbo = [];
+    private static $used_dbo = array();
 
     /**
      * @param string $dsnid
-     * @return null
+     * @return mixed
      */
     public static function dbo($dsnid = 'portal') {
         $_dsn = Context::dsn($dsnid);
@@ -19,9 +19,9 @@ class Db {
             $dbo = self::$used_dbo[$dsnkey];
             $dbo->connect($_dsn);
         } else {
-            $classname = '\\db\\' . ucfirst($_dsn['driver']);
+            $classname = '\\Rsf\\Database\\' . ucfirst($_dsn['driver']);
             $dbo = new $classname;
-            $dbo->connect($_dsn);
+            call_user_func(array($dbo, 'connect'), $_dsn);
             self::$used_dbo[$dsnkey] = $dbo;
         }
         return $dbo;
@@ -29,7 +29,7 @@ class Db {
 
     /**
      * @param string $dsnid
-     * @return null
+     * @return \Rsf\Database\Pdo|mixed
      */
     public static function dbm($dsnid = 'portal') {
         $_dsn = Context::dsn($dsnid);
@@ -38,7 +38,7 @@ class Db {
             $dbo = self::$used_dbo[$dsnkey];
             $dbo->connect($_dsn);
         } else {
-            $dbo = new Db\Pdox;
+            $dbo = new \Rsf\Database\Pdo();
             $dbo->connect($_dsn);
             self::$used_dbo[$dsnkey] = $dbo;
         }
@@ -112,7 +112,7 @@ class Db {
      *  - mongod的情况: bool true 删除多条 false 只能删除一条
      *
      * @param string $table
-     * @param mix $condition
+     * @param mixed $condition
      * @return bool/int
      */
     public static function remove($table, $condition, $muti = true) {
@@ -122,7 +122,7 @@ class Db {
 
     /**
      * 查找一条数据
-     * 如果要链表 使用 DB::one
+     * 如果要链表 使用 DB::row
      *
      * @param string $table
      * @param mixed $field
@@ -135,7 +135,7 @@ class Db {
     }
 
     /**
-     * 通用取多条数据的简洁方式 如果要链表 使用 DB::all
+     * 通用取多条数据的简洁方式 如果要链表 使用 DB::rowset
      *
      * @param string $table
      * @param string $field
@@ -149,72 +149,17 @@ class Db {
     }
 
     /**
-     * 带分页数据的DB::all
+     * 带分页数据的DB::page
      * @param string $table
-     * - mysql: string 查询字符串  完整的SQL语句
-     * - mongo: array
-     * array(
-     * type => string // fields field
-     * field => string, 内镶文档所在字段
-     * query=>array, //条件
-     * sort=>string //内镶文档无效
-     * )
      * @param $field
-     * @param $condition
+     * @param mixed $condition
      * @param int $length
      * @param int $pageparm
      * @return array
      */
     public static function page($table, $field, $condition, $pageparm = 0, $length = 18) {
         $db = self::Using(self::$using_dbo_id);
-        if (is_array($pageparm)) {
-            //固定长度分页模式
-            $ret = [
-                'rowsets' => [],
-                'pagebar' => ''
-            ];
-            if ($pageparm['totals'] <= 0) {
-                return $ret;
-            }
-            $start = self::page_start($pageparm['curpage'], $length, $pageparm['totals']);
-            $data = $db->page($table, $field, $condition, $start, $length);
-            if (!isset($pageparm['type']) || 'pagebar' == $pageparm['type']) {
-                $defpageparm = [
-                    'curpage' => 1,
-                    'maxpages' => 0,
-                    'showpage' => 10,
-                    'udi' => '',
-                    'shownum' => false,
-                    'showkbd' => false,
-                    'simple' => false
-                ];
-                $pageparm = array_merge($defpageparm, $pageparm);
-                $pageparm['length'] = $length;
-                $pagebar = Helper\Pager::getInstance()->pagebar($pageparm);
-            } elseif ('simplepage' == $pageparm['type']) {
-                $defpageparm = [
-                    'curpage' => 1,
-                    'udi' => ''
-                ];
-                $pageparm = array_merge($defpageparm, $pageparm);
-                $pageparm['length'] = $length;
-                $pagebar = Helper\Pager::getInstance()->simplepage($pageparm);
-            } else {
-                $pagebar = [
-                    'totals' => $pageparm['totals'],
-                    'pages' => ceil($pageparm['totals'] / $length),
-                    'curpage' => $pageparm['curpage']
-                ];
-            }
-            $ret['rowsets'] = $data;
-            $ret['pagebar'] = $pagebar;
-            return $ret;
-        } else {
-            //任意长度模式
-            $start = $pageparm;
-            $data = $db->page($table, $field, $condition, $start, $length);
-            return $data;
-        }
+        return $db->page($table, $field, $condition, $pageparm, $length);
     }
 
     /**
@@ -226,7 +171,7 @@ class Db {
      * $field 无意义
      *
      * @param string $table
-     * @param string $condition
+     * @param mixed $condition
      * @param string $field
      * @return mixed
      */
@@ -249,7 +194,6 @@ class Db {
         $db = self::Using(self::$using_dbo_id);
         return $db->result_first($table, $filed, $condition);
     }
-
 
     //--------------多表联合查询---start---------------//
 
@@ -276,7 +220,7 @@ class Db {
     /**
      * @param $query
      * @param $args
-     * @param $index
+     * @param null $index
      * @return mixed
      */
     public static function rowset($query, $args = null, $index = null) {
@@ -285,69 +229,45 @@ class Db {
     }
 
     /**
-     * @param $sql
+     * @param string $sql
+     * @param array $args
      * @param int $pageparm
      * @param int $length
      * @return array
      */
-    public static function pages($sql, $pageparm = 0, $length = 18) {
+    public static function pages($sql, $args = null, $pageparm = 0, $length = 18) {
         $db = self::Using(self::$using_dbo_id);
-        if (is_array($pageparm)) {
-            //固定长度分页模式
-            $ret = [
-                'rowsets' => [],
-                'pagebar' => ''
-            ];
-            if ($pageparm['totals'] <= 0) {
-                return $ret;
-            }
-            $start = self::page_start($pageparm['curpage'], $length, $pageparm['totals']);
-            $data = $db->pages($sql . " LIMIT {$start},{$length}");
-            if (!isset($pageparm['type']) || 'pagebar' == $pageparm['type']) {
-                $defpageparm = [
-                    'curpage' => 1,
-                    'maxpages' => 0,
-                    'showpage' => 10,
-                    'udi' => '',
-                    'shownum' => false,
-                    'showkbd' => false,
-                    'simple' => false
-                ];
-                $pageparm = array_merge($defpageparm, $pageparm);
-                $pageparm['length'] = $length;
-                $pagebar = Helper\Pager::getInstance()->pagebar($pageparm);
-            } elseif ('simplepage' == $pageparm['type']) {
-                $defpageparm = [
-                    'curpage' => 1,
-                    'udi' => ''
-                ];
-                $pageparm = array_merge($defpageparm, $pageparm);
-                $pageparm['length'] = $length;
-                $pagebar = Helper\Pager::getInstance()->simplepage($pageparm);
-            } else {
-                $pagebar = [
-                    'totals' => $pageparm['totals'],
-                    'pages' => ceil($pageparm['totals'] / $length),
-                    'curpage' => $pageparm['curpage']
-                ];
-            }
-            $ret['rowsets'] = $data;
-            $ret['pagebar'] = $pagebar;
-            return $ret;
-        } else {
-            //任意长度模式
-            $start = $pageparm;
-            $data = $db->pages($sql . " LIMIT {$start},{$length}");
-            return $data;
-        }
+        return $db->pages($sql, $args, $pageparm, $length);
     }
+
+    /**
+     * @param $sql
+     * @param null $args
+     * @return mixed
+     */
+    public static function counts($sql, $args = null) {
+        $db = self::Using(self::$using_dbo_id);
+        return $db->counts($sql, $args);
+    }
+
+    /**
+     * @param $sql
+     * @param null $args
+     * @return mixed
+     */
+    public static function firsts($sql, $args = null) {
+        $db = self::Using(self::$using_dbo_id);
+        return $db->result_firsts($sql, $args);
+    }
+
+    //--------------多表联合查询---end---------------//
 
     /**
      * 切换数据源对象
      *
      * @param null $id
-     * @return object
-     * @throws Exception\DbException
+     * @throws Exception\Exception
+     * @return mixed
      */
     public static function Using($id = null) {
         if (!$id) {
@@ -360,7 +280,7 @@ class Db {
             }
         }
         if (self::$using_dbo_id === 'none') {
-            throw new Exception\DbException('dsn is none', 0);
+            throw new Exception\Exception('dsn is none', 0);
         }
         return self::dbo(self::$using_dbo_id);
     }
@@ -368,7 +288,6 @@ class Db {
     /**
      * 数据库版本
      */
-
     public static function version() {
         $db = self::Using(self::$using_dbo_id);
         return $db->version();
@@ -384,6 +303,47 @@ class Db {
         $totalpage = ceil($totalnum / $ppp);
         $_page = max(1, min($totalpage, intval($page)));
         return ($_page - 1) * $ppp;
+    }
+
+    /**
+     * @param $pageparm
+     * @param $length
+     * @return array
+     */
+    public static function pagebar($pageparm, $length) {
+        if (!isset($pageparm['type']) || 'pagebar' == $pageparm['type']) {
+            $defpageparm = array(
+                'curpage' => 1,
+                'maxpages' => 0,
+                'showpage' => 10,
+                'udi' => '',
+                'shownum' => false,
+                'showkbd' => false,
+                'simple' => false
+            );
+            $pageparm = array_merge($defpageparm, $pageparm);
+            $pageparm['length'] = $length;
+            $pagebar = Helper\Pager::pagebar($pageparm);
+        } elseif ('simplepage' == $pageparm['type']) {
+            $defpageparm = array(
+                'curpage' => 1,
+                'udi' => ''
+            );
+            $pageparm = array_merge($defpageparm, $pageparm);
+            $pageparm['length'] = $length;
+            $pagebar = Helper\Pager::simplepage($pageparm);
+        } else {
+            $pages = ceil($pageparm['totals'] / $length);
+            $nextpage = ($pages > $pageparm['curpage']) ? $pageparm['curpage'] + 1 : $pages;
+            $pagebar = array(
+                'totals' => $pageparm['totals'],
+                'pagecount' => $pages,
+                'prepage' => $pageparm['curpage'] - 1 > 0 ? $pageparm['curpage'] - 1 : 1,
+                'curpage' => $pageparm['curpage'],
+                'nextpage' => $nextpage
+            );
+        }
+        return $pagebar;
     }
 
 }

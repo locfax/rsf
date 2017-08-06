@@ -4,7 +4,7 @@ namespace Rsf;
 
 use Rsf\Exception;
 
-class Application {
+class App {
 
     const _dCTL = 'ctl';
     const _dACT = 'act';
@@ -147,6 +147,24 @@ class Application {
             $output = $this->strexception($previous) . $output;
         }
         return $output;
+    }
+
+    /**
+     * @param $group
+     * @param null $vars
+     * @return mixed
+     */
+    public static function mergeVars($group, $vars = null) {
+        static $_CDATA = array(APPKEY => array('dsn' => null, 'cfg' => null, 'data' => null));
+        if (is_null($vars)) {
+            return $_CDATA[APPKEY][$group];
+        }
+        if (is_null($_CDATA[APPKEY][$group])) {
+            $_CDATA[APPKEY][$group] = $vars;
+        } else {
+            $_CDATA[APPKEY][$group] = array_merge($_CDATA[APPKEY][$group], $vars);
+        }
+        return true;
     }
 
     /**

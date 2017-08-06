@@ -3,7 +3,7 @@
 // 此类是根据ASCII码转换，GB2312库对多音字也无能为力，此类优点是性能比较高。
 // GB2312标准共收录6763个汉字，此类的算法只支持其中的一级汉字3755个，不在范围内的汉字是无法转换，如：中国前总理朱镕基的“镕”字。
 
-namespace Xcs\Helper;
+namespace Rsf\Helper;
 
 class Pinyin {
 

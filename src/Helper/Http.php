@@ -1,6 +1,6 @@
 <?php
 
-namespace Xcs\Helper;
+namespace Rsf\Helper;
 /**
  * 数据采集，doGET,doPOST,文件下载
  */

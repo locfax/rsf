@@ -1,10 +1,10 @@
 <?php
 
-namespace Xcs\Helper;
+namespace Rsf\Helper;
 
-use Xcs\Traits\Singleton;
+class Xss {
 
-class Xss extends Singleton {
+    use \Rsf\Traits\Singleton;
 
     /**
      * 非法文件名字符
@@ -75,7 +75,7 @@ class Xss extends Singleton {
      */
     public function clean($str, $is_image = false) {
         if (is_array($str)) {
-            while (list($key) = each($str)) {
+            foreach ($str as $key) {
                 $str[$key] = $this->clean($str[$key]);
             }
             return $str;

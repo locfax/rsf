@@ -1,10 +1,8 @@
 <?php
 
-namespace Rsf\Db;
+namespace Rsf\Database;
 
-use \Rsf\Exception;
-
-class Pdox {
+class Pdo {
 
     private $_config = null;
     private $_link = null;
@@ -77,14 +75,14 @@ class Pdox {
      * @return array
      */
     public function field_param(array $fields, $glue = ',') {
-        $args = [];
+        $args = array();
         $sql = $comma = '';
         foreach ($fields as $field => $value) {
             $sql .= $comma . $this->qfield($field) . '=:' . $field;
             $args[':' . $field] = $this->daddslashes($value);
             $comma = $glue;
         }
-        return [$sql, $args];
+        return array($sql, $args);
     }
 
     /**
@@ -115,7 +113,7 @@ class Pdox {
         if (empty($data)) {
             return false;
         }
-        $args = [];
+        $args = array();
         $fields = $values = $comma = '';
         foreach ($data as $field => $value) {
             $fields .= $comma . $this->qfield($field);
@@ -144,7 +142,7 @@ class Pdox {
         if (empty($data)) {
             return false;
         }
-        $args = [];
+        $args = array();
         $fields = $values = $comma = '';
         foreach ($data as $field => $value) {
             $fields .= $comma . $this->qfield($field);
@@ -160,10 +158,9 @@ class Pdox {
         }
     }
 
-
     /**
      * @param $tableName
-     * @param $data
+     * @param array $data
      * @param $condition
      * @param bool $retnum
      * @return bool
@@ -218,10 +215,9 @@ class Pdox {
         }
     }
 
-
     /**
      * @param $tableName
-     * @param $field
+     * @param string $field
      * @param $condition
      * @return bool
      */
@@ -240,13 +236,12 @@ class Pdox {
         }
     }
 
-
     /**
      * @param $tableName
-     * @param $field
-     * @param $condition
-     * @param $index
-     * @return bool|array
+     * @param string $field
+     * @param string $condition
+     * @param null $index
+     * @return array|bool
      */
     public function findAll($tableName, $field = '*', $condition = '1', $index = null) {
         try {
@@ -267,29 +262,54 @@ class Pdox {
         }
     }
 
-
     /**
      * @param $tableName
-     * @param $field
+     * @param string $field
      * @param $condition
-     * @param int $offset
+     * @param int $start
      * @param int $length
      * @return bool
      */
-    public function page($tableName, $field, $condition, $offset = 0, $length = 20) {
+    private function _page($tableName, $field, $condition, $start = 0, $length = 20) {
         try {
             if (is_array($condition)) {
                 list($condition, $args) = $this->field_param($condition, ' AND ');
-                $args[':offset'] = $offset;
+                $args[':start'] = $start;
                 $args[':length'] = $length;
-                $sth = $this->_link->prepare('SELECT ' . $field . ' FROM ' . $tableName . ' WHERE ' . $condition . ' LIMIT :offset, :length');
+                $sth = $this->_link->prepare('SELECT ' . $field . ' FROM ' . $tableName . ' WHERE ' . $condition . ' LIMIT :start,:length');
                 $sth->execute($args);
             } else {
-                $sth = $this->_link->query('SELECT ' . $field . ' FROM ' . $tableName . ' WHERE ' . $condition . " LIMIT {$offset},{$length}");
+                $sth = $this->_link->query('SELECT ' . $field . ' FROM ' . $tableName . ' WHERE ' . $condition . " LIMIT {$start},{$length}");
             }
             return $sth->fetchAll();
         } catch (\PDOException $e) {
             return $this->_halt($e->getMessage(), $e->getCode());
+        }
+    }
+
+    /**
+     * @param $table
+     * @param $field
+     * @param $condition
+     * @param int $pageparm
+     * @param int $length
+     * @return array|bool
+     */
+    public function page($table, $field, $condition, $pageparm = 0, $length = 18) {
+        if (is_array($pageparm)) {
+            //固定长度分页模式
+            $ret = array('rowsets' => array(), 'pagebar' => '');
+            if ($pageparm['totals'] <= 0) {
+                return $ret;
+            }
+            $start = \Rsf\DB::page_start($pageparm['curpage'], $length, $pageparm['totals']);
+            $ret['rowsets'] = $this->_page($table, $field, $condition, $start, $length);;
+            $ret['pagebar'] = \Rsf\DB::pagebar($pageparm, $length);
+            return $ret;
+        } else {
+            //任意长度模式
+            $start = $pageparm;
+            return $this->_page($table, $field, $condition, $start, $length);
         }
     }
 
@@ -359,12 +379,19 @@ class Pdox {
     }
 
     /**
-     * @param $sql
+     * @param string $sql
+     * @param array $args
      * @return bool
      */
-    public function pages($sql) {
+    private function _pages($sql, $args = null) {
         try {
-            $sth = $this->_link->query($sql . ' LIMIT 0,1');
+            if (is_null($args)) {
+                $sth = $this->_link->query($sql);
+            } else {
+                list($_, $_args) = $this->field_param($args);
+                $sth = $this->_link->prepare($sql);
+                $sth->execute($_args);
+            }
             return $sth->fetchAll();
         } catch (\PDOException $e) {
             return $this->_halt($e->getMessage(), $e->getCode());
@@ -372,24 +399,27 @@ class Pdox {
     }
 
     /**
-     * @param $tableName
-     * @param $field
-     * @param $condition
-     * @return bool
+     * @param string $sql
+     * @param array $args
+     * @param mixed $pageparm
+     * @param int $length
+     * @return array|bool
      */
-    public function result_first($tableName, $field, $condition) {
-        try {
-            if (is_array($condition)) {
-                list($condition, $args) = $this->field_param(field_param, ' AND ');
-                $sth = $this->_link->prepare("SELECT {$field} AS result FROM {$tableName} WHERE {$condition} LIMIT 0,1");
-                $sth->execute($args);
-            } else {
-                $sth = $this->_link->query("SELECT {$field} AS result FROM {$tableName} WHERE {$condition} LIMIT 0,1");
+    public function pages($sql, $args = null, $pageparm = 0, $length = 18) {
+        if (is_array($pageparm)) {
+            //固定长度分页模式
+            $ret = array('rowsets' => array(), 'pagebar' => '');
+            if ($pageparm['totals'] <= 0) {
+                return $ret;
             }
-            return $sth->fetchColumn();
-        } catch (\PDOException $e) {
-            $this->_halt($e->getMessage(), $e->getCode());
-            return false;
+            $start = \Rsf\DB::page_start($pageparm['curpage'], $length, $pageparm['totals']);
+            $ret['rowsets'] = $this->_pages($sql . " LIMIT {$start},{$length}", $args);;
+            $ret['pagebar'] = \Rsf\DB::pagebar($pageparm, $length);;
+            return $ret;
+        } else {
+            //任意长度模式
+            $start = $pageparm;
+            return $this->_pages($sql . " LIMIT {$start},{$length}", $args);
         }
     }
 
@@ -403,6 +433,58 @@ class Pdox {
         return $this->result_first($tableName, "COUNT({$field})", $condition);
     }
 
+    /**
+     * @param $sql
+     * @param null $args
+     * @return bool
+     */
+    public function counts($sql, $args = null) {
+        return $this->result_firsts($sql, $args);
+    }
+
+    /**
+     * @param string $tableName
+     * @param string $field
+     * @param mixed $condition
+     * @return bool
+     */
+    public function result_first($tableName, $field, $condition) {
+        try {
+            if (is_array($condition)) {
+                list($condition, $args) = $this->field_param($condition, ' AND ');
+                $sth = $this->_link->prepare("SELECT {$field} AS result FROM {$tableName} WHERE  {$condition} LIMIT 0,1");
+                $sth->execute($args);
+            } else {
+                $sth = $this->_link->query("SELECT {$field} AS result FROM {$tableName} WHERE  {$condition} LIMIT 0,1");
+            }
+            return $sth->fetchColumn();
+        } catch (\PDOException $e) {
+            return $this->_halt($e->getMessage(), $e->getCode());
+        }
+    }
+
+    /**
+     * @param $sql
+     * @param null $args
+     * @return bool
+     */
+    public function result_firsts($sql, $args = null) {
+        try {
+            if (is_null($args)) {
+                $sth = $this->_link->query($sql);
+            } else {
+                $sth = $this->_link->prepare($sql);
+                $sth->execute($args);
+            }
+            return $sth->fetchColumn();
+        } catch (\PDOException $e) {
+            return $this->_halt($e->getMessage(), $e->getCode());
+        }
+    }
+
+    /**
+     * @return string
+     */
     public function version() {
         return 'pdo null';
     }
@@ -426,13 +508,14 @@ class Pdox {
      * @param string $message
      * @param int $code
      * @return bool
-     * @throws Exception\DbException
+     * @throws \Rsf\Exception\DbException
      */
     private function _halt($message = '', $code = 0) {
         if ($this->_config['rundev']) {
             $this->close();
-            $message = mb_convert_encoding($message, 'utf-8', 'gbk');
-            throw new Exception\DbException($message, intval($code));
+            $encode = mb_detect_encoding($message, array('ASCII', 'UTF-8', 'GB2312', 'GBK', 'BIG5'));
+            $message = mb_convert_encoding($message, 'UTF-8', $encode);
+            throw new \Rsf\Exception\DbException($message, intval($code));
         }
         return false;
     }
@@ -459,11 +542,11 @@ class Pdox {
      * @param $col
      * @return array
      */
-    function array_index($arr, $col) {
+    private function array_index($arr, $col) {
         if (!is_array($arr)) {
             return $arr;
         }
-        $rows = [];
+        $rows = array();
         foreach ($arr as $row) {
             $rows[$row[$col]] = $row;
         }

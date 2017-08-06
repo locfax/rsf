@@ -1,10 +1,10 @@
 <?php
 
-namespace Rsf;
+namespace Rsf\Cache;
 
 class Cacher {
 
-    use Traits\Singleton;
+    use \Rsf\Traits\Singleton;
 
     private $config = [];
     private $prefix = '';
@@ -19,7 +19,7 @@ class Cacher {
         if (in_array($cacher, array('file', 'memcache', 'redis', 'xcache'))) {
             $class = '\\Rsf\\Cache\\' . ucfirst($cacher);
             if ($cacher != 'file') {
-                $config = Context::dsn($cacher . '.cache');
+                $config = \Rsf\Context::dsn($cacher . '.cache');
             } else {
                 $config = null;
             }

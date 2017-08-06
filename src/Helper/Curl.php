@@ -1,6 +1,6 @@
 <?php
 
-namespace Xcs\Helper;
+namespace Rsf\Helper;
 
 class Curl {
 
@@ -159,7 +159,7 @@ class Curl {
      */
     private static function raw_url($_raw_url) {
         $raw_url = (string)$_raw_url;
-        if (!strexists($raw_url, '://')) {
+        if (!\Rsf\Util::strpos($raw_url, '://')) {
             $raw_url = 'http://' . $raw_url;
         }
         $retval = parse_url($raw_url);

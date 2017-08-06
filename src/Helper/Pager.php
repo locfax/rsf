@@ -1,6 +1,6 @@
 <?php
 
-namespace Xcs\Helper;
+namespace Rsf\Helper;
 
 class Pager {
 
@@ -12,9 +12,9 @@ class Pager {
         $totals = $pageinfo['totals'];
         $perpage = $pageinfo['length'];
         $curpage = $pageinfo['curpage'];
-        $mpurl = url($pageinfo['udi']);
+        $mpurl = $pageinfo['udi'];
         if (isset($pageinfo['param'])) {
-            $mpurl .= $pageinfo['param'];
+            $mpurl .= '?' . $pageinfo['param'];
         }
         $maxpages = isset($pageinfo['maxpages']) ? $pageinfo['maxpages'] : false; //最大页数限制
         $page = isset($pageinfo['showpage']) ? $pageinfo['showpage'] : false; //一次显示多少页码
@@ -24,14 +24,14 @@ class Pager {
         $autogoto = true;
         $ajaxtarget = getgpc('g.ajaxtarget') ? " ajaxtarget=\"" . getgpc('g.ajaxtarget', '', 'input_char') . "\" " : '';
         $aname = '';
-        if (strexists($mpurl, '#')) {
+        if (\Rsf\Util::strpos($mpurl, '#')) {
             $astrs = explode('#', $mpurl);
             $mpurl = $astrs[0];
             $aname = '#' . $astrs[1];
         }
         $lang['prev'] = '上一页';
         $lang['next'] = '下一页';
-        $mpurl .= strexists($mpurl, '?') ? '&' : '?';
+        $mpurl .= \Rsf\Util::strpos($mpurl, '?') ? '&' : '?';
         $offset = floor($page * 0.5);
         $realpages = ceil($totals / $perpage);
         $pages = $maxpages && $maxpages < $realpages ? $maxpages : $realpages;

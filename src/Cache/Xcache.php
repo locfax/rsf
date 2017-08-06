@@ -2,7 +2,7 @@
 
 namespace Rsf\Cache;
 
-use \Rsf\Exception;
+use \Rsf\Exception\Exception;
 
 class Xcache {
 
@@ -11,8 +11,8 @@ class Xcache {
     public $enable = false;
 
     public function init() {
-        if (!extension_loaded('memcache')) {
-            throw new Exception\Exception('memcache 扩展没安装?');
+        if (!function_exists('xcache_get')) {
+            throw new Exception('xcache 扩展没安装?');
         }
         $this->enable = true;
         return $this;
@@ -22,10 +22,20 @@ class Xcache {
 
     }
 
+    /**
+     * @param $key
+     * @return mixed
+     */
     public function get($key) {
         return xcache_get($key);
     }
 
+    /**
+     * @param $key
+     * @param $value
+     * @param int $ttl
+     * @return bool
+     */
     public function set($key, $value, $ttl = 0) {
         if ($ttl > 0) {
             return xcache_set($key, $value, $ttl);
@@ -33,6 +43,19 @@ class Xcache {
         return xcache_set($key, $value);
     }
 
+    /**
+     * @param $key
+     * @param int $ttl
+     * @return bool
+     */
+    public function expire($key, $ttl = 0) {
+        return false;
+    }
+
+    /**
+     * @param $key
+     * @return bool
+     */
     public function rm($key) {
         return xcache_unset($key);
     }
