@@ -116,11 +116,7 @@ class Util {
      * @return string
      */
     public static function output_json($arr) {
-        if (phpversion() >= 5.4) {
-            return json_encode($arr, JSON_UNESCAPED_UNICODE);
-        }
-        $json = json_encode(self::urlencode($arr));
-        return urldecode($json);
+        return json_encode($arr, JSON_UNESCAPED_UNICODE);
     }
 
     public static function output_nocache() {
