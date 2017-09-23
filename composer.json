@@ -21,6 +21,6 @@
   },
   "autoload": {
     "psr-4": {"Rsf\\": "src"},
-    "files": ["src/constant.php", "src/function.php", "src/utils.php"]
+    "files": ["src/constant.php", "src/common.php"]
   }
 }
