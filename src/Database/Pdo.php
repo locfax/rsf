@@ -79,7 +79,7 @@ class Pdo {
         $sql = $comma = '';
         foreach ($fields as $field => $value) {
             $sql .= $comma . $this->qfield($field) . '=:' . $field;
-            $args[':' . $field] = $this->daddslashes($value);
+            $args[':' . $field] = $value;
             $comma = $glue;
         }
         return array($sql, $args);
@@ -96,7 +96,7 @@ class Pdo {
             if (strpos($value, '+') || strpos($value, '-')) {
                 $addsql .= $comma . $this->qfield($field) . '=' . $value;
             } else {
-                $addsql .= $comma . $this->qfield($field) . "='" . $this->daddslashes($value) . "'";
+                $addsql .= $comma . $this->qfield($field) . "='" . $value . "'";
             }
             $comma = $glue;
         }
@@ -118,7 +118,7 @@ class Pdo {
         foreach ($data as $field => $value) {
             $fields .= $comma . $this->qfield($field);
             $values .= $comma . ':' . $field;
-            $args[':' . $field] = $this->daddslashes($value);
+            $args[':' . $field] = $value;
             $comma = ',';
         }
         try {
@@ -147,7 +147,7 @@ class Pdo {
         foreach ($data as $field => $value) {
             $fields .= $comma . $this->qfield($field);
             $values .= $comma . ':' . $field;
-            $args[':' . $field] = $this->daddslashes($value);
+            $args[':' . $field] = $value;
             $comma = ',';
         }
         try {
@@ -524,7 +524,7 @@ class Pdo {
      * @param $string
      * @return array|string
      */
-    private function daddslashes($string) {
+    private function addslashes($string) {
         if (empty($string)) {
             return $string;
         }
@@ -532,7 +532,7 @@ class Pdo {
             return $string;
         }
         if (is_array($string)) {
-            return array_map('$this->daddslashes', $string);
+            return array_map('$this->addslashes', $string);
         }
         return addslashes($string);
     }

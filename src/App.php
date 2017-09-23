@@ -6,8 +6,8 @@ use Rsf\Exception;
 
 class App {
 
-    const _dCTL = 'ctl';
-    const _dACT = 'act';
+    const _dCTL = 'c';
+    const _dACT = 'a';
     const _controllerPrefix = '\\';
     const _actionPrefix = 'act_';
 
@@ -26,7 +26,7 @@ class App {
         $this->rootnamespace('\\', $root);
     }
 
-    private function finish($response) {
+    private function finish(Swoole\Response $response) {
         try {
             $response->end();
             Db::close();
@@ -110,20 +110,26 @@ class App {
         $actionMethod = self::_actionPrefix . $actionName;
 
         $controllerClass = self::_controllerPrefix . APPKEY . '\\' . $controllerName;
-        try {
+        if (defined('DEBUG') && DEBUG) {
             $controller = new $controllerClass($request, $response);
             $data = call_user_func([$controller, $actionMethod]);
             $this->response($data, 200, $response);
-        } catch (Exception\Exception $exception) { //普通异常
-            $this->exception($exception, $response);
-        } catch (Exception\DbException $exception) { //db异常
-            $this->exception($exception, $response);
-        } catch (Exception\CacheException $exception) { //cache异常
-            $this->exception($exception, $response);
-        } catch (\ErrorException $exception) {
-            $this->exception($exception, $response);
-        } catch (\Throwable $exception) { //PHP7
-            $this->exception($exception, $response);
+        } else {
+            try {
+                $controller = new $controllerClass($request, $response);
+                $data = call_user_func([$controller, $actionMethod]);
+                $this->response($data, 200, $response);
+            } catch (Exception\Exception $exception) { //普通异常
+                $this->exception($exception, $response);
+            } catch (Exception\DbException $exception) { //db异常
+                $this->exception($exception, $response);
+            } catch (Exception\CacheException $exception) { //cache异常
+                $this->exception($exception, $response);
+            } catch (\ErrorException $exception) {
+                $this->exception($exception, $response);
+            } catch (\Throwable $exception) { //PHP7
+                $this->exception($exception, $response);
+            }
         }
     }
 

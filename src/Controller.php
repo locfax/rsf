@@ -59,11 +59,15 @@ class Controller {
             $this->response->withStatus($code, Http\Http::getStatus($code));
         }
         $this->response->withHeader('Content-Type', 'application/json; charset=' . getini('site/charset'));
-        $data = $data ? output_json($data) : '';
+        $data = $data ? \Rsf\Util::output_json($data) : '';
         $this->response->write($data);
     }
 
-    protected function render() {
+    protected function render_start(){
+        ob_start();
+    }
+
+    protected function render_end() {
         $data = ob_get_contents();
         ob_clean();
         return $data;

@@ -116,7 +116,7 @@ class Util {
      * @return string
      */
     public static function output_json($arr) {
-        if (PHPVER >= 5.4) {
+        if (phpversion() >= 5.4) {
             return json_encode($arr, JSON_UNESCAPED_UNICODE);
         }
         $json = json_encode(self::urlencode($arr));
