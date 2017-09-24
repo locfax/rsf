@@ -186,13 +186,24 @@ class DB {
      * $filed mix  需要返回的字段  或者sql语法
      *
      * @param string $table
-     * @param string $filed
+     * @param string $field
      * @param mixed $condition
      * @return mixed
      */
-    public static function first($table, $filed, $condition) {
+    public static function first($table, $field, $condition) {
         $db = self::Using(self::$using_dbo_id);
-        return $db->result_first($table, $filed, $condition);
+        return $db->resultFirst($table, $field, $condition);
+    }
+
+    /**
+     * @param $table
+     * @param $field
+     * @param $condition
+     * @return mixed
+     */
+    public static function getCol($table, $field, $condition) {
+        $db = self::Using(self::$using_dbo_id);
+        return $db->getCol($table, $field, $condition);
     }
 
     //--------------多表联合查询---start---------------//
@@ -257,10 +268,41 @@ class DB {
      */
     public static function firsts($sql, $args = null) {
         $db = self::Using(self::$using_dbo_id);
-        return $db->result_firsts($sql, $args);
+        return $db->firsts($sql, $args);
+    }
+
+    /**
+     * @param $sql
+     * @param null $args
+     * @return mixed
+     */
+    public static function getcols($sql, $args = null) {
+        $db = self::Using(self::$using_dbo_id);
+        return $db->getcols($sql, $args);
     }
 
     //--------------多表联合查询---end---------------//
+
+    /**
+     * 开始事务
+     * @return mixed
+     */
+    public static function start_trans() {
+        $db = self::Using(self::$using_dbo_id);
+        return $db->start_trans();
+    }
+
+    /**
+     * 事务提交或者回滚
+     * @param bool $commit_no_errors
+     * @return mixed
+     */
+    public static function end_trans($commit_no_errors = true) {
+        $db = self::Using(self::$using_dbo_id);
+        return $db->end_trans($commit_no_errors);
+    }
+
+    //----------------------事务END-------------------//
 
     /**
      * 切换数据源对象
@@ -283,14 +325,6 @@ class DB {
             throw new Exception\Exception('dsn is none', 0);
         }
         return self::dbo(self::$using_dbo_id);
-    }
-
-    /**
-     * 数据库版本
-     */
-    public static function version() {
-        $db = self::Using(self::$using_dbo_id);
-        return $db->version();
     }
 
     /**
@@ -345,5 +379,4 @@ class DB {
         }
         return $pagebar;
     }
-
 }
