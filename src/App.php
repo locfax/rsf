@@ -134,7 +134,7 @@ class App {
     }
 
     /**
-     * @param $exception
+     * @param mixed $exception
      * @param $response
      */
     private function exception($exception, Swoole\Response $response) {
@@ -143,7 +143,7 @@ class App {
     }
 
     /**
-     * @param $exception
+     * @param mixed $exception
      * @return string
      */
     private function exception2str($exception) {
@@ -161,14 +161,15 @@ class App {
      * @return mixed
      */
     public static function mergeVars($group, $vars = null) {
-        static $_CDATA = array('dsn' => null, 'cfg' => null, 'data' => null);
+        static $_CDATA = array(APPKEY => array('dsn' => null, 'cfg' => null, 'data' => null));
+        $appkey = APPKEY;
         if (is_null($vars)) {
-            return $_CDATA[$group];
+            return $_CDATA[$appkey][$group];
         }
-        if (is_null($_CDATA[$group])) {
-            $_CDATA[$group] = $vars;
+        if (is_null($_CDATA[$appkey][$group])) {
+            $_CDATA[$appkey][$group] = $vars;
         } else {
-            $_CDATA[$group] = array_merge($_CDATA[$group], $vars);
+            $_CDATA[$appkey][$group] = array_merge($_CDATA[$appkey][$group], $vars);
         }
         return true;
     }
