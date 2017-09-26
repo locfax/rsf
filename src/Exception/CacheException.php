@@ -2,6 +2,6 @@
 
 namespace Rsf\Exception;
 
-class CacheException extends \Exception {
+class CacheException extends Exception {
 
  }
