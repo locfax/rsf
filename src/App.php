@@ -150,7 +150,7 @@ class App {
         $output = '<h3>' . $exception->getMessage() . '</h3>';
         $output .= '<p>' . nl2br($exception->getTraceAsString()) . '</p>';
         if ($previous = $exception->getPrevious()) {
-            $output = $this->strexception($previous) . $output;
+            $output = $this->exception2str($previous) . $output;
         }
         return $output;
     }
