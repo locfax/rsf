@@ -32,9 +32,9 @@ class Controller {
                 'errcode' => 1,
                 'errmsg' => 'Action ' . $name . '不存在!'
             );
-            $this->repjson($res, 500);
+            $this->resjson($res);
         } else {
-            $this->rephtml('Action ' . $name . '不存在!', 500);
+            $this->response('Action ' . $name . '不存在!');
         }
     }
 
@@ -42,7 +42,7 @@ class Controller {
      * @param String $data
      * @param int $code
      */
-    protected function rephtml($data = '', $code = 200) {
+    protected function response($data = '', $code = 200) {
         if ($code !== 200) {
             $this->response->withStatus($code, Http\Http::getStatus($code));
         }
@@ -54,16 +54,30 @@ class Controller {
      * @param array $data
      * @param int $code
      */
-    protected function repjson($data = [], $code = 200) {
+    protected function resjson($data = array(), $code = 200) {
         if ($code !== 200) {
             $this->response->withStatus($code, Http\Http::getStatus($code));
         }
         $this->response->withHeader('Content-Type', 'application/json; charset=' . getini('site/charset'));
-        $data = $data ? \Rsf\Util::output_json($data) : '';
+        $data = $data ? Util::output_json($data) : '';
         $this->response->write($data);
     }
 
-    protected function render_start(){
+    protected function sendfile($file, $type = 'image/jpeg') {
+        $this->response->header('Content-Type', $type);
+        $this->response->sendfile($file);
+    }
+
+    protected function finish() {
+        try {
+            $this->response->end();
+            Db::close();
+        } catch (\ErrorException $e) {
+
+        }
+    }
+
+    protected function render_start() {
         ob_start();
     }
 
@@ -71,27 +85,6 @@ class Controller {
         $data = ob_get_contents();
         ob_clean();
         return $data;
-    }
-
-    /**
-     * @return null
-     */
-    public function checklogin() {
-        if ($this->login_user) {
-            return $this->login_user;
-        }
-        $this->login_user = User::getUser();
-        return $this->login_user;
-    }
-
-    /**
-     * @param $controllerName
-     * @param $actionName
-     * @param bool $auth
-     * @return bool
-     */
-    public function checkacl($controllerName, $actionName, $auth = AUTH) {
-        return Rbac::check($controllerName, $actionName, $auth);
     }
 
 }

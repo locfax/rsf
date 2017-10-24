@@ -1,6 +1,6 @@
 <?php
 
-namespace Xcs\Database;
+namespace Rsf\Database;
 
 class Mongo {
 
@@ -271,7 +271,7 @@ class Mongo {
      * @param int $length
      * @param string $type
      * @return array|bool
-     * @throws \Xcs\Exception\Exception
+     * @throws \Rsf\Exception\Exception
      */
     private function _page($table, $fields, $condition, $offset = 0, $length = 18, $type = '') {
         if (!$this->_client) {
@@ -295,7 +295,7 @@ class Mongo {
             } else {
                 //内镶文档查询
                 if (!$fields) {
-                    throw new \Xcs\Exception\Exception('fields is empty', 0);
+                    throw new \Rsf\Exception\Exception('fields is empty', 0);
                 }
                 $cursor = $collection->findOne($condition['query'], array($fields => array('$slice' => array($offset, $length))));
                 return $cursor[$fields];
@@ -324,9 +324,9 @@ class Mongo {
             if ($pageparm['totals'] <= 0) {
                 return $ret;
             }
-            $start = \Xcs\DB::page_start($pageparm['curpage'], $length, $pageparm['totals']);
+            $start = \Rsf\DB::page_start($pageparm['curpage'], $length, $pageparm['totals']);
             $ret['rowsets'] = $this->_page($table, $field, $condition, $start, $length);;
-            $ret['pagebar'] = \Xcs\DB::pagebar($pageparm, $length);
+            $ret['pagebar'] = \Rsf\DB::pagebar($pageparm, $length);
             return $ret;
         } else {
             //任意长度模式
@@ -364,7 +364,7 @@ class Mongo {
         if ($this->_config['rundev']) {
             $this->close();
             $message = mb_convert_encoding($message, 'utf-8', 'gbk');
-            throw new \Xcs\Exception\DbException($message, intval($code));
+            throw new \Rsf\Exception\DbException($message, intval($code));
         }
         return false;
     }

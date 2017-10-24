@@ -1,6 +1,6 @@
 <?php
 
-namespace Xcs\Database;
+namespace Rsf\Database;
 
 class Pdo {
 
@@ -302,9 +302,9 @@ class Pdo {
             if ($pageparm['totals'] <= 0) {
                 return $ret;
             }
-            $start = \Xcs\DB::page_start($pageparm['curpage'], $length, $pageparm['totals']);
+            $start = \Rsf\DB::page_start($pageparm['curpage'], $length, $pageparm['totals']);
             $ret['rowsets'] = $this->_page($table, $field, $condition, $start, $length);;
-            $ret['pagebar'] = \Xcs\DB::pagebar($pageparm, $length);
+            $ret['pagebar'] = \Rsf\DB::pagebar($pageparm, $length);
             return $ret;
         } else {
             //任意长度模式
@@ -453,9 +453,9 @@ class Pdo {
             if ($pageparm['totals'] <= 0) {
                 return $ret;
             }
-            $start = \Xcs\DB::page_start($pageparm['curpage'], $length, $pageparm['totals']);
+            $start = \Rsf\DB::page_start($pageparm['curpage'], $length, $pageparm['totals']);
             $ret['rowsets'] = $this->_pages($sql . " LIMIT {$start},{$length}", $args);;
-            $ret['pagebar'] = \Xcs\DB::pagebar($pageparm, $length);;
+            $ret['pagebar'] = \Rsf\DB::pagebar($pageparm, $length);;
             return $ret;
         } else {
             //任意长度模式
@@ -539,14 +539,14 @@ class Pdo {
      * @param string $message
      * @param int $code
      * @return bool
-     * @throws \Xcs\Exception\DbException
+     * @throws \Rsf\Exception\DbException
      */
     private function _halt($message = '', $code = 0) {
         if ($this->_config['rundev']) {
             $this->close();
             $encode = mb_detect_encoding($message, array('ASCII', 'UTF-8', 'GB2312', 'GBK', 'BIG5'));
             $message = mb_convert_encoding($message, 'UTF-8', $encode);
-            throw new \Xcs\Exception\DbException($message, intval($code));
+            throw new \Rsf\Exception\DbException($message, intval($code));
         }
         return false;
     }

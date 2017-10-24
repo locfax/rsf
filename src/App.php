@@ -19,20 +19,11 @@ class App {
     public function steup($root) {
         set_error_handler(function ($errno, $error, $file = null, $line = null) {
             if (error_reporting() & $errno) {
-                throw new \ErrorException($error, $errno, $errno, $file, $line);
+                throw new Exception\ErrorException($error, $errno);
             }
             return true;
         });
         $this->rootnamespace('\\', $root);
-    }
-
-    private function finish(Swoole\Response $response) {
-        try {
-            $response->end();
-            Db::close();
-        } catch (\ErrorException $e) {
-
-        }
     }
 
     /**
@@ -60,11 +51,9 @@ class App {
      * @param $response
      */
     public function request($request, $response) {
-
         $request = new Swoole\Request($request);
         $response = new Swoole\Response($response);
         $this->dispatching($request, $response);
-        $this->finish($response);
     }
 
     /**
@@ -88,13 +77,7 @@ class App {
         }
         $controllerName = preg_replace('/[^a-z0-9_]+/i', '', $_controllerName);
         $actionName = preg_replace('/[^a-z0-9_]+/i', '', $_actionName);
-        if (defined('AUTH') && AUTH) {
-            $allow = Rbac::check($controllerName, $actionName, AUTH);
-            if (!$allow) {
-                $this->response(' 你没有权限访问 ' . $controllerName . ' - ' . $actionName, 500, $response);
-                return;
-            }
-        }
+
         $this->execute($controllerName, $actionName, $request, $response);
     }
 
@@ -112,20 +95,18 @@ class App {
         $controllerClass = self::_controllerPrefix . APPKEY . '\\' . $controllerName;
         if (defined('DEBUG') && DEBUG) {
             $controller = new $controllerClass($request, $response);
-            $data = call_user_func([$controller, $actionMethod]);
-            $this->response($data, 200, $response);
+            call_user_func([$controller, $actionMethod]);
         } else {
             try {
                 $controller = new $controllerClass($request, $response);
-                $data = call_user_func([$controller, $actionMethod]);
-                $this->response($data, 200, $response);
-            } catch (Exception\Exception $exception) { //普通异常
-                $this->exception($exception, $response);
+                call_user_func([$controller, $actionMethod]);
             } catch (Exception\DbException $exception) { //db异常
                 $this->exception($exception, $response);
             } catch (Exception\CacheException $exception) { //cache异常
                 $this->exception($exception, $response);
-            } catch (\ErrorException $exception) {
+            } catch (Exception\ErrorException $exception) {
+                $this->exception($exception, $response);
+            } catch (\Exception $exception) { //普通异常
                 $this->exception($exception, $response);
             } catch (\Throwable $exception) { //PHP7
                 $this->exception($exception, $response);
@@ -139,7 +120,9 @@ class App {
      */
     private function exception($exception, Swoole\Response $response) {
         $data = $this->exception2str($exception);
-        $this->response($data, 500, $response);
+        $response->withStatus(500, Http\Http::getStatus(500));
+        $response->end($data);
+        Db::close(); //关闭数据库
     }
 
     /**
@@ -172,17 +155,6 @@ class App {
             $_CDATA[$appkey][$group] = array_merge($_CDATA[$appkey][$group], $vars);
         }
         return true;
-    }
-
-    /**
-     * @param $data
-     * @param int $code
-     * @param Swoole\Response $response
-     */
-    private function response($data, $code = 500, Swoole\Response $response) {
-        $response->withStatus($code);
-        $response->withHeader('Content-type', 'text/html; charset=UTF-8');
-        $response->write($data);
     }
 
     /**
