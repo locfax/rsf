@@ -1,6 +1,6 @@
 <?php
 
-namespace Rsf\Database;
+namespace Xcs\Database;
 
 class Pdo {
 
@@ -302,9 +302,9 @@ class Pdo {
             if ($pageparm['totals'] <= 0) {
                 return $ret;
             }
-            $start = \Rsf\DB::page_start($pageparm['curpage'], $length, $pageparm['totals']);
+            $start = \Xcs\DB::page_start($pageparm['curpage'], $length, $pageparm['totals']);
             $ret['rowsets'] = $this->_page($table, $field, $condition, $start, $length);;
-            $ret['pagebar'] = \Rsf\DB::pagebar($pageparm, $length);
+            $ret['pagebar'] = \Xcs\DB::pagebar($pageparm, $length);
             return $ret;
         } else {
             //任意长度模式
@@ -339,15 +339,14 @@ class Pdo {
         try {
             if (is_array($condition)) {
                 list($condition, $args) = $this->field_param($condition, ' AND ');
-                $sth = $this->_link->prepare("SELECT {$field} AS result FROM {$tableName} WHERE  {$condition} LIMIT 0,1");
+                $sth = $this->_link->prepare("SELECT {$field} AS result FROM {$tableName} WHERE  {$condition}");
                 $sth->execute($args);
             } else {
-                $sth = $this->_link->query("SELECT {$field} AS result FROM {$tableName} WHERE  {$condition} LIMIT 0,1");
+                $sth = $this->_link->query("SELECT {$field} AS result FROM {$tableName} WHERE  {$condition}");
             }
-            $rows = $sth->fetchAll();
             $ret = array();
-            foreach ($rows as $row) {
-                $ret[] = $row[$field];
+            while ($col = $sth->fetchColumn()) {
+                $ret[] = $col;
             }
             return $ret;
         } catch (\PDOException $e) {
@@ -454,9 +453,9 @@ class Pdo {
             if ($pageparm['totals'] <= 0) {
                 return $ret;
             }
-            $start = \Rsf\DB::page_start($pageparm['curpage'], $length, $pageparm['totals']);
+            $start = \Xcs\DB::page_start($pageparm['curpage'], $length, $pageparm['totals']);
             $ret['rowsets'] = $this->_pages($sql . " LIMIT {$start},{$length}", $args);;
-            $ret['pagebar'] = \Rsf\DB::pagebar($pageparm, $length);;
+            $ret['pagebar'] = \Xcs\DB::pagebar($pageparm, $length);;
             return $ret;
         } else {
             //任意长度模式
@@ -511,10 +510,9 @@ class Pdo {
                 $sth = $this->_link->prepare($sql);
                 $sth->execute($args);
             }
-            $rows = $sth->fetchAll();
             $ret = array();
-            foreach ($rows as $row) {
-                $ret[] = array_pop($row);
+            while ($col = $sth->fetchColumn()) {
+                $ret[] = $col;
             }
             return $ret;
         } catch (\PDOException $e) {
@@ -541,14 +539,14 @@ class Pdo {
      * @param string $message
      * @param int $code
      * @return bool
-     * @throws \Rsf\Exception\DbException
+     * @throws \Xcs\Exception\DbException
      */
     private function _halt($message = '', $code = 0) {
         if ($this->_config['rundev']) {
             $this->close();
             $encode = mb_detect_encoding($message, array('ASCII', 'UTF-8', 'GB2312', 'GBK', 'BIG5'));
             $message = mb_convert_encoding($message, 'UTF-8', $encode);
-            throw new \Rsf\Exception\DbException($message, intval($code));
+            throw new \Xcs\Exception\DbException($message, intval($code));
         }
         return false;
     }
