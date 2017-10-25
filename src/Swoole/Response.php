@@ -25,6 +25,12 @@ class Response extends Http\Response {
         return $this;
     }
 
+    public function sendfile($file, $type = 'application/octet-stream') {
+        $this->_response->header('Content-Type', $type);
+        $this->_response->header('Content-Disposition', 'attachment; filename="' . basename($file) . '"');
+        $this->_response->sendfile($file);
+    }
+
     protected function send() {
         $status = $this->getStatusCode();
         if ($status && $status !== 200) {
