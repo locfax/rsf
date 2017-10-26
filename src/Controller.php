@@ -24,7 +24,7 @@ class Controller {
     /**
      * @param $name
      * @param $arguments
-     * @throws Exception\Exception
+     * @throws \Exception
      */
     public function __call($name, $arguments) {
         if ($this->request->isAjax()) {
@@ -63,14 +63,9 @@ class Controller {
         $this->response->write($data);
     }
 
-    protected function sendfile($file, $type = 'image/jpeg') {
-        $this->response->header('Content-Type', $type);
-        $this->response->sendfile($file);
-    }
-
     protected function finish() {
         try {
-            $this->response->end();
+            $this->response->end('');
             Db::close();
         } catch (\ErrorException $e) {
 

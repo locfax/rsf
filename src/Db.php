@@ -38,7 +38,7 @@ class DB {
             $dbo = self::$used_dbo[$dsnkey];
             $dbo->connect($_dsn);
         } else {
-            $dbo = new \Rsf\Database\Pdo();
+            $dbo = new Database\Pdo();
             $dbo->connect($_dsn);
             self::$used_dbo[$dsnkey] = $dbo;
         }

@@ -46,7 +46,7 @@ trait Context {
 
     public function getContextHandler($throw_exception = false) {
         if (!$this->context_handler && $throw_exception) {
-            throw new Exception\Exception('Please set context handler before use');
+            throw new \Exception('Please set context handler before use');
         }
         return $this->context_handler ?: false;
     }

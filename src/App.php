@@ -17,12 +17,6 @@ class App {
      * @param $root
      */
     public function steup($root) {
-        set_error_handler(function ($errno, $error, $file = null, $line = null) {
-            if (error_reporting() & $errno) {
-                throw new Exception\ErrorException($error, $errno);
-            }
-            return true;
-        });
         $this->rootnamespace('\\', $root);
     }
 
@@ -104,8 +98,6 @@ class App {
                 $this->exception($exception, $response);
             } catch (Exception\CacheException $exception) { //cache异常
                 $this->exception($exception, $response);
-            } catch (Exception\ErrorException $exception) {
-                $this->exception($exception, $response);
             } catch (\Exception $exception) { //普通异常
                 $this->exception($exception, $response);
             } catch (\Throwable $exception) { //PHP7
@@ -171,7 +163,7 @@ class App {
             $file = trim(substr($classname, strlen($namespace)), '\\');
             $file = $path . '/' . str_replace('\\', '/', $file) . '.php';
             if (!is_file($file)) {
-                throw new Exception\Exception($file . '不存在');
+                throw new \Exception($file . '不存在');
             }
             require $file;
         };
