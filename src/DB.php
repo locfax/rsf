@@ -17,10 +17,17 @@ class DB {
         $dsnkey = $_dsn['dsnkey']; //连接池key
         if (isset(self::$used_dbo[$dsnkey])) {
             $dbo = self::$used_dbo[$dsnkey];
-            $dbo->connect($_dsn);
+            if(is_null($dbo->_link)) {
+                $dbo->connect($_dsn);
+            }
         } else {
-            $classname = '\\Rsf\\Database\\' . ucfirst($_dsn['driver']);
-            $dbo = new $classname;
+            if ('mongo' == $_dsn['driver']) {
+                $dbo = new Database\Mongo();
+            } elseif ('mysql' == $_dsn['driver']) {
+                $dbo = new Database\Pdo();
+            } else {
+                $dbo = new Database\Pdo(); //默认为Pdo
+            }
             call_user_func(array($dbo, 'connect'), $_dsn);
             self::$used_dbo[$dsnkey] = $dbo;
         }
@@ -29,17 +36,20 @@ class DB {
 
     /**
      * @param string $dsnid
-     * @return \Rsf\Database\Pdo|mixed
+     * @return Database\Pdo
      */
     public static function dbm($dsnid = 'portal') {
+        static $inc = 0;
         $_dsn = Context::dsn($dsnid);
         $dsnkey = $_dsn['dsnkey']; //连接池key
         if (isset(self::$used_dbo[$dsnkey])) {
             $dbo = self::$used_dbo[$dsnkey];
-            $dbo->connect($_dsn);
+            if(is_null($dbo->_link)) {
+                $dbo->connect($_dsn);
+            }
         } else {
             $dbo = new Database\Pdo();
-            $dbo->connect($_dsn);
+            call_user_func(array($dbo, 'connect'), $_dsn);
             self::$used_dbo[$dsnkey] = $dbo;
         }
         return $dbo;
@@ -56,7 +66,6 @@ class DB {
 
     /**
      * 还原默认数据源对象
-     * @return null
      */
     public static function resume() {
         self::$using_dbo_id = self::$default_dbo_id;
@@ -93,7 +102,6 @@ class DB {
      * 更新符合条件的数据
      * @param mixed $option 是个多用途参数
      *  - mysql的情况: bool : true 返回影响数,如果是0表示无修改  false: 执行情况 返回 bool
-     *  - mongod的情况: option string set ...
      *
      * @param string $table
      * @param mixed $data (array string)
@@ -109,7 +117,6 @@ class DB {
      * 删除符合条件的项
      * @param mixed $muti
      *  - mysql的情况: bool true 删除多条 返回影响数 false: 只能删除一条
-     *  - mongod的情况: bool true 删除多条 false 只能删除一条
      *
      * @param string $table
      * @param mixed $condition
@@ -127,11 +134,12 @@ class DB {
      * @param string $table
      * @param mixed $field
      * @param mixed $condition
+     * @param bool $retobj
      * @return mixed
      */
-    public static function findOne($table, $field, $condition) {
+    public static function findOne($table, $field, $condition, $retobj = false) {
         $db = self::Using(self::$using_dbo_id);
-        return $db->findOne($table, $field, $condition);
+        return $db->findOne($table, $field, $condition, $retobj);
     }
 
     /**
@@ -141,11 +149,12 @@ class DB {
      * @param string $field
      * @param string $condition
      * @param string $index
+     * @param bool $retobj
      * @return mixed
      */
-    public static function findAll($table, $field = '*', $condition = '1', $index = null) {
+    public static function findAll($table, $field = '*', $condition = '1', $index = null, $retobj = false) {
         $db = self::Using(self::$using_dbo_id);
-        return $db->findAll($table, $field, $condition, $index);
+        return $db->findAll($table, $field, $condition, $index, $retobj);
     }
 
     /**
@@ -155,20 +164,18 @@ class DB {
      * @param mixed $condition
      * @param int $length
      * @param int $pageparm
+     * @param bool $retobj
      * @return array
      */
-    public static function page($table, $field, $condition, $pageparm = 0, $length = 18) {
+    public static function page($table, $field, $condition, $pageparm = 0, $length = 18, $retobj = false) {
         $db = self::Using(self::$using_dbo_id);
-        return $db->page($table, $field, $condition, $pageparm, $length);
+        return $db->page($table, $field, $condition, $pageparm, $length, $retobj);
     }
 
     /**
      * 单表符合条件的数量
      * - mysql:
      * $field count($field)
-     * 如果要连表等 就用 DB::one来实现
-     * - mongo:
-     * $field 无意义
      *
      * @param string $table
      * @param mixed $condition
@@ -221,22 +228,24 @@ class DB {
     /**
      * @param $query
      * @param $args
+     * @param $retobj
      * @return mixed
      */
-    public static function row($query, $args = null) {
+    public static function row($query, $args = null, $retobj = false) {
         $db = self::Using(self::$using_dbo_id);
-        return $db->row($query, $args);
+        return $db->row($query, $args, $retobj);
     }
 
     /**
      * @param $query
      * @param $args
      * @param null $index
+     * @param bool $retobj
      * @return mixed
      */
-    public static function rowset($query, $args = null, $index = null) {
+    public static function rowset($query, $args = null, $index = null, $retobj = false) {
         $db = self::Using(self::$using_dbo_id);
-        return $db->rowset($query, $args, $index);
+        return $db->rowset($query, $args, $index, $retobj);
     }
 
     /**
@@ -244,11 +253,12 @@ class DB {
      * @param array $args
      * @param int $pageparm
      * @param int $length
+     * @param bool $retobj
      * @return array
      */
-    public static function pages($sql, $args = null, $pageparm = 0, $length = 18) {
+    public static function pages($sql, $args = null, $pageparm = 0, $length = 18, $retobj = false) {
         $db = self::Using(self::$using_dbo_id);
-        return $db->pages($sql, $args, $pageparm, $length);
+        return $db->pages($sql, $args, $pageparm, $length, $retobj);
     }
 
     /**
@@ -276,7 +286,7 @@ class DB {
      * @param null $args
      * @return mixed
      */
-    public static function getcols($sql, $args = null) {
+    public static function getCols($sql, $args = null) {
         $db = self::Using(self::$using_dbo_id);
         return $db->getcols($sql, $args);
     }
@@ -308,7 +318,7 @@ class DB {
      * 切换数据源对象
      *
      * @param null $id
-     * @throws Exception\Exception
+     * @throws Exception\DbException
      * @return mixed
      */
     public static function Using($id = null) {
@@ -322,9 +332,9 @@ class DB {
             }
         }
         if (self::$using_dbo_id === 'none') {
-            throw new Exception\Exception('dsn is none', 0);
+            throw new Exception\DbException('dsn is none', 0);
         }
-        return self::dbo(self::$using_dbo_id);
+        return self::dbm(self::$using_dbo_id);
     }
 
     /**
