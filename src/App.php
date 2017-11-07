@@ -114,7 +114,7 @@ class App {
         $data = $this->exception2str($exception);
         $response->withStatus(500, Http\Http::getStatus(500));
         $response->end($data);
-        Db::close(); //关闭数据库
+        DB::close(); //关闭数据库
     }
 
     /**

@@ -66,7 +66,7 @@ class Controller {
     protected function finish() {
         try {
             $this->response->end('');
-            Db::close();
+            DB::close();
         } catch (\ErrorException $e) {
 
         }

@@ -84,7 +84,7 @@ class User {
             $key = self::getCookieKey($key);
             $ret = isset($_COOKIE[$key]) ? json_decode(self::authCode($_COOKIE[$key], 'DECODE'), true) : null;
         } elseif ('REDIS' == $type) {
-            $redis = Db::dbo('redis.user');
+            $redis = DB::dbo('redis.user');
             $data = $redis->get($key);
             $ret = $data ? $data : null;
         }
@@ -123,7 +123,7 @@ class User {
             $val = $val ? self::authCode(json_encode($val), 'ENCODE') : '';
             $ret = setcookie($key, $val, $life, getini('auth/path'), getini('auth/domain'), $secure);
         } elseif ('REDIS' == $type) {
-            $redis = Db::dbo('redis.user');
+            $redis = DB::dbo('redis.user');
             $ret = $redis->set(getini('auth/prefix') . $key, $val, $life);
         }
         return $ret;
