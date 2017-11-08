@@ -8,8 +8,6 @@ class Request extends \Rsf\Http\Request {
 
     protected $swoole_request;
 
-    protected $body;
-
     /**
      * Request constructor.
      * @param null $swoole_request
