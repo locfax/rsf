@@ -8,6 +8,8 @@ class Request extends \Rsf\Http\Request {
 
     protected $swoole_request;
 
+    protected $body;
+
     /**
      * Request constructor.
      * @param null $swoole_request
@@ -25,11 +27,13 @@ class Request extends \Rsf\Http\Request {
 
         $cookies = isset($swoole_request->cookie) ? $swoole_request->cookie : [];
 
+        $this->body = $swoole_request->rawContent();
+
         parent::__construct($server, $headers, $get, $post, $files, $cookies);
     }
 
     public function getPOST(){
-        return $this->swoole_request->rawContent();
+        return $this->body;
     }
 
     public function getClientIP() {
