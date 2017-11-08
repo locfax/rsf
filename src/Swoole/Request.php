@@ -6,7 +6,7 @@ class Request extends \Rsf\Http\Request {
 
     protected $allow_client_proxy_ip = false;
 
-    protected $swoole_request; //for test
+    protected $swoole_request;
 
     /**
      * Request constructor.
@@ -26,6 +26,10 @@ class Request extends \Rsf\Http\Request {
         $cookies = isset($swoole_request->cookie) ? $swoole_request->cookie : [];
 
         parent::__construct($server, $headers, $get, $post, $files, $cookies);
+    }
+
+    public function getPOST(){
+        return $this->swoole_request->rawContent();
     }
 
     public function getClientIP() {

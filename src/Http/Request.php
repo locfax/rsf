@@ -26,7 +26,7 @@ class Request implements ServerRequestInterface {
         $this->files = $files;
         $this->cookies = $cookies;
 
-        $this->body = new ResourceStream(fopen('php://input', 'r'));
+        $this->body = null; //new ResourceStream(fopen('php://input', 'r'));
     }
 
     public function __clone() {
