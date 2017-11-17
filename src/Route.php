@@ -14,7 +14,7 @@ class Route {
             return false;
         }
         if (!self::$routes) {
-            $routes = Context::config('route');
+            $routes = Context::config(APPKEY,'route');
             $_routes = [];
             foreach ($routes as $key => $val) {
                 $key = str_replace([':any', ':num'], ['[^/]+', '[0-9]+'], $key);
