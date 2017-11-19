@@ -17,6 +17,9 @@ class App {
      * @param $root
      */
     public function steup($root) {
+        set_error_handler(function ($errno, $error, $file = null, $line = null) {
+            throw new \ErrorException($error, $errno);
+        });
         $this->rootnamespace('\\', $root);
     }
 
@@ -87,22 +90,15 @@ class App {
         $actionMethod = self::_actionPrefix . $actionName;
 
         $controllerClass = self::_controllerPrefix . APPKEY . '\\' . $controllerName;
-        if (defined('DEBUG') && DEBUG) {
+        try {
             $controller = new $controllerClass($request, $response);
             call_user_func([$controller, $actionMethod]);
-        } else {
-            try {
-                $controller = new $controllerClass($request, $response);
-                call_user_func([$controller, $actionMethod]);
-            } catch (Exception\DbException $exception) { //db异常
-                $this->exception($exception, $response);
-            } catch (Exception\CacheException $exception) { //cache异常
-                $this->exception($exception, $response);
-            } catch (\Exception $exception) { //普通异常
-                $this->exception($exception, $response);
-            } catch (\Throwable $exception) { //PHP7
-                $this->exception($exception, $response);
-            }
+        } catch (\ErrorException $exception) { //cache异常
+            $this->exception($exception, $response);
+        } catch (\Exception $exception) { //普通异常
+            $this->exception($exception, $response);
+        } catch (\Throwable $exception) { //PHP7
+            $this->exception($exception, $response);
         }
     }
 

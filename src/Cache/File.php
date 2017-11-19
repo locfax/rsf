@@ -2,8 +2,6 @@
 
 namespace Rsf\Cache;
 
-use \Rsf\Exception\Exception;
-
 class File {
 
     use \Rsf\Traits\Singleton;
@@ -16,7 +14,7 @@ class File {
      */
     public function init() {
         if (!is_dir(getini('data/_cache'))) {
-            throw new Exception('路径:' . getini('data/_cache') . ' 不可写');
+            throw new \Exception('路径:' . getini('data/_cache') . ' 不可写');
         }
         $this->enable = true;
         return $this;
