@@ -18,7 +18,7 @@ class DB {
         if (isset(self::$used_dbo[$dsnkey])) {
             $dbo = self::$used_dbo[$dsnkey];
             if(is_null($dbo->_link)) {
-                $dbo->connect($_dsn);
+                call_user_func(array($dbo, 'connect'), $_dsn);
             }
         } else {
             if ('mongo' == $_dsn['driver']) {
@@ -39,13 +39,12 @@ class DB {
      * @return Database\Pdo
      */
     public static function dbm($dsnid = 'portal') {
-        static $inc = 0;
         $_dsn = Context::dsn($dsnid);
         $dsnkey = $_dsn['dsnkey']; //连接池key
         if (isset(self::$used_dbo[$dsnkey])) {
             $dbo = self::$used_dbo[$dsnkey];
             if(is_null($dbo->_link)) {
-                $dbo->connect($_dsn);
+                call_user_func(array($dbo, 'connect'), $_dsn);
             }
         } else {
             $dbo = new Database\Pdo();
