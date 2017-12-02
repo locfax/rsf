@@ -42,7 +42,6 @@ class Controller {
             $this->response->withStatus($code, Http\Http::getStatus($code));
         }
         $this->response->withHeader('Content-Type', 'text/html; charset=' . getini('site/charset'));
-        //$this->response->write($data);
         $this->response->end($data);
     }
 
@@ -56,7 +55,6 @@ class Controller {
         }
         $this->response->withHeader('Content-Type', 'application/json; charset=' . getini('site/charset'));
         $data = $data ? Util::output_json($data) : '';
-        //$this->response->write($data);
         $this->response->end($data);
     }
 

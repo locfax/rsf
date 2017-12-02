@@ -6,18 +6,18 @@ class Cacher {
 
     use \Rsf\Traits\Singleton;
 
-    private $config = [];
-    private $prefix = '';
-    private $cacher = null;
-    public $enable = false;
-    public $type = '';
+    private $config;
+    private $prefix;
+    private $cacher;
+    public $enable;
+    public $type;
 
     public function __construct($cacher = null) {
         $this->config = getini('cache');
         $this->prefix = $this->config['prefix'];
         $cacher = $cacher ?: $this->config['cacher'];
-        if (in_array($cacher, array('file', 'memcache', 'redis', 'xcache'))) {
-            $class = '\\Rsf\\Cache\\' . ucfirst($cacher);
+        if (in_array($cacher, array('file', 'memcache', 'redis'))) {
+            $class = "\\Rsf\\Cache\\" . ucfirst($cacher);
             if ($cacher != 'file') {
                 $config = \Rsf\Context::dsn($cacher . '.cache');
             } else {
@@ -26,16 +26,13 @@ class Cacher {
             $this->cacher = $class::getInstance()->init($config);
             $this->enable = $this->cacher->enable;
             $this->type = $cacher;
+        } else {
+            throw new \Exception('不存在的缓存器');
         }
-        return $this;
-    }
-
-    public static function factory($cacher) {
-        return new self($cacher);
     }
 
     public function close() {
-        $this->enable && $this->cacher->close();
+        return $this->enable && $this->cacher->close();
     }
 
     public function get($key) {
@@ -55,8 +52,8 @@ class Cacher {
     public function set($key, $value, $ttl = 0) {
         $ret = false;
         if ($this->enable) {
-            $data = [$value];
-            $ret = $this->cacher->set($this->_key($key), json_encode($data), $ttl);
+            $data = array($value);
+            $ret = $this->cacher->set($this->_key($key), \Rsf\Util::output_json($data), $ttl);
         }
         return $ret;
     }

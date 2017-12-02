@@ -97,10 +97,12 @@ class App {
             }
             $controller->init($request, $response);
             call_user_func([$controller, $actionMethod]);
+        } catch (Exception\DbException $exception) {
+            $this->Exception($exception, $response);
         } catch (\Exception $exception) { //普通异常
-            $this->exception($exception, $response);
+            $this->Exception($exception, $response);
         } catch (\Throwable $exception) { //PHP7
-            $this->exception($exception, $response);
+            $this->Exception($exception, $response);
         }
     }
 
@@ -108,8 +110,8 @@ class App {
      * @param mixed $exception
      * @param $response
      */
-    private function exception($exception, Swoole\Response $response) {
-        $data = $this->exception2str($exception);
+    private function Exception($exception, Swoole\Response $response) {
+        $data = $this->Exception2str($exception);
         $response->withStatus(500, Http\Http::getStatus(500));
         $response->end($data);
         $this->finish();
@@ -119,11 +121,11 @@ class App {
      * @param mixed $exception
      * @return string
      */
-    private function exception2str($exception) {
+    private function Exception2str($exception) {
         $output = '<h3>' . $exception->getMessage() . '</h3>';
         $output .= '<p>' . nl2br($exception->getTraceAsString()) . '</p>';
         if ($previous = $exception->getPrevious()) {
-            $output = $this->exception2str($previous) . $output;
+            $output = $this->Exception2str($previous) . $output;
         }
         return $output;
     }
