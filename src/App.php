@@ -2,8 +2,6 @@
 
 namespace Rsf;
 
-use Rsf\Exception;
-
 class App {
 
     const _dCTL = 'c';
@@ -40,6 +38,10 @@ class App {
         return call_user_func($this->handlers[$key], $param);
     }
 
+    private function finish() {
+        DB::close();
+    }
+
     /**
      * @param $request
      * @param $response
@@ -48,6 +50,7 @@ class App {
         $request = new Swoole\Request($request);
         $response = new Swoole\Response($response);
         $this->dispatching($request, $response);
+        $this->finish();
     }
 
     /**
@@ -105,7 +108,7 @@ class App {
         $data = $this->exception2str($exception);
         $response->withStatus(500, Http\Http::getStatus(500));
         $response->end($data);
-        DB::close(); //关闭数据库
+        $this->finish();
     }
 
     /**
