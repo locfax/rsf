@@ -11,12 +11,7 @@ class Controller {
     //当前动作
     protected $response = null;
 
-    /**
-     * Controller constructor.
-     * @param Swoole\Request $request
-     * @param Swoole\Response $response
-     */
-    public function __construct(Swoole\Request $request, Swoole\Response $response) {
+    public function init(Swoole\Request $request, Swoole\Response $response) {
         $this->request = $request;
         $this->response = $response;
     }

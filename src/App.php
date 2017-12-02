@@ -38,7 +38,7 @@ class App {
         return call_user_func($this->handlers[$key], $param);
     }
 
-    private function finish(){
+    private function finish() {
         DB::close();
     }
 
@@ -61,20 +61,17 @@ class App {
         if (defined('ROUTE') && ROUTE) {
             $uri = $request->getRequestTarget();
             $router = Route::parse_routes($uri);
-            if ($router) {
-                $_controllerName = array_shift($router);
-                $_actionName = array_shift($router);
+            if (is_array($router)) {
+                $controllerName = array_shift($router);
+                $actionName = array_shift($router);
             } else {
-                $_controllerName = $request->get(self::_dCTL) ?: getini('site/defaultController');
-                $_actionName = $request->get(self::_dACT) ?: getini('site/defaultAction');
+                $controllerName = $request->get(self::_dCTL) ?: getini('site/defaultController');
+                $actionName = $request->get(self::_dACT) ?: getini('site/defaultAction');
             }
         } else {
-            $_controllerName = $request->get(self::_dCTL) ?: getini('site/defaultController');
-            $_actionName = $request->get(self::_dACT) ?: getini('site/defaultAction');
+            $controllerName = $request->get(self::_dCTL) ?: getini('site/defaultController');
+            $actionName = $request->get(self::_dACT) ?: getini('site/defaultAction');
         }
-        $controllerName = preg_replace('/[^a-z0-9_]+/i', '', $_controllerName);
-        $actionName = preg_replace('/[^a-z0-9_]+/i', '', $_actionName);
-
         $this->execute($controllerName, $actionName, $request, $response);
     }
 
@@ -86,12 +83,19 @@ class App {
      * @param $response
      */
     private function execute($controllerName, $actionName, Swoole\Request $request, Swoole\Response $response) {
+        static $controller_pool = array();
         $controllerName = ucfirst($controllerName);
         $actionMethod = self::_actionPrefix . $actionName;
 
         $controllerClass = self::_controllerPrefix . APPKEY . '\\' . $controllerName;
         try {
-            $controller = new $controllerClass($request, $response);
+            if (isset($controller_pool[$controllerClass])) {
+                $controller = $controller_pool[$controllerClass];
+            } else {
+                $controller = new $controllerClass();
+                $controller_pool[$controllerClass] = $controller;
+            }
+            $controller->init($request, $response);
             call_user_func([$controller, $actionMethod]);
         } catch (\Exception $exception) { //普通异常
             $this->exception($exception, $response);
