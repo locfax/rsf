@@ -38,7 +38,7 @@ class App {
         return call_user_func($this->handlers[$key], $param);
     }
 
-    private function finish() {
+    private function finish(){
         DB::close();
     }
 

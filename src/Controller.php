@@ -48,6 +48,7 @@ class Controller {
         }
         $this->response->withHeader('Content-Type', 'text/html; charset=' . getini('site/charset'));
         $this->response->write($data);
+        $this->response->end('');
     }
 
     /**
@@ -61,15 +62,7 @@ class Controller {
         $this->response->withHeader('Content-Type', 'application/json; charset=' . getini('site/charset'));
         $data = $data ? Util::output_json($data) : '';
         $this->response->write($data);
-    }
-
-    protected function finish() {
-        try {
-            $this->response->end('');
-            DB::close();
-        } catch (\ErrorException $e) {
-
-        }
+        $this->response->end('');
     }
 
     protected function render_start() {
