@@ -17,9 +17,6 @@ class App {
      * @param $root
      */
     public function steup($root) {
-        set_error_handler(function ($errno, $error, $file = null, $line = null) {
-            throw new \ErrorException($error, $errno);
-        });
         $this->rootnamespace('\\', $root);
     }
 
@@ -93,8 +90,6 @@ class App {
         try {
             $controller = new $controllerClass($request, $response);
             call_user_func([$controller, $actionMethod]);
-        } catch (\ErrorException $exception) { //cache异常
-            $this->exception($exception, $response);
         } catch (\Exception $exception) { //普通异常
             $this->exception($exception, $response);
         } catch (\Throwable $exception) { //PHP7
