@@ -32,7 +32,7 @@ class Curl {
         /* 使用0层自动跳转 */
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
         /* 超时时间30 */
-        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
         /* 请求地址 */
         curl_setopt($ch, CURLOPT_URL, $url);
 
@@ -86,7 +86,7 @@ class Curl {
 
         /* 是否有错误 */
         if (0 != curl_errno($ch)) {
-            return array('http_code' => 0, 'http_error' => curl_errno($ch) . 'err:' . curl_error($ch));
+            return array('http_code' => 0, 'http_error' => curl_error($ch));
         }
 
         /* 获取请求返回的http code */
