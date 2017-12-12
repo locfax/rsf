@@ -179,10 +179,6 @@ function url($udi, $param = array()) {
     return SITEPATH . $url;
 }
 
-function floatvaldec($v, $dec = ',') {
-    return floatval(str_replace(",", ".", preg_replace("[^-0-9$dec]", "", $v)));
-}
-
 /* qutotes get post cookie by \'
  * return string
  */
