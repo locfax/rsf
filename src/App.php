@@ -97,8 +97,6 @@ class App {
             }
             $controller->init($request, $response);
             call_user_func([$controller, $actionMethod]);
-        } catch (Exception\DbException $exception) {
-            $this->Exception($exception, $response);
         } catch (\Exception $exception) { //普通异常
             $this->Exception($exception, $response);
         } catch (\Throwable $exception) { //PHP7
@@ -115,7 +113,7 @@ class App {
             return false;
         }
         if (!$routes) {
-            $routes = Context::config(APPKEY,'route');
+            $routes = Context::config(APPKEY, 'route');
             $_routes = [];
             foreach ($routes as $key => $val) {
                 $key = str_replace([':any', ':num'], ['[^/]+', '[0-9]+'], $key);
