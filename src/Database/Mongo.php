@@ -25,6 +25,7 @@ class Mongo {
      * @param $config
      * @param string $type
      * @return bool
+     * @throws \Rsf\Exception\DbException
      */
     public function connect($config, $type = '') {
         if (is_null($this->_config)) {
@@ -50,6 +51,7 @@ class Mongo {
 
     /**
      * @return bool
+     * @throws \Rsf\Exception\DbException
      */
     public function reconnect() {
         return $this->connect($this->_config, 'RETRY');
@@ -61,6 +63,7 @@ class Mongo {
      * @param bool $retid
      * @param string $type
      * @return bool|string
+     * @throws \Rsf\Exception\DbException
      */
     public function create($table, $document = array(), $retid = false, $type = '') {
         if (!$this->_client) {
@@ -95,6 +98,7 @@ class Mongo {
      * @param array $document
      * @param string $type
      * @return bool
+     * @throws \Rsf\Exception\DbException
      */
     public function replace($table, $document = array(), $type = '') {
         if (!$this->_client) {
@@ -123,6 +127,7 @@ class Mongo {
      * @param string $options
      * @param string $type
      * @return bool
+     * @throws \Rsf\Exception\DbException
      */
     public function update($table, $document = array(), $condition = array(), $options = 'set', $type = '') {
         if (!$this->_client) {
@@ -171,6 +176,7 @@ class Mongo {
      * @param bool $muti
      * @param string $type
      * @return bool
+     * @throws \Rsf\Exception\DbException
      */
     public function remove($table, $condition = array(), $muti = false, $type = '') {
         if (!$this->_client) {
@@ -202,6 +208,7 @@ class Mongo {
      * @param array $condition
      * @param string $type
      * @return bool
+     * @throws \Rsf\Exception\DbException
      */
     public function findOne($table, $fields = array(), $condition = array(), $type = '') {
         if (!$this->_client) {
@@ -232,6 +239,7 @@ class Mongo {
      * @param array $query
      * @param string $type
      * @return array|bool|\Generator
+     * @throws \Rsf\Exception\DbException
      */
     public function findAll($table, $fields = array(), $query = array(), $type = '') {
         if (!$this->_client) {
@@ -271,7 +279,7 @@ class Mongo {
      * @param int $length
      * @param string $type
      * @return array|bool
-     * @throws \Rsf\Exception\Exception
+     * @throws \Rsf\Exception\DbException
      */
     private function _page($table, $fields, $condition, $offset = 0, $length = 18, $type = '') {
         if (!$this->_client) {
@@ -316,6 +324,7 @@ class Mongo {
      * @param int $pageparm
      * @param int $length
      * @return array|bool
+     * @throws \Rsf\Exception\DbException
      */
     function page($table, $field, $condition, $pageparm = 0, $length = 18) {
         if (is_array($pageparm)) {
@@ -340,6 +349,7 @@ class Mongo {
      * @param array $condition
      * @param string $type
      * @return bool
+     * @throws \Rsf\Exception\DbException
      */
     public function count($table, $condition = array(), $type = '') {
         if (!$this->_client) {
@@ -360,6 +370,12 @@ class Mongo {
         }
     }
 
+    /**
+     * @param string $message
+     * @param int $code
+     * @return bool
+     * @throws \Rsf\Exception\DbException
+     */
     private function _halt($message = '', $code = 0) {
         if ($this->_config['rundev']) {
             $this->close();

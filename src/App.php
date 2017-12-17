@@ -88,20 +88,15 @@ class App {
         $actionMethod = self::_actionPrefix . $actionName;
 
         $controllerClass = self::_controllerPrefix . APPKEY . '\\' . $controllerName;
-        try {
-            if (isset($controller_pool[$controllerClass])) {
-                $controller = $controller_pool[$controllerClass];
-            } else {
-                $controller = new $controllerClass();
-                $controller_pool[$controllerClass] = $controller;
-            }
-            $controller->init($request, $response);
-            call_user_func([$controller, $actionMethod]);
-        } catch (\Exception $exception) { //普通异常
-            $this->Exception($exception, $response);
-        } catch (\Throwable $exception) { //PHP7
-            $this->Exception($exception, $response);
+
+        if (isset($controller_pool[$controllerClass])) {
+            $controller = $controller_pool[$controllerClass];
+        } else {
+            $controller = new $controllerClass();
+            $controller_pool[$controllerClass] = $controller;
         }
+        $controller->init($request, $response);
+        call_user_func([$controller, $actionMethod]);
     }
 
     private function parse_routes($uri) {
@@ -132,30 +127,6 @@ class App {
             }
         }
         return false;
-    }
-
-    /**
-     * @param mixed $exception
-     * @param $response
-     */
-    private function Exception($exception, Swoole\Response $response) {
-        $data = $this->Exception2str($exception);
-        $response->withStatus(500, Http\Http::getStatus(500));
-        $response->end($data);
-        $this->finish();
-    }
-
-    /**
-     * @param mixed $exception
-     * @return string
-     */
-    private function Exception2str($exception) {
-        $output = '<h3>' . $exception->getMessage() . '</h3>';
-        $output .= '<p>' . nl2br($exception->getTraceAsString()) . '</p>';
-        if ($previous = $exception->getPrevious()) {
-            $output = $this->Exception2str($previous) . $output;
-        }
-        return $output;
     }
 
     /**
