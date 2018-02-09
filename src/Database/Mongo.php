@@ -5,11 +5,38 @@ namespace Rsf\Database;
 class Mongo {
 
     private $_config = null;
-    private $_link = null;
-    private $_client = null;
+    public $_link = null;
+    public $_client = null;
 
     public function __destruct() {
         $this->close();
+    }
+
+    /**
+     * @param $config
+     */
+    public function __construct($config) {
+        if (is_null($this->_config)) {
+            $this->_config = $config;
+        }
+        try {
+            $this->_link = new \MongoClient($config['dsn'], array("connect" => false));
+            $this->_link->connect();
+            $this->_client = $this->_link->selectDB($config['database']);
+        } catch (\MongoConnectionException $e) {
+            $this->_halt('client is not connected!');
+        }
+    }
+
+    public function reconnect() {
+        $this->__construct($this->_config);
+    }
+
+    public function close() {
+        if ($this->_link) {
+            $this->_link->close();
+            $this->_client = null;
+        }
     }
 
     /**
@@ -19,31 +46,6 @@ class Mongo {
      */
     public function __call($func, $args) {
         return $this->_client && call_user_func_array(array($this->_client, $func), $args);
-    }
-
-    /**
-     * @param $config
-     */
-    public function connect($config) {
-        if (is_null($this->_config)) {
-            $this->_config = $config;
-        }
-        try {
-            $this->_link = new \MongoClient($config['dsn'], array("connect" => false));
-            $this->_link->connect();
-            $this->_client = $this->_link->selectDB($config['database']);
-        } catch (\MongoConnectionException $ex) {
-            $this->_halt($ex->getMessage(), $ex->getCode());
-        }
-    }
-
-    public function close() {
-        $this->_link && $this->_link->close();
-        $this->_client = null;
-    }
-
-    public function reconnect() {
-        $this->connect($this->_config);
     }
 
     /**
@@ -179,7 +181,7 @@ class Mongo {
      * @param array $fields
      * @param array $condition
      * @param string $type
-     * @return bool
+     * @return mixed
      */
     public function findOne($table, $fields = array(), $condition = array(), $type = '') {
         try {
@@ -328,13 +330,15 @@ class Mongo {
     /**
      * @param string $message
      * @param int $code
+     * @param string $sql
      * @return bool
      */
-    private function _halt($message = '', $code = 0) {
+    private function _halt($message = '', $code = 0, $sql = '') {
         if ($this->_config['rundev']) {
             $this->close();
-            $message = mb_convert_encoding($message, 'utf-8', 'gbk');
-            echo $message . " code:" . $code;
+            $encode = mb_detect_encoding($message, array('ASCII', 'UTF-8', 'GB2312', 'GBK', 'BIG5'));
+            $message = mb_convert_encoding($message, 'UTF-8', $encode);
+            echo $message . ' SQL: ' . $sql, intval($code);
         }
         return false;
     }
