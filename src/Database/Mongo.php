@@ -20,8 +20,8 @@ class Mongo {
             $this->_config = $config;
         }
         try {
-            $this->_link = new \MongoClient($config['dsn'], array("connect" => false));
-            $this->_link->connect();
+            $this->_link = new \MongoClient($config['dsn'], array("connect" => true));
+            //$this->_link->connect();
             $this->_client = $this->_link->selectDB($config['database']);
         } catch (\MongoConnectionException $e) {
             $this->_halt('client is not connected!');
@@ -56,6 +56,9 @@ class Mongo {
      * @return bool|string
      */
     public function create($table, $document = array(), $retid = false, $type = '') {
+        if (is_null($this->_client)) {
+            return $this->_halt('db server is not connected!', 0, $table);
+        }
         try {
             if (isset($document['_id'])) {
                 if (!is_object($document['_id'])) {
@@ -87,6 +90,9 @@ class Mongo {
      * @return bool
      */
     public function replace($table, $document = array(), $type = '') {
+        if (is_null($this->_client)) {
+            return $this->_halt('db server is not connected!', 0, $table);
+        }
         try {
             if (isset($document['_id'])) {
                 $document['_id'] = new \MongoId($document['_id']);
@@ -112,6 +118,9 @@ class Mongo {
      * @return bool
      */
     public function update($table, $document = array(), $condition = array(), $options = 'set', $type = '') {
+        if (is_null($this->_client)) {
+            return $this->_halt('db server is not connected!', 0, $table);
+        }
         try {
             if (isset($condition['_id'])) {
                 $condition['_id'] = new \MongoId($condition['_id']);
@@ -156,6 +165,9 @@ class Mongo {
      * @return bool
      */
     public function remove($table, $condition = array(), $muti = false, $type = '') {
+        if (is_null($this->_client)) {
+            return $this->_halt('db server is not connected!', 0, $table);
+        }
         try {
             if (isset($condition['_id'])) {
                 $condition['_id'] = new \MongoId($condition['_id']);
@@ -184,6 +196,9 @@ class Mongo {
      * @return mixed
      */
     public function findOne($table, $fields = array(), $condition = array(), $type = '') {
+        if (is_null($this->_client)) {
+            return $this->_halt('db server is not connected!', 0, $table);
+        }
         try {
             if (isset($condition['_id'])) {
                 $condition['_id'] = new \MongoId($condition['_id']);
@@ -211,6 +226,9 @@ class Mongo {
      * @return array|bool|\Generator
      */
     public function findAll($table, $fields = array(), $query = array(), $type = '') {
+        if (is_null($this->_client)) {
+            return $this->_halt('db server is not connected!', 0, $table);
+        }
         try {
             $collection = $this->_client->selectCollection($table);
             if (isset($query['query'])) {
@@ -247,6 +265,9 @@ class Mongo {
      * @return array|bool
      */
     private function _page($table, $fields, $condition, $offset = 0, $length = 18, $type = '') {
+        if (is_null($this->_client)) {
+            return $this->_halt('db server is not connected!', 0, $table);
+        }
         try {
             $collection = $this->_client->selectCollection($table);
             if ('fields' == $condition['type']) {
@@ -312,6 +333,9 @@ class Mongo {
      * @return bool
      */
     public function count($table, $condition = array(), $type = '') {
+        if (is_null($this->_client)) {
+            return $this->_halt('db server is not connected!', 0, $table);
+        }
         try {
             $collection = $this->_client->selectCollection($table);
             if (isset($condition['_id'])) {
@@ -338,7 +362,7 @@ class Mongo {
             $this->close();
             $encode = mb_detect_encoding($message, array('ASCII', 'UTF-8', 'GB2312', 'GBK', 'BIG5'));
             $message = mb_convert_encoding($message, 'UTF-8', $encode);
-            echo $message . ' SQL: ' . $sql, intval($code);
+            echo "\r\n" . $message . ' SQL: ' . $sql, intval($code) . "\r\n";
         }
         return false;
     }

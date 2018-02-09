@@ -124,6 +124,9 @@ class Pdo {
         }
         try {
             $sql = 'INSERT INTO ' . $this->qtable($tableName) . '(' . $fields . ') VALUES (' . $values . ')';
+            if (is_null($this->_link)) {
+                return $this->_halt('db server is not connected!', 0, $sql);
+            }
             $sth = $this->_link->prepare($sql);
             $data = $sth->execute($args);
             if ($retid) {
@@ -160,6 +163,9 @@ class Pdo {
         }
         try {
             $sql = 'REPLACE INTO ' . $this->qtable($tableName) . '(' . $fields . ') VALUES (' . $values . ')';
+            if (is_null($this->_link)) {
+                return $this->_halt('db server is not connected!', 0, $sql);
+            }
             $sth = $this->_link->prepare($sql);
             $data = $sth->execute($args);
             if ($retnum) {
@@ -196,6 +202,9 @@ class Pdo {
                 list($condition, $argsw) = $this->field_param($condition, ' AND ');
                 $args = array_merge($argsf, $argsw);
                 $sql = 'UPDATE ' . $this->qtable($tableName) . " SET {$data} WHERE {$condition}";
+                if (is_null($this->_link)) {
+                    return $this->_halt('db server is not connected!', 0, $sql);
+                }
                 $sth = $this->_link->prepare($sql);
                 $data = $sth->execute($args);
                 if ($retnum) {
@@ -207,6 +216,9 @@ class Pdo {
                     $data = $this->field_value($data, ',');
                 }
                 $sql = 'UPDATE ' . $this->qtable($tableName) . " SET {$data} WHERE {$condition}";
+                if (is_null($this->_link)) {
+                    return $this->_halt('db server is not connected!', 0, $sql);
+                }
                 return $this->_link->exec($sql);
             }
         } catch (\PDOException $e) {
@@ -235,6 +247,9 @@ class Pdo {
         $limit = $muti ? '' : ' LIMIT 1';
         try {
             $sql = 'DELETE FROM ' . $this->qtable($tableName) . ' WHERE ' . $condition . $limit;
+            if (is_null($this->_link)) {
+                return $this->_halt('db server is not connected!', 0, $sql);
+            }
             return $this->_link->exec($sql);
         } catch (\PDOException $e) {
             if ('RETRY' != $type) {
@@ -258,10 +273,16 @@ class Pdo {
             if (is_array($condition)) {
                 list($condition, $args) = $this->field_param($condition, ' AND ');
                 $sql = 'SELECT ' . $field . ' FROM ' . $this->qtable($tableName) . ' WHERE ' . $condition . ' LIMIT 0,1';
+                if (is_null($this->_link)) {
+                    return $this->_halt('db server is not connected!', 0, $sql);
+                }
                 $sth = $this->_link->prepare($sql);
                 $sth->execute($args);
             } else {
                 $sql = 'SELECT ' . $field . ' FROM ' . $this->qtable($tableName) . ' WHERE ' . $condition . ' LIMIT 0,1';
+                if (is_null($this->_link)) {
+                    return $this->_halt('db server is not connected!', 0, $sql);
+                }
                 $sth = $this->_link->query($sql);
             }
             if ($retobj) {
@@ -294,10 +315,16 @@ class Pdo {
             if (is_array($condition)) {
                 list($condition, $args) = $this->field_param($condition, ' AND ');
                 $sql = 'SELECT ' . $field . ' FROM ' . $this->qtable($tableName) . ' WHERE ' . $condition;
+                if (is_null($this->_link)) {
+                    return $this->_halt('db server is not connected!', 0, $sql);
+                }
                 $sth = $this->_link->prepare($sql);
                 $sth->execute($args);
             } else {
                 $sql = 'SELECT ' . $field . ' FROM ' . $this->qtable($tableName) . ' WHERE ' . $condition;
+                if (is_null($this->_link)) {
+                    return $this->_halt('db server is not connected!', 0, $sql);
+                }
                 $sth = $this->_link->query($sql);
             }
             if ($retobj) {
@@ -336,10 +363,16 @@ class Pdo {
                 $args[':start'] = $start;
                 $args[':length'] = $length;
                 $sql = 'SELECT ' . $field . ' FROM ' . $this->qtable($tableName) . ' WHERE ' . $condition . ' LIMIT :start,:length';
+                if (is_null($this->_link)) {
+                    return $this->_halt('db server is not connected!', 0, $sql);
+                }
                 $sth = $this->_link->prepare($sql);
                 $sth->execute($args);
             } else {
                 $sql = 'SELECT ' . $field . ' FROM ' . $this->qtable($tableName) . ' WHERE ' . $condition . " LIMIT {$start},{$length}";
+                if (is_null($this->_link)) {
+                    return $this->_halt('db server is not connected!', 0, $sql);
+                }
                 $sth = $this->_link->query($sql);
             }
             if ($retobj) {
@@ -359,7 +392,7 @@ class Pdo {
     }
 
     /**
-     * @param $table
+     * @param $tableName
      * @param $field
      * @param $condition
      * @param int $pageparm
@@ -367,7 +400,7 @@ class Pdo {
      * @param bool $retobj
      * @return array|bool
      */
-    public function page($table, $field, $condition, $pageparm = 0, $length = 18, $retobj = false) {
+    public function page($tableName, $field, $condition, $pageparm = 0, $length = 18, $retobj = false) {
         if (is_array($pageparm)) {
             //固定长度分页模式
             $ret = array('rowsets' => array(), 'pagebar' => '');
@@ -375,13 +408,13 @@ class Pdo {
                 return $ret;
             }
             $start = $this->page_start($pageparm['curpage'], $length, $pageparm['totals']);
-            $ret['rowsets'] = $this->_page($table, $field, $condition, $start, $length, $retobj);;
+            $ret['rowsets'] = $this->_page($tableName, $field, $condition, $start, $length, $retobj);;
             $ret['pagebar'] = \Rsf\DB::pagebar($pageparm, $length);
             return $ret;
         } else {
             //任意长度模式
             $start = $pageparm;
-            return $this->_page($table, $field, $condition, $start, $length, $retobj);
+            return $this->_page($tableName, $field, $condition, $start, $length, $retobj);
         }
     }
 
@@ -397,10 +430,16 @@ class Pdo {
             if (is_array($condition)) {
                 list($condition, $args) = $this->field_param($condition, ' AND ');
                 $sql = "SELECT {$field} AS result FROM " . $this->qtable($tableName) . " WHERE  {$condition} LIMIT 0,1";
+                if (is_null($this->_link)) {
+                    return $this->_halt('db server is not connected!', 0, $sql);
+                }
                 $sth = $this->_link->prepare($sql);
                 $sth->execute($args);
             } else {
                 $sql = "SELECT {$field} AS result FROM " . $this->qtable($tableName) . " WHERE  {$condition} LIMIT 0,1";
+                if (is_null($this->_link)) {
+                    return $this->_halt('db server is not connected!', 0, $sql);
+                }
                 $sth = $this->_link->query($sql);
             }
             $data = $sth->fetchColumn();
@@ -428,10 +467,16 @@ class Pdo {
             if (is_array($condition)) {
                 list($condition, $args) = $this->field_param($condition, ' AND ');
                 $sql = "SELECT {$field} AS result FROM " . $this->qtable($tableName) . " WHERE  {$condition}";
+                if (is_null($this->_link)) {
+                    return $this->_halt('db server is not connected!', 0, $sql);
+                }
                 $sth = $this->_link->prepare($sql);
                 $sth->execute($args);
             } else {
                 $sql = "SELECT {$field} AS result FROM " . $this->qtable($tableName) . " WHERE  {$condition}";
+                if (is_null($this->_link)) {
+                    return $this->_halt('db server is not connected!', 0, $sql);
+                }
                 $sth = $this->_link->query($sql);
             }
             $data = array();
@@ -456,6 +501,9 @@ class Pdo {
      * @return bool
      */
     public function exec($sql, $args = null, $type = '') {
+        if (is_null($this->_link)) {
+            return $this->_halt('db server is not connected!', 0, $sql);
+        }
         try {
             if (is_null($args)) {
                 $sth = $this->_link->query($sql);
@@ -484,6 +532,9 @@ class Pdo {
      * @return bool
      */
     public function row($sql, $args = null, $retobj = false, $type = '') {
+        if (is_null($this->_link)) {
+            return $this->_halt('db server is not connected!', 0, $sql);
+        }
         try {
             if (is_null($args)) {
                 $sth = $this->_link->query($sql);
@@ -517,6 +568,9 @@ class Pdo {
      * @return bool|array
      */
     public function rowset($sql, $args = null, $index = null, $retobj = false, $type = '') {
+        if (is_null($this->_link)) {
+            return $this->_halt('db server is not connected!', 0, $sql);
+        }
         try {
             if (is_null($args)) {
                 $sth = $this->_link->query($sql);
@@ -552,6 +606,9 @@ class Pdo {
      * @return array|bool
      */
     private function _pages($sql, $args = null, $retobj = false, $type = '') {
+        if (is_null($this->_link)) {
+            return $this->_halt('db server is not connected!', 0, $sql);
+        }
         try {
             if (is_null($args)) {
                 $sth = $this->_link->query($sql);
@@ -628,6 +685,9 @@ class Pdo {
      * @return bool
      */
     public function firsts($sql, $args = null, $type = '') {
+        if (is_null($this->_link)) {
+            return $this->_halt('db server is not connected!', 0, $sql);
+        }
         try {
             if (is_null($args)) {
                 $sth = $this->_link->query($sql);
@@ -654,6 +714,9 @@ class Pdo {
      * @return array|bool
      */
     public function getcols($sql, $args = null, $type = '') {
+        if (is_null($this->_link)) {
+            return $this->_halt('db server is not connected!', 0, $sql);
+        }
         try {
             if (is_null($args)) {
                 $sth = $this->_link->query($sql);
