@@ -331,12 +331,12 @@ class Pdo {
                 $data = $sth->fetchAll(\PDO::FETCH_OBJ);
             } else {
                 $data = $sth->fetchAll();
+                if (!is_null($index)) {
+                    $data = $this->array_index($data, $index);
+                }
             }
             $sth->closeCursor();
-            if (is_null($index)) {
-                return $data;
-            }
-            return $this->array_index($data, $index);
+            return $data;
         } catch (\PDOException $e) {
             if ('RETRY' != $type) {
                 $this->reconnect();
@@ -583,12 +583,12 @@ class Pdo {
                 $data = $sth->fetchAll(\PDO::FETCH_OBJ);
             } else {
                 $data = $sth->fetchAll();
+                if (!is_null($index)) {
+                    $data = $this->array_index($data, $index);
+                }
             }
             $sth->closeCursor();
-            if (is_null($index)) {
-                return $data;
-            }
-            return $this->array_index($data, $index);
+            return $data;
         } catch (\PDOException $e) {
             if ('RETRY' != $type) {
                 $this->reconnect();
