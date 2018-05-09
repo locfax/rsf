@@ -93,11 +93,7 @@ class Pdo {
     public function field_value(array $fields, $glue = ',') {
         $addsql = $comma = '';
         foreach ($fields as $field => $value) {
-            if (strpos($value, '+') || strpos($value, '-')) {
-                $addsql .= $comma . $this->qfield($field) . '=' . $value;
-            } else {
-                $addsql .= $comma . $this->qfield($field) . "='" . $value . "'";
-            }
+            $addsql .= $comma . $this->qfield($field) . "='" . $value . "'";
             $comma = $glue;
         }
         return $addsql;
