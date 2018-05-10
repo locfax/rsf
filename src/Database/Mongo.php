@@ -362,7 +362,7 @@ class Mongo {
             $this->close();
             $encode = mb_detect_encoding($message, array('ASCII', 'UTF-8', 'GB2312', 'GBK', 'BIG5'));
             $message = mb_convert_encoding($message, 'UTF-8', $encode);
-            echo "\r\n" . $message . ' SQL: ' . $sql, intval($code) . "\r\n";
+            echo "\r\nERROR:" . $message, ' CODE:' . $code, ' SQL:' . $sql . "\r\n";
         }
         return false;
     }
