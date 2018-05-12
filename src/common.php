@@ -176,7 +176,7 @@ function url($udi, $param = array()) {
             $url .= '&' . $key . '=' . $val;
         }
     }
-    return SITEPATH . $url;
+    return $url;
 }
 
 /* qutotes get post cookie by \'
@@ -220,6 +220,9 @@ function input_char($text) {
     if (empty($text)) {
         return $text;
     }
+    if (is_numeric($text)) {
+        return $text;
+    }
     return htmlspecialchars(addslashes($text), ENT_QUOTES, 'UTF-8');
 }
 
@@ -229,6 +232,9 @@ function input_char($text) {
 */
 function output_char($text) {
     if (empty($text)) {
+        return $text;
+    }
+    if (is_numeric($text)) {
         return $text;
     }
     return htmlspecialchars(stripslashes($text), ENT_QUOTES, 'UTF-8');
