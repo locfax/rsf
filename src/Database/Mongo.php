@@ -21,7 +21,6 @@ class Mongo {
         }
         try {
             $this->_link = new \MongoClient($config['dsn'], array("connect" => true));
-            //$this->_link->connect();
             $this->_client = $this->_link->selectDB($config['database']);
         } catch (\MongoConnectionException $e) {
             $this->_halt('client is not connected!');

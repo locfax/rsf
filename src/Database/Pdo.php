@@ -23,12 +23,19 @@ class Pdo {
             \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
             \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
             \PDO::ATTR_EMULATE_PREPARES => false,
-            \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
-            \PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true,
             \PDO::ATTR_PERSISTENT => false
         );
         try {
+            $mysql = false;
+            if (strpos($config['dsn'], 'mysql') !== false) {
+                $opt[\PDO::MYSQL_ATTR_USE_BUFFERED_QUERY] = true;
+                $opt[\PDO::MYSQL_ATTR_INIT_COMMAND] = 'SET NAMES utf8';
+                $mysql = true;
+            }
             $this->_link = new \PDO($config['dsn'], $config['login'], $config['secret'], $opt);
+            if (!$mysql) {
+                $this->_link->exec('SET NAMES utf8');
+            }
         } catch (\PDOException $exception) {
             $this->_halt($exception->getMessage(), $exception->getCode(), 'server is gone');
         }
@@ -709,7 +716,7 @@ class Pdo {
      * @param string $type
      * @return array|bool
      */
-    public function getcols($sql, $args = null, $type = '') {
+    public function getCols($sql, $args = null, $type = '') {
         if (is_null($this->_link)) {
             return $this->_halt('db server is not connected!', 0, $sql);
         }
