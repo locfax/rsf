@@ -7,14 +7,16 @@ class Pdo {
     private $_config = null;
     public $_link = null;
 
-    public function __destruct() {
+    public function __destruct()
+    {
         $this->close();
     }
 
     /**
      * @param $config
      */
-    public function __construct($config) {
+    public function __construct($config)
+    {
         if (is_null($this->_config)) {
             $this->_config = $config;
         }
@@ -41,11 +43,13 @@ class Pdo {
         }
     }
 
-    public function reconnect() {
+    public function reconnect()
+    {
         $this->__construct($this->_config);
     }
 
-    public function close() {
+    public function close()
+    {
         $this->_link = null;
     }
 
@@ -54,7 +58,8 @@ class Pdo {
      * @param $args
      * @return mixed
      */
-    public function __call($func, $args) {
+    public function __call($func, $args)
+    {
         return $this->_link && call_user_func_array(array($this->_link, $func), $args);
     }
 
@@ -62,7 +67,8 @@ class Pdo {
      * @param $tableName
      * @return string
      */
-    public function qtable($tableName) {
+    public function qtable($tableName)
+    {
         return "`{$tableName}`";
     }
 
@@ -70,7 +76,8 @@ class Pdo {
      * @param $fieldName
      * @return string
      */
-    public function qfield($fieldName) {
+    public function qfield($fieldName)
+    {
         $_fieldName = trim($fieldName);
         $ret = ($_fieldName == '*') ? '*' : "`{$_fieldName}`";
         return $ret;
@@ -81,7 +88,8 @@ class Pdo {
      * @param string $glue
      * @return array
      */
-    public function field_param(array $fields, $glue = ',') {
+    public function field_param(array $fields, $glue = ',')
+    {
         $args = array();
         $sql = $comma = '';
         foreach ($fields as $field => $value) {
@@ -97,7 +105,8 @@ class Pdo {
      * @param string $glue
      * @return string
      */
-    public function field_value(array $fields, $glue = ',') {
+    public function field_value(array $fields, $glue = ',')
+    {
         $addsql = $comma = '';
         foreach ($fields as $field => $value) {
             $addsql .= $comma . $this->qfield($field) . "='" . $value . "'";
@@ -113,7 +122,8 @@ class Pdo {
      * @param string $type
      * @return bool
      */
-    public function create($tableName, array $data, $retid = false, $type = '') {
+    public function create($tableName, array $data, $retid = false, $type = '')
+    {
         if (empty($data)) {
             return false;
         }
@@ -131,11 +141,11 @@ class Pdo {
                 return $this->_halt('db server is not connected!', 0, $sql);
             }
             $sth = $this->_link->prepare($sql);
-            $data = $sth->execute($args);
+            $ret = $sth->execute($args);
             if ($retid) {
                 return $this->_link->lastInsertId();
             }
-            return $data;
+            return $ret;
         } catch (\PDOException $e) {
             if ('RETRY' != $type) {
                 $this->reconnect();
@@ -152,7 +162,8 @@ class Pdo {
      * @param string $type
      * @return bool
      */
-    public function replace($tableName, array $data, $retnum = false, $type = '') {
+    public function replace($tableName, array $data, $retnum = false, $type = '')
+    {
         if (empty($data)) {
             return false;
         }
@@ -170,11 +181,11 @@ class Pdo {
                 return $this->_halt('db server is not connected!', 0, $sql);
             }
             $sth = $this->_link->prepare($sql);
-            $data = $sth->execute($args);
+            $ret = $sth->execute($args);
             if ($retnum) {
                 return $sth->rowCount();
             }
-            return $data;
+            return $ret;
         } catch (\PDOException $e) {
             if ('RETRY' != $type) {
                 $this->reconnect();
@@ -192,7 +203,8 @@ class Pdo {
      * @param string $type
      * @return bool
      */
-    public function update($tableName, $data, $condition, $retnum = false, $type = '') {
+    public function update($tableName, $data, $condition, $retnum = false, $type = '')
+    {
         if (empty($data)) {
             return false;
         }
@@ -201,24 +213,26 @@ class Pdo {
                 if (!is_array($data)) {
                     $this->_halt('$data参数必须为数组', 0);
                 }
-                list($data, $argsf) = $this->field_param($data, ',');
-                list($condition, $argsw) = $this->field_param($condition, ' AND ');
+                list($_data, $argsf) = $this->field_param($data, ',');
+                list($_condition, $argsw) = $this->field_param($condition, ' AND ');
                 $args = array_merge($argsf, $argsw);
-                $sql = 'UPDATE ' . $this->qtable($tableName) . " SET {$data} WHERE {$condition}";
+                $sql = 'UPDATE ' . $this->qtable($tableName) . " SET {$_data} WHERE {$_condition}";
                 if (is_null($this->_link)) {
                     return $this->_halt('db server is not connected!', 0, $sql);
                 }
                 $sth = $this->_link->prepare($sql);
-                $data = $sth->execute($args);
+                $ret = $sth->execute($args);
                 if ($retnum) {
                     return $sth->rowCount();
                 }
-                return $data;
+                return $ret;
             } else {
                 if (is_array($data)) {
-                    $data = $this->field_value($data, ',');
+                    $_data = $this->field_value($data, ',');
+                } else {
+                    $_data = $data;
                 }
-                $sql = 'UPDATE ' . $this->qtable($tableName) . " SET {$data} WHERE {$condition}";
+                $sql = 'UPDATE ' . $this->qtable($tableName) . " SET {$_data} WHERE {$condition}";
                 if (is_null($this->_link)) {
                     return $this->_halt('db server is not connected!', 0, $sql);
                 }
@@ -240,7 +254,8 @@ class Pdo {
      * @param string $type
      * @return bool
      */
-    public function remove($tableName, $condition, $muti = true, $type = '') {
+    public function remove($tableName, $condition, $muti = true, $type = '')
+    {
         if (empty($condition)) {
             return false;
         }
@@ -271,7 +286,8 @@ class Pdo {
      * @param $type
      * @return bool
      */
-    public function findOne($tableName, $field, $condition, $retobj = false, $type = '') {
+    public function findOne($tableName, $field, $condition, $retobj = false, $type = '')
+    {
         try {
             if (is_array($condition)) {
                 list($condition, $args) = $this->field_param($condition, ' AND ');
@@ -313,7 +329,8 @@ class Pdo {
      * @param string $type
      * @return array|bool
      */
-    public function findAll($tableName, $field = '*', $condition = '1', $index = null, $retobj = false, $type = '') {
+    public function findAll($tableName, $field = '*', $condition = '1', $index = null, $retobj = false, $type = '')
+    {
         try {
             if (is_array($condition)) {
                 list($condition, $args) = $this->field_param($condition, ' AND ');
@@ -359,7 +376,8 @@ class Pdo {
      * @param string $type
      * @return array|bool
      */
-    private function _page($tableName, $field, $condition, $start = 0, $length = 20, $retobj = false, $type = '') {
+    private function _page($tableName, $field, $condition, $start = 0, $length = 20, $retobj = false, $type = '')
+    {
         try {
             if (is_array($condition)) {
                 list($condition, $args) = $this->field_param($condition, ' AND ');
@@ -403,7 +421,8 @@ class Pdo {
      * @param bool $retobj
      * @return array|bool
      */
-    public function page($tableName, $field, $condition, $pageparm = 0, $length = 18, $retobj = false) {
+    public function page($tableName, $field, $condition, $pageparm = 0, $length = 18, $retobj = false)
+    {
         if (is_array($pageparm)) {
             //固定长度分页模式
             $ret = array('rowsets' => array(), 'pagebar' => '');
@@ -428,7 +447,8 @@ class Pdo {
      * @param string $type
      * @return bool
      */
-    public function resultFirst($tableName, $field, $condition, $type = '') {
+    public function resultFirst($tableName, $field, $condition, $type = '')
+    {
         try {
             if (is_array($condition)) {
                 list($condition, $args) = $this->field_param($condition, ' AND ');
@@ -465,7 +485,8 @@ class Pdo {
      * @param $type
      * @return array|bool
      */
-    public function getCol($tableName, $field, $condition, $type = '') {
+    public function getCol($tableName, $field, $condition, $type = '')
+    {
         try {
             if (is_array($condition)) {
                 list($condition, $args) = $this->field_param($condition, ' AND ');
@@ -503,7 +524,8 @@ class Pdo {
      * @param string $type
      * @return bool
      */
-    public function exec($sql, $args = null, $type = '') {
+    public function exec($sql, $args = null, $type = '')
+    {
         if (is_null($this->_link)) {
             return $this->_halt('db server is not connected!', 0, $sql);
         }
@@ -534,7 +556,8 @@ class Pdo {
      * @param $type
      * @return bool
      */
-    public function row($sql, $args = null, $retobj = false, $type = '') {
+    public function row($sql, $args = null, $retobj = false, $type = '')
+    {
         if (is_null($this->_link)) {
             return $this->_halt('db server is not connected!', 0, $sql);
         }
@@ -570,7 +593,8 @@ class Pdo {
      * @param $type
      * @return bool|array
      */
-    public function rowset($sql, $args = null, $index = null, $retobj = false, $type = '') {
+    public function rowset($sql, $args = null, $index = null, $retobj = false, $type = '')
+    {
         if (is_null($this->_link)) {
             return $this->_halt('db server is not connected!', 0, $sql);
         }
@@ -608,7 +632,8 @@ class Pdo {
      * @param string $type
      * @return array|bool
      */
-    private function _pages($sql, $args = null, $retobj = false, $type = '') {
+    private function _pages($sql, $args = null, $retobj = false, $type = '')
+    {
         if (is_null($this->_link)) {
             return $this->_halt('db server is not connected!', 0, $sql);
         }
@@ -644,7 +669,8 @@ class Pdo {
      * @param bool $retobj
      * @return array|bool
      */
-    public function pages($sql, $args = null, $pageparm = 0, $length = 18, $retobj = false) {
+    public function pages($sql, $args = null, $pageparm = 0, $length = 18, $retobj = false)
+    {
         if (is_array($pageparm)) {
             //固定长度分页模式
             $ret = array('rowsets' => array(), 'pagebar' => '');
@@ -668,7 +694,8 @@ class Pdo {
      * @param string $field
      * @return bool
      */
-    public function count($tableName, $condition, $field = '*') {
+    public function count($tableName, $condition, $field = '*')
+    {
         return $this->resultFirst($tableName, "COUNT({$field})", $condition);
     }
 
@@ -677,7 +704,8 @@ class Pdo {
      * @param null $args
      * @return bool
      */
-    public function counts($sql, $args = null) {
+    public function counts($sql, $args = null)
+    {
         return $this->firsts($sql, $args);
     }
 
@@ -687,7 +715,8 @@ class Pdo {
      * @param string $type
      * @return bool
      */
-    public function firsts($sql, $args = null, $type = '') {
+    public function firsts($sql, $args = null, $type = '')
+    {
         if (is_null($this->_link)) {
             return $this->_halt('db server is not connected!', 0, $sql);
         }
@@ -716,7 +745,8 @@ class Pdo {
      * @param string $type
      * @return array|bool
      */
-    public function getCols($sql, $args = null, $type = '') {
+    public function getCols($sql, $args = null, $type = '')
+    {
         if (is_null($this->_link)) {
             return $this->_halt('db server is not connected!', 0, $sql);
         }
@@ -745,14 +775,16 @@ class Pdo {
     /**
      * @return mixed
      */
-    public function start_trans() {
+    public function start_trans()
+    {
         return $this->_link->beginTransaction();
     }
 
     /**
      * @param bool $commit_no_errors
      */
-    public function end_trans($commit_no_errors = true) {
+    public function end_trans($commit_no_errors = true)
+    {
         try {
             if ($commit_no_errors) {
                 $this->_link->commit();
@@ -770,7 +802,8 @@ class Pdo {
      * @param string $sql
      * @return bool
      */
-    private function _halt($message = '', $code = 0, $sql = '') {
+    private function _halt($message = '', $code = 0, $sql = '')
+    {
         if ($this->_config['rundev']) {
             $this->close();
             $encode = mb_detect_encoding($message, array('ASCII', 'UTF-8', 'GB2312', 'GBK', 'BIG5'));
@@ -786,7 +819,8 @@ class Pdo {
      * @param int $totalnum
      * @return int
      */
-    private function page_start($page, $ppp, $totalnum) {
+    private function page_start($page, $ppp, $totalnum)
+    {
         $totalpage = ceil($totalnum / $ppp);
         $_page = max(1, min($totalpage, intval($page)));
         return ($_page - 1) * $ppp;
@@ -797,7 +831,8 @@ class Pdo {
      * @param $col
      * @return array
      */
-    private function array_index($arr, $col) {
+    private function array_index($arr, $col)
+    {
         if (!is_array($arr)) {
             return $arr;
         }
