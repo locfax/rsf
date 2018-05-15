@@ -2,7 +2,8 @@
 
 namespace Rsf;
 
-class DB {
+class DB
+{
 
     private static $default_dbo_id = APPDSN;
     private static $using_dbo_id = null;
@@ -12,12 +13,13 @@ class DB {
      * @param string $dsnid
      * @return mixed
      */
-    public static function dbo($dsnid = 'portal') {
+    public static function dbo($dsnid = 'portal')
+    {
         $_dsn = Context::dsn($dsnid);
         $dsnkey = $_dsn['dsnkey']; //连接池key
         if (isset(self::$used_dbo[$dsnkey])) {
             $dbo = self::$used_dbo[$dsnkey];
-            if(is_null($dbo->_link)) {
+            if (is_null($dbo->_link)) {
                 call_user_func(array($dbo, 'reconnect'));
             }
         } else {
@@ -37,12 +39,13 @@ class DB {
      * @param string $dsnid
      * @return Database\Pdo
      */
-    public static function dbm($dsnid = 'portal') {
+    public static function dbm($dsnid = 'portal')
+    {
         $_dsn = Context::dsn($dsnid);
         $dsnkey = $_dsn['dsnkey']; //连接池key
         if (isset(self::$used_dbo[$dsnkey])) {
             $dbo = self::$used_dbo[$dsnkey];
-            if(is_null($dbo->_link)) {
+            if (is_null($dbo->_link)) {
                 call_user_func(array($dbo, 'reconnect'));
             }
         } else {
@@ -52,7 +55,8 @@ class DB {
         return $dbo;
     }
 
-    public static function close() {
+    public static function close()
+    {
         $dbos = self::$used_dbo;
         if (!empty($dbos)) {
             foreach ($dbos as $dbo) {
@@ -64,7 +68,8 @@ class DB {
     /**
      * 还原默认数据源对象
      */
-    public static function resume() {
+    public static function resume()
+    {
         self::$using_dbo_id = self::$default_dbo_id;
     }
 
@@ -77,7 +82,8 @@ class DB {
      * @param bool $option
      * @return bool/int
      */
-    public static function create($table, $data, $option = false) {
+    public static function create($table, $data, $option = false)
+    {
         $db = self::Using(self::$using_dbo_id);
         return $db->create($table, $data, $option);
     }
@@ -90,7 +96,8 @@ class DB {
      * @param array $data
      * @return bool
      */
-    public static function replace($table, $data) {
+    public static function replace($table, $data)
+    {
         $db = self::Using(self::$using_dbo_id);
         return $db->replace($table, $data);
     }
@@ -105,7 +112,8 @@ class DB {
      * @param mixed $condition (array string)
      * @return bool/int
      */
-    public static function update($table, $data, $condition, $option = false) {
+    public static function update($table, $data, $condition, $option = false)
+    {
         $db = self::Using(self::$using_dbo_id);
         return $db->update($table, $data, $condition, $option);
     }
@@ -119,7 +127,8 @@ class DB {
      * @param mixed $condition
      * @return bool/int
      */
-    public static function remove($table, $condition, $muti = true) {
+    public static function remove($table, $condition, $muti = true)
+    {
         $db = self::Using(self::$using_dbo_id);
         return $db->remove($table, $condition, $muti);
     }
@@ -134,7 +143,8 @@ class DB {
      * @param bool $retobj
      * @return mixed
      */
-    public static function findOne($table, $field, $condition, $retobj = false) {
+    public static function findOne($table, $field, $condition, $retobj = false)
+    {
         $db = self::Using(self::$using_dbo_id);
         return $db->findOne($table, $field, $condition, $retobj);
     }
@@ -149,7 +159,8 @@ class DB {
      * @param bool $retobj
      * @return mixed
      */
-    public static function findAll($table, $field = '*', $condition = '1', $index = null, $retobj = false) {
+    public static function findAll($table, $field = '*', $condition = '1', $index = null, $retobj = false)
+    {
         $db = self::Using(self::$using_dbo_id);
         return $db->findAll($table, $field, $condition, $index, $retobj);
     }
@@ -164,7 +175,8 @@ class DB {
      * @param bool $retobj
      * @return array
      */
-    public static function page($table, $field, $condition, $pageparm = 0, $length = 18, $retobj = false) {
+    public static function page($table, $field, $condition, $pageparm = 0, $length = 18, $retobj = false)
+    {
         $db = self::Using(self::$using_dbo_id);
         return $db->page($table, $field, $condition, $pageparm, $length, $retobj);
     }
@@ -179,7 +191,8 @@ class DB {
      * @param string $field
      * @return mixed
      */
-    public static function count($table, $condition, $field = '*') {
+    public static function count($table, $condition, $field = '*')
+    {
         $db = self::Using(self::$using_dbo_id);
         return $db->count($table, $condition, $field);
     }
@@ -194,7 +207,8 @@ class DB {
      * @param mixed $condition
      * @return mixed
      */
-    public static function first($table, $field, $condition) {
+    public static function first($table, $field, $condition)
+    {
         $db = self::Using(self::$using_dbo_id);
         return $db->resultFirst($table, $field, $condition);
     }
@@ -205,7 +219,8 @@ class DB {
      * @param $condition
      * @return mixed
      */
-    public static function getCol($table, $field, $condition) {
+    public static function getCol($table, $field, $condition)
+    {
         $db = self::Using(self::$using_dbo_id);
         return $db->getCol($table, $field, $condition);
     }
@@ -217,7 +232,8 @@ class DB {
      * @param $args
      * @return mixed
      */
-    public static function exec($sql, $args = null) {
+    public static function exec($sql, $args = null)
+    {
         $db = self::Using(self::$using_dbo_id);
         return $db->exec($sql, $args);
     }
@@ -228,7 +244,8 @@ class DB {
      * @param $retobj
      * @return mixed
      */
-    public static function row($query, $args = null, $retobj = false) {
+    public static function row($query, $args = null, $retobj = false)
+    {
         $db = self::Using(self::$using_dbo_id);
         return $db->row($query, $args, $retobj);
     }
@@ -240,7 +257,8 @@ class DB {
      * @param bool $retobj
      * @return mixed
      */
-    public static function rowset($query, $args = null, $index = null, $retobj = false) {
+    public static function rowset($query, $args = null, $index = null, $retobj = false)
+    {
         $db = self::Using(self::$using_dbo_id);
         return $db->rowset($query, $args, $index, $retobj);
     }
@@ -253,7 +271,8 @@ class DB {
      * @param bool $retobj
      * @return array
      */
-    public static function pages($sql, $args = null, $pageparm = 0, $length = 18, $retobj = false) {
+    public static function pages($sql, $args = null, $pageparm = 0, $length = 18, $retobj = false)
+    {
         $db = self::Using(self::$using_dbo_id);
         return $db->pages($sql, $args, $pageparm, $length, $retobj);
     }
@@ -263,7 +282,8 @@ class DB {
      * @param null $args
      * @return mixed
      */
-    public static function counts($sql, $args = null) {
+    public static function counts($sql, $args = null)
+    {
         $db = self::Using(self::$using_dbo_id);
         return $db->counts($sql, $args);
     }
@@ -273,7 +293,8 @@ class DB {
      * @param null $args
      * @return mixed
      */
-    public static function firsts($sql, $args = null) {
+    public static function firsts($sql, $args = null)
+    {
         $db = self::Using(self::$using_dbo_id);
         return $db->firsts($sql, $args);
     }
@@ -283,7 +304,8 @@ class DB {
      * @param null $args
      * @return mixed
      */
-    public static function getCols($sql, $args = null) {
+    public static function getCols($sql, $args = null)
+    {
         $db = self::Using(self::$using_dbo_id);
         return $db->getCols($sql, $args);
     }
@@ -294,7 +316,8 @@ class DB {
      * 开始事务
      * @return mixed
      */
-    public static function start_trans() {
+    public static function start_trans()
+    {
         $db = self::Using(self::$using_dbo_id);
         return $db->start_trans();
     }
@@ -304,7 +327,8 @@ class DB {
      * @param bool $commit_no_errors
      * @return mixed
      */
-    public static function end_trans($commit_no_errors = true) {
+    public static function end_trans($commit_no_errors = true)
+    {
         $db = self::Using(self::$using_dbo_id);
         return $db->end_trans($commit_no_errors);
     }
@@ -317,7 +341,8 @@ class DB {
      * @param null $id
      * @return mixed
      */
-    public static function Using($id = null) {
+    public static function Using($id = null)
+    {
         if (!$id) {
             //初始运行
             self::$using_dbo_id = self::$default_dbo_id;
@@ -336,7 +361,8 @@ class DB {
      * @param int $totalnum
      * @return int
      */
-    public static function page_start($page, $ppp, $totalnum) {
+    public static function page_start($page, $ppp, $totalnum)
+    {
         $totalpage = ceil($totalnum / $ppp);
         $_page = max(1, min($totalpage, intval($page)));
         return ($_page - 1) * $ppp;
@@ -347,7 +373,8 @@ class DB {
      * @param $length
      * @return array
      */
-    public static function pagebar($pageparm, $length) {
+    public static function pagebar($pageparm, $length)
+    {
         if (!isset($pageparm['type']) || 'pagebar' == $pageparm['type']) {
             $defpageparm = array(
                 'curpage' => 1,

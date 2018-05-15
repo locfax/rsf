@@ -2,7 +2,8 @@
 
 namespace Rsf\Http;
 
-class ResourceStream extends Stream {
+class ResourceStream extends Stream
+{
 
     private static $read_write_mode = [
         'read' => [
@@ -19,7 +20,8 @@ class ResourceStream extends Stream {
         ],
     ];
 
-    public function __construct($stream, $options = []) {
+    public function __construct($stream, $options = [])
+    {
         if (!is_resource($stream)) {
             throw new \Exception('Stream must be a resource');
         }
@@ -30,11 +32,13 @@ class ResourceStream extends Stream {
         $this->writable = isset(self::$read_write_mode['write'][$meta['mode']]);
     }
 
-    public function __destruct() {
+    public function __destruct()
+    {
         $this->close();
     }
 
-    public function __toString() {
+    public function __toString()
+    {
         try {
             if ($this->isSeekable()) {
                 $this->rewind();
@@ -45,14 +49,16 @@ class ResourceStream extends Stream {
         }
     }
 
-    public function close() {
+    public function close()
+    {
         if ($this->stream && is_resource($this->stream)) {
             fclose($this->stream);
         }
         parent::close();
     }
 
-    public function getSize() {
+    public function getSize()
+    {
         if (!$this->stream) {
             return;
         }
@@ -60,7 +66,8 @@ class ResourceStream extends Stream {
         return isset($stat['size']) ? (int)$stat['size'] : null;
     }
 
-    public function tell() {
+    public function tell()
+    {
         $position = ftell($this->stream);
         if ($position === false) {
             throw new \Exception('Unable to get position of stream');
@@ -68,18 +75,21 @@ class ResourceStream extends Stream {
         return $position;
     }
 
-    public function eof() {
+    public function eof()
+    {
         return !$this->stream || feof($this->stream);
     }
 
-    public function seek($offset, $whence = SEEK_SET) {
+    public function seek($offset, $whence = SEEK_SET)
+    {
         parent::seek($offset, $whence);
         if (fseek($this->stream, $offset, $whence) === -1) {
             throw new \Exception(sprintf('Unable to seek to stream position %d with whence %s', $offset, var_export($whence, true)));
         }
     }
 
-    public function write($string) {
+    public function write($string)
+    {
         parent::write($string);
         $result = fwrite($this->stream, $string);
         if ($result === false) {
@@ -88,12 +98,14 @@ class ResourceStream extends Stream {
         return $result;
     }
 
-    public function read($length) {
+    public function read($length)
+    {
         parent::read($length);
         return fread($this->stream, $length);
     }
 
-    public function getContents() {
+    public function getContents()
+    {
         $contents = stream_get_contents($this->stream);
         if ($contents === false) {
             throw new \Exception('Unable to read stream');
@@ -101,7 +113,8 @@ class ResourceStream extends Stream {
         return $contents;
     }
 
-    public function getMetadata($key = null) {
+    public function getMetadata($key = null)
+    {
         $meta = stream_get_meta_data($this->stream);
         if ($key === null) {
             return $key;

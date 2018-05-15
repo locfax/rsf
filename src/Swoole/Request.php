@@ -2,7 +2,8 @@
 
 namespace Rsf\Swoole;
 
-class Request extends \Rsf\Http\Request {
+class Request extends \Rsf\Http\Request
+{
 
     protected $allow_client_proxy_ip = false;
 
@@ -12,7 +13,8 @@ class Request extends \Rsf\Http\Request {
      * Request constructor.
      * @param null $swoole_request
      */
-    public function __construct($swoole_request) {
+    public function __construct($swoole_request)
+    {
 
         $this->swoole_request = $swoole_request;
 
@@ -30,11 +32,13 @@ class Request extends \Rsf\Http\Request {
         parent::__construct($server, $headers, $get, $post, $files, $cookies);
     }
 
-    public function getPOST(){
+    public function getPOST()
+    {
         return $this->body;
     }
 
-    public function getClientIP() {
+    public function getClientIP()
+    {
         if (!$this->allow_client_proxy_ip || !($ip = $this->getServerParam('http_x_forwarded_for'))) {
             return $this->getServerParam('remote_addr');
         }

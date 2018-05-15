@@ -2,7 +2,8 @@
 
 namespace Rsf;
 
-class Controller {
+class Controller
+{
 
     //用户信息
     protected $login_user = null;
@@ -11,7 +12,8 @@ class Controller {
     //当前动作
     protected $response = null;
 
-    public function init(Swoole\Request $request, Swoole\Response $response) {
+    public function init(Swoole\Request $request, Swoole\Response $response)
+    {
         $this->request = $request;
         $this->response = $response;
     }
@@ -21,7 +23,8 @@ class Controller {
      * @param $arguments
      * @throws \Exception
      */
-    public function __call($name, $arguments) {
+    public function __call($name, $arguments)
+    {
         if ($this->request->isAjax()) {
             $res = array(
                 'errcode' => 1,
@@ -37,7 +40,8 @@ class Controller {
      * @param String $data
      * @param int $code
      */
-    protected function response($data = '', $code = 200) {
+    protected function response($data = '', $code = 200)
+    {
         if ($code !== 200) {
             $this->response->withStatus($code, Http\Http::getStatus($code));
         }
@@ -49,7 +53,8 @@ class Controller {
      * @param array $data
      * @param int $code
      */
-    protected function resjson($data = array(), $code = 200) {
+    protected function resjson($data = array(), $code = 200)
+    {
         if ($code !== 200) {
             $this->response->withStatus($code, Http\Http::getStatus($code));
         }
@@ -58,11 +63,13 @@ class Controller {
         $this->response->end($data);
     }
 
-    protected function render_start() {
+    protected function render_start()
+    {
         ob_start();
     }
 
-    protected function render_end() {
+    protected function render_end()
+    {
         $data = ob_get_contents();
         ob_clean();
         return $data;

@@ -2,20 +2,23 @@
 
 namespace Rsf\Database;
 
-class Mongo {
+class Mongo
+{
 
     private $_config = null;
     public $_link = null;
     public $_client = null;
 
-    public function __destruct() {
+    public function __destruct()
+    {
         $this->close();
     }
 
     /**
      * @param $config
      */
-    public function __construct($config) {
+    public function __construct($config)
+    {
         if (is_null($this->_config)) {
             $this->_config = $config;
         }
@@ -27,11 +30,13 @@ class Mongo {
         }
     }
 
-    public function reconnect() {
+    public function reconnect()
+    {
         $this->__construct($this->_config);
     }
 
-    public function close() {
+    public function close()
+    {
         if ($this->_link) {
             $this->_link->close();
             $this->_client = null;
@@ -43,7 +48,8 @@ class Mongo {
      * @param $args
      * @return mixed
      */
-    public function __call($func, $args) {
+    public function __call($func, $args)
+    {
         return $this->_client && call_user_func_array(array($this->_client, $func), $args);
     }
 
@@ -54,7 +60,8 @@ class Mongo {
      * @param string $type
      * @return bool|string
      */
-    public function create($table, $document = array(), $retid = false, $type = '') {
+    public function create($table, $document = array(), $retid = false, $type = '')
+    {
         if (is_null($this->_client)) {
             return $this->_halt('db server is not connected!', 0, $table);
         }
@@ -88,7 +95,8 @@ class Mongo {
      * @param string $type
      * @return bool
      */
-    public function replace($table, $document = array(), $type = '') {
+    public function replace($table, $document = array(), $type = '')
+    {
         if (is_null($this->_client)) {
             return $this->_halt('db server is not connected!', 0, $table);
         }
@@ -116,7 +124,8 @@ class Mongo {
      * @param string $type
      * @return bool
      */
-    public function update($table, $document = array(), $condition = array(), $options = 'set', $type = '') {
+    public function update($table, $document = array(), $condition = array(), $options = 'set', $type = '')
+    {
         if (is_null($this->_client)) {
             return $this->_halt('db server is not connected!', 0, $table);
         }
@@ -163,7 +172,8 @@ class Mongo {
      * @param string $type
      * @return bool
      */
-    public function remove($table, $condition = array(), $muti = false, $type = '') {
+    public function remove($table, $condition = array(), $muti = false, $type = '')
+    {
         if (is_null($this->_client)) {
             return $this->_halt('db server is not connected!', 0, $table);
         }
@@ -194,7 +204,8 @@ class Mongo {
      * @param string $type
      * @return mixed
      */
-    public function findOne($table, $fields = array(), $condition = array(), $type = '') {
+    public function findOne($table, $fields = array(), $condition = array(), $type = '')
+    {
         if (is_null($this->_client)) {
             return $this->_halt('db server is not connected!', 0, $table);
         }
@@ -224,7 +235,8 @@ class Mongo {
      * @param string $type
      * @return array|bool|\Generator
      */
-    public function findAll($table, $fields = array(), $query = array(), $type = '') {
+    public function findAll($table, $fields = array(), $query = array(), $type = '')
+    {
         if (is_null($this->_client)) {
             return $this->_halt('db server is not connected!', 0, $table);
         }
@@ -263,7 +275,8 @@ class Mongo {
      * @param string $type
      * @return array|bool
      */
-    private function _page($table, $fields, $condition, $offset = 0, $length = 18, $type = '') {
+    private function _page($table, $fields, $condition, $offset = 0, $length = 18, $type = '')
+    {
         if (is_null($this->_client)) {
             return $this->_halt('db server is not connected!', 0, $table);
         }
@@ -307,7 +320,8 @@ class Mongo {
      * @param int $length
      * @return array|bool
      */
-    function page($table, $field, $condition, $pageparm = 0, $length = 18) {
+    function page($table, $field, $condition, $pageparm = 0, $length = 18)
+    {
         if (is_array($pageparm)) {
             //固定长度分页模式
             $ret = array('rowsets' => array(), 'pagebar' => '');
@@ -331,7 +345,8 @@ class Mongo {
      * @param string $type
      * @return bool
      */
-    public function count($table, $condition = array(), $type = '') {
+    public function count($table, $condition = array(), $type = '')
+    {
         if (is_null($this->_client)) {
             return $this->_halt('db server is not connected!', 0, $table);
         }
@@ -356,7 +371,8 @@ class Mongo {
      * @param string $sql
      * @return bool
      */
-    private function _halt($message = '', $code = 0, $sql = '') {
+    private function _halt($message = '', $code = 0, $sql = '')
+    {
         if ($this->_config['rundev']) {
             $this->close();
             $encode = mb_detect_encoding($message, array('ASCII', 'UTF-8', 'GB2312', 'GBK', 'BIG5'));

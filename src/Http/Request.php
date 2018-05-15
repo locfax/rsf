@@ -5,7 +5,8 @@ namespace Rsf\Http;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
 
-class Request implements ServerRequestInterface {
+class Request implements ServerRequestInterface
+{
 
     use MessageTrait;
 
@@ -17,7 +18,8 @@ class Request implements ServerRequestInterface {
     protected $method;
     protected $uri;
 
-    public function __construct($server, $headers, $get, $post, $files, $cookies) {
+    public function __construct($server, $headers, $get, $post, $files, $cookies)
+    {
         $this->server = $server;
         $this->headers = $headers;
 
@@ -29,22 +31,26 @@ class Request implements ServerRequestInterface {
         //$this->body = new ResourceStream(fopen('php://input', 'r'));
     }
 
-    public function __clone() {
+    public function __clone()
+    {
         $this->method = null;
         $this->uri = null;
     }
 
-    public function getRequestTarget() {
+    public function getRequestTarget()
+    {
         return isset($this->server['REQUEST_URI']) ? $this->server['REQUEST_URI'] : '/';
     }
 
-    public function withRequestTarget($requestTarget) {
+    public function withRequestTarget($requestTarget)
+    {
         $result = clone $this;
         $result->server['REQUEST_URI'] = $requestTarget;
         return $result;
     }
 
-    public function getMethod() {
+    public function getMethod()
+    {
         if ($this->method !== null) {
             return $this->method;
         }
@@ -62,14 +68,16 @@ class Request implements ServerRequestInterface {
         return $this->method = strtoupper($method);
     }
 
-    public function withMethod($method) {
+    public function withMethod($method)
+    {
         $result = clone $this;
         $result->method = strtoupper($method);
 
         return $result;
     }
 
-    public function getUri() {
+    public function getUri()
+    {
         if ($this->uri) {
             return $this->uri;
         }
@@ -85,43 +93,52 @@ class Request implements ServerRequestInterface {
             ->withPort($port);
     }
 
-    public function withUri(UriInterface $uri, $preserveHost = false) {
+    public function withUri(UriInterface $uri, $preserveHost = false)
+    {
         throw new \Exception('Request::withUri() not implemented');
     }
 
-    public function getServerParams() {
+    public function getServerParams()
+    {
         return $this->server;
     }
 
-    public function getCookieParams() {
+    public function getCookieParams()
+    {
         return $this->cookies;
     }
 
-    public function withCookieParams(array $cookies) {
+    public function withCookieParams(array $cookies)
+    {
         $result = clone $this;
         $result->cookies = $cookies;
         return $result;
     }
 
-    public function getQueryParams() {
+    public function getQueryParams()
+    {
         return $this->get;
     }
 
-    public function withQueryParams(array $query) {
+    public function withQueryParams(array $query)
+    {
         $result = clone $this;
         $result->get = $query;
         return $result;
     }
 
-    public function getUploadedFiles() {
+    public function getUploadedFiles()
+    {
         return $this->files;
     }
 
-    public function withUploadedFiles(array $uploadFiles) {
+    public function withUploadedFiles(array $uploadFiles)
+    {
         throw new \Exception('Request::withUploadedFiles() not implemented');
     }
 
-    public function getParsedBody() {
+    public function getParsedBody()
+    {
         $content_type = $this->getHeaderLine('content-type');
         $method = $this->getServerParam('REQUEST_METHOD');
         if ($method === 'POST' && ($content_type === 'application/x-www-form-urlencoded' || $content_type === 'multipart/form-data')) {
@@ -137,58 +154,70 @@ class Request implements ServerRequestInterface {
         return $body;
     }
 
-    public function withParsedBody($data) {
+    public function withParsedBody($data)
+    {
         throw new \Exception('Request::withParsedBody() not implemented');
     }
 
-    public function getServerParam($name) {
+    public function getServerParam($name)
+    {
         $name = strtoupper($name);
         return isset($this->server[$name]) ? $this->server[$name] : false;
     }
 
-    public function getCookieParam($name) {
+    public function getCookieParam($name)
+    {
         return isset($this->cookies[$name]) ? $this->cookies[$name] : false;
     }
 
-    public function get($key = null) {
+    public function get($key = null)
+    {
         if ($key === null) {
             return $this->get;
         }
         return isset($this->get[$key]) ? $this->get[$key] : null;
     }
 
-    public function post($key = null) {
+    public function post($key = null)
+    {
         if ($key === null) {
             return $this->post;
         }
         return isset($this->post[$key]) ? $this->post[$key] : null;
     }
 
-    public function hasGet($key) {
+    public function hasGet($key)
+    {
         return array_key_exists($key, $this->get);
     }
 
-    public function hasPost($key) {
+    public function hasPost($key)
+    {
         return array_key_exists($key, $this->post);
     }
 
-    public function isGet() {
+    public function isGet()
+    {
         return $this->getMethod() === 'GET' || $this->getMethod() === 'HEAD';
     }
 
-    public function isPost() {
+    public function isPost()
+    {
         return $this->getMethod() === 'POST';
     }
 
-    public function isPut() {
+    public function isPut()
+    {
         return $this->getMethod() === 'PUT';
     }
 
-    public function isDelete() {
+    public function isDelete()
+    {
         return $this->getMethod() === 'DELETE';
     }
 
-    public function isAjax() {
+    public function isAjax()
+    {
         $val = $this->getHeader('x-requested-with');
         return $val && (strtolower($val[0]) === 'xmlhttprequest');
     }
@@ -218,7 +247,8 @@ class Request implements ServerRequestInterface {
      *     ],
      * ]);
      */
-    public static function factory($options = []) {
+    public static function factory($options = [])
+    {
         $options = array_merge([
             'uri' => '/',
             'method' => 'GET',

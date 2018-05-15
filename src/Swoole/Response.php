@@ -4,16 +4,19 @@ namespace Rsf\Swoole;
 
 use \Rsf\Http;
 
-class Response extends Http\Response {
+class Response extends Http\Response
+{
 
     private $_response = null;
 
-    public function __construct($swoole_response) {
+    public function __construct($swoole_response)
+    {
         parent::__construct();
         $this->_response = $swoole_response;
     }
 
-    public function end($data = null) {
+    public function end($data = null)
+    {
         if ($this->end) {
             return $this;
         }
@@ -25,13 +28,15 @@ class Response extends Http\Response {
         return $this;
     }
 
-    public function sendfile($file, $type = 'application/octet-stream') {
+    public function sendfile($file, $type = 'application/octet-stream')
+    {
         $this->_response->header('Content-Type', $type);
         $this->_response->header('Content-Disposition', 'attachment; filename="' . basename($file) . '"');
         $this->_response->sendfile($file);
     }
 
-    protected function send() {
+    protected function send()
+    {
         $status = $this->getStatusCode();
         if ($status && $status !== 200) {
             $this->_response->status($status);

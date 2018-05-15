@@ -2,7 +2,8 @@
 
 namespace Rsf\Http;
 
-class Response implements \Psr\Http\Message\ResponseInterface {
+class Response implements \Psr\Http\Message\ResponseInterface
+{
 
     use MessageTrait;
 
@@ -11,12 +12,14 @@ class Response implements \Psr\Http\Message\ResponseInterface {
     protected $cookies = [];
     protected $end = false;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->immutability = false;
         $this->reset();
     }
 
-    public function reset() {
+    public function reset()
+    {
         $this->attributes = [];
         $this->code = 200;
         $this->cookies = [];
@@ -25,39 +28,46 @@ class Response implements \Psr\Http\Message\ResponseInterface {
         $this->end = false;
     }
 
-    public function getStatusCode() {
+    public function getStatusCode()
+    {
         return $this->code;
     }
 
-    public function withStatus($code, $reasonPhrase = '') {
+    public function withStatus($code, $reasonPhrase = '')
+    {
         $this->code = (int)$code;
         $this->reason_phrase = $reasonPhrase;
         return $this;
     }
 
-    public function getReasonPhrase() {
+    public function getReasonPhrase()
+    {
         if ($this->reason_phrase) {
             return $this->reason_phrase;
         }
         return Http::getStatus($this->code);
     }
 
-    public function withCookie($name, $value, $expire = 0, $path = '/', $domain = null, $secure = 0, $httponly = true) {
+    public function withCookie($name, $value, $expire = 0, $path = '/', $domain = null, $secure = 0, $httponly = true)
+    {
         $key = sprintf('%s@%s:%s', $name, $domain, $path);
         $this->cookies[$key] = [$name, $value, $expire, $path, $domain, $secure, $httponly];
         return $this;
     }
 
-    public function redirect($url, $status = 303) {
+    public function redirect($url, $status = 303)
+    {
         return $this->withStatus($status)->withHeader('Location', $url);
     }
 
-    public function write($data) {
+    public function write($data)
+    {
         $this->getBody()->write($data);
         return $this;
     }
 
-    protected function send() {
+    protected function send()
+    {
         if (!headers_sent()) {
             $code = $this->getStatusCode();
             $version = $this->getProtocolVersion();

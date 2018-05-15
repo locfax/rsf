@@ -2,7 +2,8 @@
 
 namespace Rsf\Http;
 
-class Http {
+class Http
+{
     const SWITCHING_PROTOCOLS = 101;
     const PROCESSING = 102;
     const OK = 200;
@@ -125,7 +126,8 @@ class Http {
         511 => 'Network Authentication Required',
     ];
 
-    public static function getStatus($code) {
+    public static function getStatus($code)
+    {
         return isset(self::$phrases[$code])
             ? self::$phrases[$code]
             : null;

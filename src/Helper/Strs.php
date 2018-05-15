@@ -2,14 +2,16 @@
 
 namespace Rsf\Helper;
 
-class Strs {
+class Strs
+{
 
     /**
      * 随机字符
      * @param int $length
      * @return string
      */
-    public static function random($length = 4) {
+    public static function random($length = 4)
+    {
         $reqid = '';
         $characters = array("A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "2", "3", "4", "5", "6", "7", "8", "9");
         shuffle($characters);
@@ -24,7 +26,8 @@ class Strs {
      * @param $string
      * @return array|string
      */
-    public static function daddcslashes($string) {
+    public static function daddcslashes($string)
+    {
         if (empty($string)) {
             return $string;
         }
@@ -42,7 +45,8 @@ class Strs {
      * @param $value
      * @return array|string
      */
-    public static function dstripcslashes($value) {
+    public static function dstripcslashes($value)
+    {
         if (empty($value)) {
             return $value;
         }
@@ -67,7 +71,8 @@ class Strs {
      * @param string $dot
      * @return mixed|string
      */
-    public static function cutstr($string, $length, $suffix = true, $charset = "utf-8", $start = 0, $dot = ' ...') {
+    public static function cutstr($string, $length, $suffix = true, $charset = "utf-8", $start = 0, $dot = ' ...')
+    {
         $str = str_replace(array('&amp;', '&quot;', '&lt;', '&gt;'), array('&', '"', '<', '>'), $string);
         if (function_exists("mb_substr")) {
             $strcut = mb_substr($str, $start, $length, $charset);
@@ -95,7 +100,8 @@ class Strs {
      * @param int $html
      * @return mixed|string
      */
-    public static function getstr($string, $length, $out_slashes = 0, $html = 0) {
+    public static function getstr($string, $length, $out_slashes = 0, $html = 0)
+    {
         $string = stripslashes($string);
         if ($html < 0) {
             $string = preg_replace("/(\<[^\<]*\>|\r|\n|\s|\[.+?\])/is", ' ', $string);
@@ -117,7 +123,8 @@ class Strs {
      * @param $string
      * @return mixed|string
      */
-    public static function convert_encode($in, $out, $string) { // string change charset return string
+    public static function convert_encode($in, $out, $string)
+    { // string change charset return string
         if (function_exists('mb_convert_encoding')) {
             return mb_convert_encoding($string, $out, $in);
             //return mb_convert_encoding($string, $out, $in);
@@ -134,7 +141,8 @@ class Strs {
      * @param $string
      * @return array|mixed|string
      */
-    public static function convert_char($in, $out, $string) {
+    public static function convert_char($in, $out, $string)
+    {
         // string change charset return mix
         if (is_array($string)) {
             $ret = array();

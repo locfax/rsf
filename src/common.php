@@ -9,7 +9,8 @@
  * @param bool $emptyrun
  * @return null
  */
-function getgpc($variable, $defval = null, $runfunc = '', $emptyrun = false) {
+function getgpc($variable, $defval = null, $runfunc = '', $emptyrun = false)
+{
     if (1 == strpos($variable, '.')) {
         $tmp = strtoupper(substr($variable, 0, 1));
         $var = substr($variable, 2);
@@ -79,7 +80,8 @@ function getgpc($variable, $defval = null, $runfunc = '', $emptyrun = false) {
  * @param $emptyrun
  * @return string
  */
-function gpc_val($val, $runfunc, $emptyrun) {
+function gpc_val($val, $runfunc, $emptyrun)
+{
     if ('' == $val) {
         return $emptyrun ? $runfunc($val) : '';
     }
@@ -104,7 +106,8 @@ function gpc_val($val, $runfunc, $emptyrun) {
 }
 
 //keypath  path1/path2/path3
-function getini($key) {
+function getini($key)
+{
     $_CFG = \Rsf\App::mergeVars('cfg');
     $k = explode('/', $key);
     switch (count($k)) {
@@ -130,7 +133,8 @@ function getini($key) {
  * @param $cachefile
  * @param $file
  */
-function checktplrefresh($maintpl, $subtpl, $cachetime, $cachefile, $file) {
+function checktplrefresh($maintpl, $subtpl, $cachetime, $cachefile, $file)
+{
     $tpldir = getini('data/tpldir');
     if (is_file($tpldir . $subtpl)) {
         $tpltime = filemtime($tpldir . $subtpl);
@@ -149,7 +153,8 @@ function checktplrefresh($maintpl, $subtpl, $cachetime, $cachefile, $file) {
  * @param bool $gettplfile
  * @return string
  */
-function template($file, $gettplfile = false) {
+function template($file, $gettplfile = false)
+{
     $_tplid = getini('site/themes');
     $tplfile = $_tplid . '/' . $file . '.htm';
     if ($gettplfile) {
@@ -167,7 +172,8 @@ function template($file, $gettplfile = false) {
  * @param $param
  * @return string
  */
-function url($udi, $param = array()) {
+function url($udi, $param = array())
+{
     $_udi = explode('/', $udi);
     $url = '?' . \Rsf\App::_dCTL . '=' . $_udi[0] . '&' . \Rsf\App::_dACT . '=' . $_udi[1];
 
@@ -182,7 +188,8 @@ function url($udi, $param = array()) {
 /* qutotes get post cookie by \'
  * return string
  */
-function daddslashes($string) {
+function daddslashes($string)
+{
     if (empty($string)) {
         return $string;
     }
@@ -198,7 +205,8 @@ function daddslashes($string) {
 /*
  * it's paire to daddslashes
  */
-function dstripslashes($value) {
+function dstripslashes($value)
+{
     if (empty($value)) {
         return $value;
     }
@@ -216,7 +224,8 @@ function dstripslashes($value) {
  * 屏蔽单双引号等
  * 提供给数据库搜索
  */
-function input_char($text) {
+function input_char($text)
+{
     if (empty($text)) {
         return $text;
     }
@@ -230,7 +239,8 @@ function input_char($text) {
 *  屏蔽单双引号等
 *  提供给html显示 或者 input输入框
 */
-function output_char($text) {
+function output_char($text)
+{
     if (empty($text)) {
         return $text;
     }
@@ -245,7 +255,8 @@ function output_char($text) {
  * @param $utimeoffset
  * @return array
  */
-function loctime($utimeoffset) {
+function loctime($utimeoffset)
+{
     static $dtformat = null, $timeoffset = 8;
     if (is_null($dtformat)) {
         $dtformat = array(
@@ -266,7 +277,8 @@ function loctime($utimeoffset) {
  * @param string $uformat
  * @return string
  */
-function dgmdate($timestamp, $format = 'dt', $utimeoffset = 999, $uformat = '') {
+function dgmdate($timestamp, $format = 'dt', $utimeoffset = 999, $uformat = '')
+{
     if (!$timestamp) {
         return '';
     }
@@ -317,7 +329,8 @@ function dgmdate($timestamp, $format = 'dt', $utimeoffset = 999, $uformat = '') 
  * @param int $halt
  * @param string $func
  */
-function dump($var, $halt = 0, $func = 'p') {
+function dump($var, $halt = 0, $func = 'p')
+{
     echo '<style>.track {
       font-family:Verdana, Arial, Helvetica, sans-serif;
       font-size: 12px;

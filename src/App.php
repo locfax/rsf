@@ -2,7 +2,8 @@
 
 namespace Rsf;
 
-class App {
+class App
+{
 
     const _dCTL = 'c';
     const _dACT = 'a';
@@ -14,7 +15,8 @@ class App {
     /**
      * @param $root
      */
-    public function steup($root) {
+    public function steup($root)
+    {
         $this->rootnamespace('\\', $root);
     }
 
@@ -22,7 +24,8 @@ class App {
      * @param $key
      * @param $handle
      */
-    public function setHandle($key, $handle) {
+    public function setHandle($key, $handle)
+    {
         $this->handlers[$key] = $handle;
     }
 
@@ -31,14 +34,16 @@ class App {
      * @param $param
      * @return bool|mixed
      */
-    public function doHandle($key, $param) {
+    public function doHandle($key, $param)
+    {
         if (!isset($this->handlers[$key])) {
             return true;
         }
         return call_user_func($this->handlers[$key], $param);
     }
 
-    private function finish() {
+    private function finish()
+    {
         DB::close();
     }
 
@@ -46,7 +51,8 @@ class App {
      * @param $request
      * @param $response
      */
-    public function request($request, $response) {
+    public function request($request, $response)
+    {
         $request = new Swoole\Request($request);
         $response = new Swoole\Response($response);
         $this->dispatching($request, $response);
@@ -57,7 +63,8 @@ class App {
      * @param $request
      * @param $response
      */
-    public function dispatching(Swoole\Request $request, Swoole\Response $response) {
+    public function dispatching(Swoole\Request $request, Swoole\Response $response)
+    {
         if (defined('ROUTE') && ROUTE) {
             $uri = $request->getRequestTarget();
             $router = $this->parse_routes($uri);
@@ -82,7 +89,8 @@ class App {
      * @param $request
      * @param $response
      */
-    private function execute($controllerName, $actionName, Swoole\Request $request, Swoole\Response $response) {
+    private function execute($controllerName, $actionName, Swoole\Request $request, Swoole\Response $response)
+    {
         static $controller_pool = array();
         $controllerName = ucfirst($controllerName);
         $actionMethod = self::_actionPrefix . $actionName;
@@ -99,7 +107,8 @@ class App {
         call_user_func([$controller, $actionMethod]);
     }
 
-    private function parse_routes($uri) {
+    private function parse_routes($uri)
+    {
         static $routes = null;
         if (strpos($uri, 'index.php') !== false) {
             $uri = substr($uri, strpos($uri, 'index.php') + 10);
@@ -134,7 +143,8 @@ class App {
      * @param null $vars
      * @return mixed
      */
-    public static function mergeVars($group, $vars = null) {
+    public static function mergeVars($group, $vars = null)
+    {
         static $_CDATA = array(APPKEY => array('dsn' => null, 'cfg' => null, 'data' => null));
         $appkey = APPKEY;
         if (is_null($vars)) {
@@ -152,7 +162,8 @@ class App {
      * @param $namespace
      * @param $path
      */
-    public function rootnamespace($namespace, $path) {
+    public function rootnamespace($namespace, $path)
+    {
         $namespace = trim($namespace, '\\');
         $path = rtrim($path, '/');
         $loader = function ($classname) use ($namespace, $path) {
