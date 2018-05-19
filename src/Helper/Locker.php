@@ -40,7 +40,7 @@ class Locker
      */
     public static function status($action, $process)
     {
-        static $plist = array();
+        static $plist = [];
         switch ($action) {
             case 'set' :
                 $plist[$process] = true;
@@ -113,10 +113,10 @@ class Locker
         $db = \Rsf\DB::dbo(self::dsn);
         switch ($cmd) {
             case 'set':
-                $ret = $db->replace('common_process', array('processid' => $name, 'expiry' => time() + $ttl));
+                $ret = $db->replace('common_process', ['processid' => $name, 'expiry' => time() + $ttl]);
                 break;
             case 'get':
-                $ret = $db->findOne('common_process', '*', array('processid' => $name));
+                $ret = $db->findOne('common_process', '*', ['processid' => $name]);
                 if (empty($ret) || $ret['expiry'] < time()) {
                     $ret = false;
                 } else {

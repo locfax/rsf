@@ -23,7 +23,7 @@ class Cacher
         $this->config = getini('cache');
         $this->prefix = $this->config['prefix'];
         $cacher = $cacher ?: $this->config['cacher'];
-        if (in_array($cacher, array('file', 'memcache', 'redis'))) {
+        if (in_array($cacher, ['file', 'memcache', 'redis'])) {
             $class = "\\Rsf\\Cache\\" . ucfirst($cacher);
             if ($cacher != 'file') {
                 $config = \Rsf\Context::dsn($cacher . '.cache');
@@ -62,7 +62,7 @@ class Cacher
     {
         $ret = false;
         if ($this->enable) {
-            $data = array($value);
+            $data = [$value];
             $ret = $this->cacher->set($this->_key($key), \Rsf\Util::output_json($data), $ttl);
         }
         return $ret;

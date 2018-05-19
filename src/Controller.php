@@ -26,10 +26,10 @@ class Controller
     public function __call($name, $arguments)
     {
         if ($this->request->isAjax()) {
-            $res = array(
+            $res = [
                 'errcode' => 1,
                 'errmsg' => 'Action ' . $name . '不存在!'
-            );
+            ];
             $this->resjson($res);
         } else {
             $this->response('Action ' . $name . '不存在!');
@@ -53,7 +53,7 @@ class Controller
      * @param array $data
      * @param int $code
      */
-    protected function resjson($data = array(), $code = 200)
+    protected function resjson($data = [], $code = 200)
     {
         if ($code !== 200) {
             $this->response->withStatus($code, Http\Http::getStatus($code));

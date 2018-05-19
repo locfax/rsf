@@ -91,7 +91,7 @@ class App
      */
     private function execute($controllerName, $actionName, Swoole\Request $request, Swoole\Response $response)
     {
-        static $controller_pool = array();
+        static $controller_pool = [];
         $controllerName = ucfirst($controllerName);
         $actionMethod = self::_actionPrefix . $actionName;
 
@@ -145,7 +145,7 @@ class App
      */
     public static function mergeVars($group, $vars = null)
     {
-        static $_CDATA = array(APPKEY => array('dsn' => null, 'cfg' => null, 'data' => null));
+        static $_CDATA = [APPKEY => ['dsn' => null, 'cfg' => null, 'data' => null]];
         $appkey = APPKEY;
         if (is_null($vars)) {
             return $_CDATA[$appkey][$group];
