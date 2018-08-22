@@ -27,8 +27,6 @@ class Request implements ServerRequestInterface
         $this->post = $post;
         $this->files = $files;
         $this->cookies = $cookies;
-
-        //$this->body = new ResourceStream(fopen('php://input', 'r'));
     }
 
     public function __clone()
@@ -93,7 +91,7 @@ class Request implements ServerRequestInterface
             ->withPort($port);
     }
 
-    public function withUri(UriInterface $uri, $preserveHost = false)
+    public function withUri($uri, $preserveHost = false)
     {
         throw new \Exception('Request::withUri() not implemented');
     }

@@ -4,11 +4,8 @@ namespace Rsf;
 
 class Controller
 {
-
-    //用户信息
-    protected $login_user = null;
     //当前控制器
-    protected $request = null;
+    protected  $request = null;
     //当前动作
     protected $response = null;
 

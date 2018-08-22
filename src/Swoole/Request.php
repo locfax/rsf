@@ -9,6 +9,8 @@ class Request extends \Rsf\Http\Request
 
     protected $swoole_request;
 
+    protected $body;
+
     /**
      * Request constructor.
      * @param null $swoole_request
@@ -32,7 +34,7 @@ class Request extends \Rsf\Http\Request
         parent::__construct($server, $headers, $get, $post, $files, $cookies);
     }
 
-    public function getPOST()
+    public function getBODY()
     {
         return $this->body;
     }
