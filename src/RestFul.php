@@ -12,7 +12,7 @@ class RestFul extends Controller
     public function __construct()
     {
         // 请求方式检测
-        $method = strtolower($this->request->method);
+        $method = strtolower($this->request->getMethod());
         if (!in_array($method, $this->allow_method)) {
             $method = 'get';
         }
