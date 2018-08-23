@@ -91,7 +91,7 @@ class Request implements ServerRequestInterface
             ->withPort($port);
     }
 
-    public function withUri($uri, $preserveHost = false)
+    public function withUri(UriInterface $uri, $preserveHost = false)
     {
         throw new \Exception('Request::withUri() not implemented');
     }

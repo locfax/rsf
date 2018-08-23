@@ -103,7 +103,7 @@ class App
             $controller = new $controllerClass();
             $controller_pool[$controllerClass] = $controller;
         }
-        $controller->init($request, $response);
+        $controller->init($request, $response, $actionName);
         call_user_func([$controller, $actionMethod]);
     }
 
