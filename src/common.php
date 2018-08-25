@@ -65,7 +65,7 @@ function getgpc($variable, $defval = null, $runfunc = '', $emptyrun = false)
             return $defval;
         }
     }
-    if (in_array($type, array('GET', 'POST', 'COOKIE'))) {
+    if (in_array($type, ['GET', 'POST', 'COOKIE'])) {
         return gpc_val($value, $runfunc, $emptyrun);
     } elseif ('SERVER' == $type) {
         return isset($_SERVER[$var]) ? $_SERVER[$var] : $defval;
@@ -172,7 +172,7 @@ function template($file, $gettplfile = false)
  * @param $param
  * @return string
  */
-function url($udi, $param = array())
+function url($udi, $param = [])
 {
     $_udi = explode('/', $udi);
     $url = '?' . \Rsf\App::_dCTL . '=' . $_udi[0] . '&' . \Rsf\App::_dACT . '=' . $_udi[1];
