@@ -14,9 +14,11 @@ class Pdo
     }
 
     /**
+     * Pdo constructor.
      * @param $config
+     * @param bool $repeat
      */
-    public function __construct($config)
+    public function __construct($config, $repeat = false)
     {
         if (is_null($this->_config)) {
             $this->_config = $config;
@@ -40,13 +42,13 @@ class Pdo
                 $this->_link->exec('SET NAMES utf8');
             }
         } catch (\PDOException $exception) {
-            $this->_halt($exception->getMessage(), $exception->getCode(), 'server is gone');
+            if ($repeat == false) {
+                $this->__construct($config, true);
+            } else {
+                $this->close();
+                $this->_halt($exception->getMessage(), $exception->getCode(), 'server is gone');
+            }
         }
-    }
-
-    public function reconnect()
-    {
-        $this->__construct($this->_config);
     }
 
     public function close()
@@ -127,14 +129,10 @@ class Pdo
      * @param $tableName
      * @param array $data
      * @param bool $retid
-     * @param string $type
      * @return bool
      */
-    public function create($tableName, array $data, $retid = false, $type = '')
+    public function create($tableName, array $data, $retid = false)
     {
-        if (empty($data)) {
-            return false;
-        }
         $args = [];
         $fields = $values = $comma = '';
         foreach ($data as $field => $value) {
@@ -155,10 +153,6 @@ class Pdo
             }
             return $ret;
         } catch (\PDOException $e) {
-            if ('RETRY' != $type) {
-                $this->reconnect();
-                return $this->create($tableName, $data, $retid, 'RETRY');
-            }
             return $this->_halt($e->getMessage(), $e->getCode(), $sql);
         }
     }
@@ -167,14 +161,10 @@ class Pdo
      * @param $tableName
      * @param array $data
      * @param bool $retnum
-     * @param string $type
      * @return bool
      */
-    public function replace($tableName, array $data, $retnum = false, $type = '')
+    public function replace($tableName, array $data, $retnum = false)
     {
-        if (empty($data)) {
-            return false;
-        }
         $args = [];
         $fields = $values = $comma = '';
         foreach ($data as $field => $value) {
@@ -195,10 +185,6 @@ class Pdo
             }
             return $ret;
         } catch (\PDOException $e) {
-            if ('RETRY' != $type) {
-                $this->reconnect();
-                return $this->replace($tableName, $data, $retnum, 'RETRY');
-            }
             return $this->_halt($e->getMessage(), $e->getCode(), $sql);
         }
     }
@@ -208,14 +194,10 @@ class Pdo
      * @param array $data
      * @param $condition
      * @param bool $retnum
-     * @param string $type
      * @return bool
      */
-    public function update($tableName, $data, $condition, $retnum = false, $type = '')
+    public function update($tableName, $data, $condition, $retnum = false)
     {
-        if (empty($data)) {
-            return false;
-        }
         try {
             if (is_array($condition)) {
                 if (!is_array($data)) {
@@ -247,10 +229,6 @@ class Pdo
                 return $this->_link->exec($sql);
             }
         } catch (\PDOException $e) {
-            if ('RETRY' != $type) {
-                $this->reconnect();
-                return $this->update($tableName, $data, $condition, $retnum, 'RETRY');
-            }
             return $this->_halt($e->getMessage(), $e->getCode(), $sql);
         }
     }
@@ -259,10 +237,9 @@ class Pdo
      * @param $tableName
      * @param $condition
      * @param bool $muti
-     * @param string $type
      * @return bool
      */
-    public function remove($tableName, $condition, $muti = true, $type = '')
+    public function remove($tableName, $condition, $muti = true)
     {
         if (empty($condition)) {
             return false;
@@ -278,10 +255,6 @@ class Pdo
             }
             return $this->_link->exec($sql);
         } catch (\PDOException $e) {
-            if ('RETRY' != $type) {
-                $this->reconnect();
-                return $this->remove($tableName, $condition, $muti, 'RETRY');
-            }
             return $this->_halt($e->getMessage(), $e->getCode(), $sql);
         }
     }
@@ -291,10 +264,9 @@ class Pdo
      * @param string $field
      * @param $condition
      * @param $retobj
-     * @param $type
      * @return bool
      */
-    public function findOne($tableName, $field, $condition, $retobj = false, $type = '')
+    public function findOne($tableName, $field, $condition, $retobj = false)
     {
         try {
             if (is_array($condition)) {
@@ -318,12 +290,9 @@ class Pdo
                 $data = $sth->fetch();
             }
             $sth->closeCursor();
+            $sth = null;
             return $data;
         } catch (\PDOException $e) {
-            if ('RETRY' != $type) {
-                $this->reconnect();
-                return $this->findOne($tableName, $field, $condition, $retobj, 'RETRY');
-            }
             return $this->_halt($e->getMessage(), $e->getCode(), $sql);
         }
     }
@@ -334,10 +303,9 @@ class Pdo
      * @param string $condition
      * @param null $index
      * @param bool $retobj
-     * @param string $type
      * @return array|bool
      */
-    public function findAll($tableName, $field = '*', $condition = '1', $index = null, $retobj = false, $type = '')
+    public function findAll($tableName, $field = '*', $condition = '1', $index = null, $retobj = false)
     {
         try {
             if (is_array($condition)) {
@@ -364,12 +332,9 @@ class Pdo
                 }
             }
             $sth->closeCursor();
+            $sth = null;
             return $data;
         } catch (\PDOException $e) {
-            if ('RETRY' != $type) {
-                $this->reconnect();
-                return $this->findAll($tableName, $field, $condition, $index, $retobj, 'RETRY');
-            }
             return $this->_halt($e->getMessage(), $e->getCode(), $sql);
         }
     }
@@ -381,10 +346,9 @@ class Pdo
      * @param int $start
      * @param int $length
      * @param bool $retobj
-     * @param string $type
      * @return array|bool
      */
-    private function _page($tableName, $field, $condition, $start = 0, $length = 20, $retobj = false, $type = '')
+    private function _page($tableName, $field, $condition, $start = 0, $length = 20, $retobj = false)
     {
         try {
             if (is_array($condition)) {
@@ -410,12 +374,9 @@ class Pdo
                 $data = $sth->fetchAll();
             }
             $sth->closeCursor();
+            $sth = null;
             return $data;
         } catch (\PDOException $e) {
-            if ('RETRY' != $type) {
-                $this->reconnect();
-                return $this->_page($tableName, $field, $condition, $start, $length, $retobj, 'RETRY');
-            }
             return $this->_halt($e->getMessage(), $e->getCode(), $sql);
         }
     }
@@ -452,10 +413,9 @@ class Pdo
      * @param string $tableName
      * @param string $field
      * @param mixed $condition
-     * @param string $type
      * @return bool
      */
-    public function resultFirst($tableName, $field, $condition, $type = '')
+    public function resultFirst($tableName, $field, $condition)
     {
         try {
             if (is_array($condition)) {
@@ -475,12 +435,9 @@ class Pdo
             }
             $data = $sth->fetchColumn();
             $sth->closeCursor();
+            $sth = null;
             return $data;
         } catch (\PDOException $e) {
-            if ('RETRY' != $type) {
-                $this->reconnect();
-                return $this->resultFirst($tableName, $field, $condition, 'RETRY');
-            }
             return $this->_halt($e->getMessage(), $e->getCode(), $sql);
         }
     }
@@ -490,10 +447,9 @@ class Pdo
      * @param $tableName
      * @param $field
      * @param $condition
-     * @param $type
      * @return array|bool
      */
-    public function getCol($tableName, $field, $condition, $type = '')
+    public function getCol($tableName, $field, $condition)
     {
         try {
             if (is_array($condition)) {
@@ -516,12 +472,9 @@ class Pdo
                 $data[] = $col;
             }
             $sth->closeCursor();
+            $sth = null;
             return $data;
         } catch (\PDOException $e) {
-            if ('RETRY' != $type) {
-                $this->reconnect();
-                return $this->getCol($tableName, $field, $condition, 'RETRY');
-            }
             return $this->_halt($e->getMessage(), $e->getCode(), $sql);
         }
     }
@@ -529,14 +482,10 @@ class Pdo
     /**
      * @param string $sql
      * @param $args
-     * @param string $type
      * @return bool
      */
-    public function exec($sql, $args = null, $type = '')
+    public function exec($sql, $args = null)
     {
-        if (is_null($this->_link)) {
-            return $this->_halt('db server is not connected!', 0, $sql);
-        }
         try {
             if (is_null($args)) {
                 $sth = $this->_link->query($sql);
@@ -547,12 +496,9 @@ class Pdo
             }
             $ret = $sth->rowCount();
             $sth->closeCursor();
+            $sth = null;
             return $ret;
         } catch (\PDOException $e) {
-            if ('RETRY' != $type) {
-                $this->reconnect();
-                return $this->exec($sql, $args, 'RETRY');
-            }
             return $this->_halt($e->getMessage(), $e->getCode(), $sql);
         }
     }
@@ -561,14 +507,10 @@ class Pdo
      * @param $sql
      * @param $args
      * @param $retobj
-     * @param $type
      * @return bool
      */
-    public function row($sql, $args = null, $retobj = false, $type = '')
+    public function row($sql, $args = null, $retobj = false)
     {
-        if (is_null($this->_link)) {
-            return $this->_halt('db server is not connected!', 0, $sql);
-        }
         try {
             if (is_null($args)) {
                 $sth = $this->_link->query($sql);
@@ -583,12 +525,9 @@ class Pdo
                 $data = $sth->fetch();
             }
             $sth->closeCursor();
+            $sth = null;
             return $data;
         } catch (\PDOException $e) {
-            if ('RETRY' != $type) {
-                $this->reconnect();
-                return $this->row($sql, $args, $retobj, 'RETRY');
-            }
             return $this->_halt($e->getMessage(), $e->getCode(), $sql);
         }
     }
@@ -598,14 +537,10 @@ class Pdo
      * @param $args
      * @param $index
      * @param $retobj
-     * @param $type
      * @return bool|array
      */
-    public function rowset($sql, $args = null, $index = null, $retobj = false, $type = '')
+    public function rowset($sql, $args = null, $index = null, $retobj = false)
     {
-        if (is_null($this->_link)) {
-            return $this->_halt('db server is not connected!', 0, $sql);
-        }
         try {
             if (is_null($args)) {
                 $sth = $this->_link->query($sql);
@@ -623,12 +558,9 @@ class Pdo
                 }
             }
             $sth->closeCursor();
+            $sth = null;
             return $data;
         } catch (\PDOException $e) {
-            if ('RETRY' != $type) {
-                $this->reconnect();
-                return $this->rowset($sql, $args, $index, $retobj, 'RETRY');
-            }
             return $this->_halt($e->getMessage(), $e->getCode(), $sql);
         }
     }
@@ -637,14 +569,10 @@ class Pdo
      * @param string $sql
      * @param array $args
      * @param bool $retobj
-     * @param string $type
      * @return array|bool
      */
-    private function _pages($sql, $args = null, $retobj = false, $type = '')
+    private function _pages($sql, $args = null, $retobj = false)
     {
-        if (is_null($this->_link)) {
-            return $this->_halt('db server is not connected!', 0, $sql);
-        }
         try {
             if (is_null($args)) {
                 $sth = $this->_link->query($sql);
@@ -659,12 +587,9 @@ class Pdo
                 $data = $sth->fetchAll();
             }
             $sth->closeCursor();
+            $sth = null;
             return $data;
         } catch (\PDOException $e) {
-            if ('RETRY' != $type) {
-                $this->reconnect();
-                return $this->_pages($sql, $args, $retobj, 'RETRY');
-            }
             return $this->_halt($e->getMessage(), $e->getCode(), $sql);
         }
     }
@@ -720,14 +645,10 @@ class Pdo
     /**
      * @param string $sql
      * @param null $args
-     * @param string $type
      * @return bool
      */
-    public function firsts($sql, $args = null, $type = '')
+    public function firsts($sql, $args = null)
     {
-        if (is_null($this->_link)) {
-            return $this->_halt('db server is not connected!', 0, $sql);
-        }
         try {
             if (is_null($args)) {
                 $sth = $this->_link->query($sql);
@@ -737,12 +658,9 @@ class Pdo
             }
             $data = $sth->fetchColumn();
             $sth->closeCursor();
+            $sth = null;
             return $data;
         } catch (\PDOException $e) {
-            if ('RETRY' != $type) {
-                $this->reconnect();
-                return $this->firsts($sql, $args, 'RETRY');
-            }
             return $this->_halt($e->getMessage(), $e->getCode(), $sql);
         }
     }
@@ -750,14 +668,10 @@ class Pdo
     /**
      * @param string $sql
      * @param null $args
-     * @param string $type
      * @return array|bool
      */
-    public function getCols($sql, $args = null, $type = '')
+    public function getCols($sql, $args = null)
     {
-        if (is_null($this->_link)) {
-            return $this->_halt('db server is not connected!', 0, $sql);
-        }
         try {
             if (is_null($args)) {
                 $sth = $this->_link->query($sql);
@@ -770,12 +684,9 @@ class Pdo
                 $data[] = $col;
             }
             $sth->closeCursor();
+            $sth = null;
             return $data;
         } catch (\PDOException $e) {
-            if ('RETRY' != $type) {
-                $this->reconnect();
-                return $this->getcols($sql, $args, 'RETRY');
-            }
             return $this->_halt($e->getMessage(), $e->getCode(), $sql);
         }
     }
