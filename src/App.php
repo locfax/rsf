@@ -117,7 +117,7 @@ class App
             return false;
         }
         if (!$routes) {
-            $routes = Context::config(APPKEY, 'route');
+            $routes = include(APPPATH . 'Controller/' . APPKEY . '.route.php');
             $_routes = [];
             foreach ($routes as $key => $val) {
                 $key = str_replace([':any', ':num'], ['[^/]+', '[0-9]+'], $key);
