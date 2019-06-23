@@ -144,7 +144,7 @@ function checktplrefresh($maintpl, $subtpl, $cachetime, $cachefile, $file)
     if ($tpltime < intval($cachetime)) {
         return;
     }
-    $template = new \Rsf\Template();
+    $template = new Rsf\Template();
     $template->parse(getini('data/_view'), $tpldir, $maintpl, $cachefile, $file);
 }
 
