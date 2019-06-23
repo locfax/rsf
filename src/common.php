@@ -127,47 +127,6 @@ function getini($key)
 }
 
 /**
- * @param $maintpl
- * @param $subtpl
- * @param $cachetime
- * @param $cachefile
- * @param $file
- */
-function checktplrefresh($maintpl, $subtpl, $cachetime, $cachefile, $file)
-{
-    $tpldir = getini('data/tpldir');
-    if (is_file($tpldir . $subtpl)) {
-        $tpltime = filemtime($tpldir . $subtpl);
-    } else {
-        $tpltime = 0;
-    }
-    if ($tpltime < intval($cachetime)) {
-        return;
-    }
-    $template = new Rsf\Template();
-    $template->parse(getini('data/_view'), $tpldir, $maintpl, $cachefile, $file);
-}
-
-/**
- * @param $file
- * @param bool $gettplfile
- * @return string
- */
-function template($file, $gettplfile = false)
-{
-    $_tplid = getini('site/themes');
-    $tplfile = $_tplid . '/' . $file . '.htm';
-    if ($gettplfile) {
-        return $tplfile;
-    }
-    $cachefile = strtolower(APPKEY) . '_' . $_tplid . '_' . str_replace('/', '_', $file) . '_tpl.php';
-    $cachetpl = getini('data/_view') . $cachefile;
-    $cachetime = is_file($cachetpl) ? filemtime($cachetpl) : 0;
-    checktplrefresh($tplfile, $tplfile, $cachetime, $cachefile, $file);
-    return $cachetpl;
-}
-
-/**
  * @param $udi
  * @param $param
  * @return string
